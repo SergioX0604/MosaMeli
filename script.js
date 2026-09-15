@@ -235,6 +235,7 @@ function openCheckout() {
     document.getElementById('checkoutModal').style.display = 'flex';
 }
 
+// ================== CHECKOUT CON CULQI QR ==================
 function seleccionarMetodo(metodo) {
     metodoPagoElegido = metodo;
     document.getElementById('opciones-pago').style.display = 'none';
@@ -247,7 +248,8 @@ function seleccionarMetodo(metodo) {
 
     if (metodo === 'qr') {
         titulo.textContent = 'Escanea el QR';
-        detalle.innerHTML = totalHTML + `<p>1. Abre Yape o Plin.</p><p>2. Escanea:</p><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=MosaMeli-${total}" style="margin:10px auto; display:block;"><p>3. Confirma el monto en tu app.</p>`;
+        detalle.innerHTML = totalHTML + `<p style="text-align:center; color:#7A6A8C;">Generando QR de pago...</p>`;
+        generarQRReal();
     } else if (metodo === 'tarjeta') {
         titulo.textContent = 'Datos de Tarjeta';
         detalle.innerHTML = totalHTML + `
@@ -260,6 +262,49 @@ function seleccionarMetodo(metodo) {
     } else {
         titulo.textContent = 'Transferencia';
         detalle.innerHTML = totalHTML + `<p>Banco: <b>BCP</b></p><p>CCI: <b>002-191-2345678-0-12</b></p>`;
+    }
+}
+
+// Generar QR real con Culqi
+async function generarQRReal() {
+    const detalle = document.getElementById('detalle-instrucciones');
+    const total = totalCarrito();
+    
+    const { data: { user } } = await sc.auth.getUser();
+    const email = user?.email || 'cliente@mosameli.com';
+
+    try {
+        const { data, error } = await sc.functions.invoke('crear-orden-culqi', {
+            body: {
+                amount: total,
+                email: email,
+                description: `Compra en MosaMeli - ${carrito.length} productos`,
+                pedido_id: `MOSA-${Date.now()}`
+            }
+        });
+
+        if (error) throw error;
+
+        if (data.success && data.qr_code) {
+            detalle.innerHTML = `
+                <p style="font-size:1.2rem; font-weight:bold; color:#8E24AA; margin-bottom:15px; text-align:center;">Total: S/ ${total.toFixed(2)}</p>
+                <p style="text-align:center; margin-bottom:10px;">1. Abre Yape, Plin o tu app bancaria</p>
+                <p style="text-align:center; margin-bottom:10px;">2. Escanea este código QR:</p>
+                <img src="${data.qr_code}" alt="QR de pago" style="width:250px; height:250px; display:block; margin:0 auto; border:2px solid #9B7FD4; border-radius:12px; padding:5px;">
+                <p style="text-align:center; margin-top:10px; font-size:0.85rem; color:#7A6A8C;">3. Confirma el monto en tu app</p>
+                <p style="text-align:center; margin-top:10px; font-size:0.8rem; color:#7A6A8C;">Orden: ${data.order_number}</p>
+            `;
+        } else {
+            detalle.innerHTML = `
+                <p style="text-align:center; color:#D32F2F;">Error al generar el QR. Intenta de nuevo.</p>
+                <p style="text-align:center; font-size:0.8rem; color:#7A6A8C;">${JSON.stringify(data)}</p>
+            `;
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        detalle.innerHTML = `
+            <p style="text-align:center; color:#D32F2F;">Error: ${error.message}</p>
+        `;
     }
 }
 
