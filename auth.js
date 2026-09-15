@@ -11,7 +11,15 @@ async function checkLoginStatus() {
     if (!userName || !loginBtn || !logoutBtn) return;
 
     if (user) {
-        userName.textContent = `Hola, ${user.user_metadata?.username || user.email}`;
+        // Buscar username en la tabla perfiles
+        const { data: perfil } = await authSupabase
+            .from('perfiles')
+            .select('username')
+            .eq('id', user.id)
+            .single();
+
+        const nombreMostrar = perfil?.username || user.user_metadata?.username || user.email;
+        userName.textContent = `Hola, ${nombreMostrar}`;
         userName.style.display = 'inline';
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'inline';
@@ -28,12 +36,14 @@ const isLoginPage = window.location.pathname.includes('login.html');
 
 if (isLoginPage) {
     document.addEventListener('DOMContentLoaded', async function() {
+        // Si ya hay sesión activa, redirigir al catálogo
         const { data: { user } } = await authSupabase.auth.getUser();
         if (user) {
             window.location.href = 'index.html';
             return;
         }
 
+        // Autocompletar si se guardó con "Clave de acceso"
         const savedEmail = localStorage.getItem('mosameli_saved_email');
         if (savedEmail) {
             const emailInput = document.querySelector('#login-form input[name="email"]');
@@ -43,10 +53,12 @@ if (isLoginPage) {
         const registerForm = document.getElementById('register-form');
         const loginForm = document.getElementById('login-form');
 
-        // Registro
+        // ================== REGISTRO ==================
         if (registerForm) {
             registerForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
+                e.stopPropagation();
+                
                 let username = e.target.elements.username.value.trim();
                 let email = e.target.elements.email.value.trim();
                 let password = e.target.elements.password.value;
@@ -54,6 +66,19 @@ if (isLoginPage) {
                 if (username.length < 3) { alert('El nombre debe tener al menos 3 caracteres'); return; }
                 if (password.length < 6) { alert('La contraseña debe tener al menos 6 caracteres'); return; }
 
+                // Verificar si el username ya existe
+                const { data: existeUsername } = await authSupabase
+                    .from('perfiles')
+                    .select('username')
+                    .eq('username', username)
+                    .maybeSingle();
+
+                if (existeUsername) {
+                    alert('Ese nombre de usuario ya está en uso. Elige otro.');
+                    return;
+                }
+
+                // Crear usuario en Supabase Auth
                 const { error } = await authSupabase.auth.signUp({
                     email,
                     password,
@@ -71,17 +96,44 @@ if (isLoginPage) {
             });
         }
 
-        // Login
+        // ================== LOGIN ==================
         if (loginForm) {
             loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                let email = e.target.elements.email.value.trim();
+                e.stopPropagation();
+
+                let identifier = e.target.elements.email.value.trim();
                 let password = e.target.elements.password.value;
 
+                if (!identifier || !password) {
+                    mostrarError('Completa todos los campos');
+                    return;
+                }
+
+                // Detectar si es correo o username
+                let email = identifier;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if (!emailRegex.test(identifier)) {
+                    // Es un username → buscar su email en perfiles
+                    const { data: perfil, error: errorBusqueda } = await authSupabase
+                        .from('perfiles')
+                        .select('email')
+                        .eq('username', identifier)
+                        .maybeSingle();
+
+                    if (errorBusqueda || !perfil) {
+                        mostrarError('Usuario no encontrado. Verifica tu nombre de usuario.');
+                        return;
+                    }
+                    email = perfil.email;
+                }
+
+                // Iniciar sesión con el email resuelto
                 const { error } = await authSupabase.auth.signInWithPassword({ email, password });
 
                 if (error) {
-                    document.getElementById('login-error').style.display = 'block';
+                    mostrarError('Correo/usuario o contraseña incorrectos');
                 } else {
                     document.getElementById('login-success').style.display = 'block';
                     setTimeout(() => {
@@ -89,6 +141,12 @@ if (isLoginPage) {
                     }, 500);
                 }
             });
+        }
+
+        function mostrarError(mensaje) {
+            const errorEl = document.getElementById('login-error');
+            errorEl.textContent = mensaje;
+            errorEl.style.display = 'block';
         }
     });
 }
@@ -108,38 +166,47 @@ function saveAccessKey() {
     const passwordInput = document.querySelector('#login-form input[name="password"]');
     
     if (!emailInput.value || !passwordInput.value) {
-        alert('Primero escribe tu correo y contraseña para guardarlos');
+        alert('Primero escribe tu correo/usuario y contraseña para guardarlos');
         return;
     }
     localStorage.setItem('mosameli_saved_email', emailInput.value);
-    alert('✅ Correo guardado. La próxima vez se autocompletará.');
+    alert('✅ Guardado. La próxima vez se autocompletará.');
 }
 
 async function forgotPassword() {
     const emailInput = document.querySelector('#login-form input[name="email"]');
-    const email = emailInput.value.trim();
+    let identifier = emailInput.value.trim();
 
-    if (!email) {
+    if (!identifier) {
         alert('Por favor, escribe tu correo primero');
         emailInput.focus();
         return;
     }
 
+    // Si escribió un username, buscar el email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        alert('El correo no es válido');
-        emailInput.focus();
-        return;
+    if (!emailRegex.test(identifier)) {
+        const { data: perfil } = await authSupabase
+            .from('perfiles')
+            .select('email')
+            .eq('username', identifier)
+            .maybeSingle();
+
+        if (!perfil) {
+            alert('Usuario no encontrado');
+            return;
+        }
+        identifier = perfil.email;
     }
 
-    const { error } = await authSupabase.auth.resetPasswordForEmail(email, {
+    const { error } = await authSupabase.auth.resetPasswordForEmail(identifier, {
         redirectTo: window.location.origin + '/reset-password.html'
     });
 
     if (error) {
         alert('Error: ' + error.message);
     } else {
-        alert('✅ Te hemos enviado un correo a ' + email);
+        alert('✅ Te hemos enviado un correo a ' + identifier);
     }
 }
 
