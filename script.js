@@ -271,6 +271,7 @@ function seleccionarMetodo(metodo) {
     }
 }
 
+// ✅ Generar QR real con Culqi
 async function generarQRReal() {
     const detalle = document.getElementById('detalle-instrucciones');
     const total = totalCarrito();
@@ -295,9 +296,10 @@ async function generarQRReal() {
                 <p style="font-size:1.2rem; font-weight:bold; color:#8E24AA; margin-bottom:15px; text-align:center;">Total: S/ ${total.toFixed(2)}</p>
                 <p style="text-align:center; margin-bottom:10px;">1. Abre Yape, Plin o tu app bancaria</p>
                 <p style="text-align:center; margin-bottom:10px;">2. Escanea este código QR:</p>
-                <img src="${data.qr_code}" alt="QR de pago" style="width:250px; height:250px; display:block; margin:0 auto; border:2px solid #9B7FD4; border-radius:12px; padding:5px;">
+                <img src="${data.qr_code}" alt="QR de pago" style="width:250px; height:250px; display:block; margin:0 auto; border:2px solid #9B7FD4; border-radius:12px; padding:5px; background:white;">
                 <p style="text-align:center; margin-top:10px; font-size:0.85rem; color:#7A6A8C;">3. Confirma el monto en tu app</p>
                 <p style="text-align:center; margin-top:10px; font-size:0.8rem; color:#7A6A8C;">Orden: ${data.order_number}</p>
+                <p style="text-align:center; margin-top:5px; font-size:0.75rem; color:#B0A5BD;">Válido por 1 hora</p>
             `;
         } else {
             detalle.innerHTML = `
