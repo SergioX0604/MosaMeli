@@ -237,6 +237,12 @@ function openCheckout() {
 
 // ================== CHECKOUT CON CULQI QR ==================
 function seleccionarMetodo(metodo) {
+    // Validar monto mínimo para QR (Culqi requiere S/ 6.00 mínimo)
+    if (metodo === 'qr' && totalCarrito() < 6) {
+        showToast("El monto mínimo para pagar con QR es S/ 6.00");
+        return;
+    }
+
     metodoPagoElegido = metodo;
     document.getElementById('opciones-pago').style.display = 'none';
     document.getElementById('instrucciones-pago').style.display = 'block';
@@ -265,7 +271,6 @@ function seleccionarMetodo(metodo) {
     }
 }
 
-// Generar QR real con Culqi
 async function generarQRReal() {
     const detalle = document.getElementById('detalle-instrucciones');
     const total = totalCarrito();
@@ -297,7 +302,7 @@ async function generarQRReal() {
         } else {
             detalle.innerHTML = `
                 <p style="text-align:center; color:#D32F2F;">Error al generar el QR. Intenta de nuevo.</p>
-                <p style="text-align:center; font-size:0.8rem; color:#7A6A8C;">${JSON.stringify(data)}</p>
+                <p style="text-align:center; font-size:0.8rem; color:#7A6A8C;">Respuesta: ${JSON.stringify(data)}</p>
             `;
         }
     } catch (error) {
