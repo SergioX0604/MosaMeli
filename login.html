@@ -179,49 +179,31 @@
         }
         .forgot-input-wrapper i { color: #9B7FD4; margin-right: 10px; font-size: 0.95rem; }
         .forgot-input-wrapper input {
-            flex: 1;
-            border: none;
-            outline: none;
-            padding: 14px 0;
-            font-size: 0.95rem;
+            flex: 1; border: none; outline: none;
+            padding: 14px 0; font-size: 0.95rem;
             font-family: 'Poppins', sans-serif;
-            background: transparent;
-            color: #4A3A5C;
+            background: transparent; color: #4A3A5C;
         }
         .forgot-input-wrapper input::placeholder { color: #B0A5BD; }
         .forgot-message {
-            display: none;
-            font-size: 0.85rem;
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            background: #F5F0FA;
+            display: none; font-size: 0.85rem;
+            margin-bottom: 15px; padding: 10px;
+            border-radius: 8px; background: #F5F0FA;
         }
         .forgot-buttons { display: flex; gap: 10px; margin-top: 10px; }
         .forgot-cancel {
-            flex: 1;
-            background: #F5F0FA;
-            color: #7A6A8C;
-            border: none;
-            padding: 14px;
-            border-radius: 25px;
+            flex: 1; background: #F5F0FA; color: #7A6A8C;
+            border: none; padding: 14px; border-radius: 25px;
             font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            font-weight: 600; cursor: pointer; transition: all 0.3s;
         }
         .forgot-cancel:hover { background: #EDE4F5; }
         .forgot-submit {
             flex: 2;
             background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 25px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            color: white; border: none; padding: 14px;
+            border-radius: 25px; font-family: 'Poppins', sans-serif;
+            font-weight: 600; cursor: pointer; transition: all 0.3s;
             box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
         }
         .forgot-submit:hover:not(:disabled) {
@@ -330,7 +312,7 @@
         </div>
     </div>
 
-    <!-- ==================== MODAL DE RECUPERAR CONTRASEÑA ==================== -->
+    <!-- Modal de recuperar contraseña -->
     <div id="forgotPasswordModal" class="forgot-modal">
         <div class="forgot-modal-content">
             <span class="close-forgot" onclick="cerrarModalRecuperar()">&times;</span>
@@ -357,5 +339,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabaseClient.js"></script>
     <script src="auth.js"></script>
+    <script>
+        // Si viene con ?action=register, mostrar directamente la sección de registro
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('action') === 'register') {
+                setTimeout(() => {
+                    if (typeof toggleAuth === 'function') {
+                        toggleAuth('register');
+                    }
+                }, 200);
+            }
+        });
+    </script>
 </body>
 </html>

@@ -34,20 +34,130 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* ==================== MODAL DE REGISTRO OBLIGATORIO ==================== */
+        .register-required-content {
+            text-align: center;
+            padding: 35px 30px;
+        }
+        .register-required-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(155, 127, 212, 0.4);
+        }
+        .register-required-icon i {
+            color: white;
+            font-size: 2rem;
+        }
+        .register-required-content h2 {
+            font-size: 1.5rem;
+            color: #4A3A5C;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .register-required-text {
+            font-size: 0.95rem;
+            color: #7A6A8C;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .register-required-text strong {
+            color: #9B7FD4;
+        }
+        .register-required-benefits {
+            background: #F5F0FA;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 0.85rem;
+            color: #4A3A5C;
+        }
+        .benefit-item i {
+            color: #9B7FD4;
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+        .register-required-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .btn-register-now {
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+        }
+        .btn-register-now:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(155, 127, 212, 0.5);
+        }
+        .btn-login-now {
+            background: white;
+            color: #7E57C2;
+            border: 2px solid #9B7FD4;
+            padding: 12px;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-login-now:hover {
+            background: #F5F0FA;
+        }
+        .btn-cancel-register {
+            background: none;
+            color: #7A6A8C;
+            border: none;
+            padding: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .btn-cancel-register:hover {
+            color: #9B7FD4;
+        }
+        @media (max-width: 500px) {
+            .register-required-content { padding: 25px 20px; }
+            .register-required-icon { width: 65px; height: 65px; }
+            .register-required-icon i { font-size: 1.6rem; }
+            .register-required-content h2 { font-size: 1.3rem; }
+        }
+    </style>
 </head>
 <body>
     <!-- Splash solo la primera vez por sesión -->
-        <script>
-            // Mostrar splash solo si no se ha visto en las últimas 24 horas
-                const splashLastSeen = localStorage.getItem('splashLastSeen');
-                const now = Date.now();
-                const ONE_DAY = 24 * 60 * 60 * 1000;
-
-    if (!splashLastSeen || (now - parseInt(splashLastSeen)) > ONE_DAY) {
-        localStorage.setItem('splashLastSeen', now.toString());
-        window.location.href = 'splash.html';
-    }
-        </script>
+    <script>
+        if (!sessionStorage.getItem('splashVisto')) {
+            sessionStorage.setItem('splashVisto', 'true');
+            window.location.href = 'splash.html';
+        }
+    </script>
 
     <!-- Header -->
     <header class="main-header">
@@ -123,7 +233,7 @@
 
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- Modales -->
+    <!-- Modal Carrito -->
     <div id="cartModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeCart()">&times;</span>
@@ -135,6 +245,7 @@
         </div>
     </div>
 
+    <!-- Modal Checkout -->
     <div id="checkoutModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeCheckout()">&times;</span>
@@ -158,6 +269,52 @@
                 <div id="detalle-instrucciones"></div>
                 <button class="confirmar-pago-btn" onclick="confirmarPago()">Confirmar Pago</button>
                 <button class="volver-btn" onclick="volverOpciones()">Volver</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de registro obligatorio -->
+    <div id="registerRequiredModal" class="modal">
+        <div class="modal-content register-required-content">
+            <span class="close" onclick="closeRegisterRequired()">&times;</span>
+            
+            <div class="register-required-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            
+            <h2>Regístrate para comprar</h2>
+            
+            <p class="register-required-text">
+                Es necesario su registro para proceder con su compra. 
+                Así podremos emitir su <strong>boleta o factura</strong> y enviarle 
+                el comprobante de su pedido.
+            </p>
+            
+            <div class="register-required-benefits">
+                <div class="benefit-item">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>Boletas y facturas electrónicas</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-history"></i>
+                    <span>Historial de compras</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-truck"></i>
+                    <span>Seguimiento de tus envíos</span>
+                </div>
+            </div>
+            
+            <div class="register-required-buttons">
+                <button class="btn-register-now" onclick="irARegistro()">
+                    <i class="fas fa-user-plus"></i> Registrarme ahora
+                </button>
+                <button class="btn-login-now" onclick="irALogin()">
+                    <i class="fas fa-sign-in-alt"></i> Ya tengo cuenta
+                </button>
+                <button class="btn-cancel-register" onclick="closeRegisterRequired()">
+                    Seguir explorando
+                </button>
             </div>
         </div>
     </div>

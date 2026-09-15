@@ -9,7 +9,7 @@ let categoriasActivas = [];
 let filtroPrecioMax = 300;
 let soloDisponibles = false;
 
-// Cargar productos
+// ================== CARGAR PRODUCTOS ==================
 async function loadProducts() {
     const grid = document.getElementById('productGrid');
     grid.innerHTML = '<p style="text-align:center; padding:50px; grid-column: 1/-1;">Cargando productos...</p>';
@@ -29,7 +29,7 @@ async function loadProducts() {
     renderProductos();
 }
 
-// Render
+// ================== RENDER PRODUCTOS ==================
 function renderProductos() {
     const grid = document.getElementById('productGrid');
     const title = document.getElementById('categoryTitle');
@@ -70,7 +70,7 @@ function renderProductos() {
     if (productosFiltrados.length === 0) grid.innerHTML = '<p style="text-align:center; padding:50px; grid-column: 1/-1;">No se encontraron productos 😔</p>';
 }
 
-// Sincronizar UI
+// ================== FILTROS ==================
 function syncFilterUI() {
     document.querySelectorAll('.cat-pill').forEach(btn => {
         btn.classList.remove('active');
@@ -185,7 +185,7 @@ function toggleFilters() {
         : '<i class="fas fa-filter"></i> Mostrar filtros';
 }
 
-// Carrito
+// ================== CARRITO ==================
 function getCartKey() { return 'cart_guest'; }
 function saveCart() { localStorage.setItem(getCartKey(), JSON.stringify(carrito)); updateCartCount(); }
 function loadCart() { const c = localStorage.getItem(getCartKey()); if (c) { carrito = JSON.parse(c); updateCartCount(); } }
@@ -226,18 +226,45 @@ function updateCartCount() { document.getElementById('cartCount').textContent = 
 function totalCarrito() { return carrito.reduce((sum, item) => sum + item.precio, 0); }
 function closeCart() { document.getElementById('cartModal').style.display = 'none'; }
 
-// Checkout
-function openCheckout() {
-    if (carrito.length === 0) { showToast("Tu carrito está vacío"); return; }
+// ================== CHECKOUT CON REGISTRO OBLIGATORIO ==================
+async function openCheckout() {
+    if (carrito.length === 0) {
+        showToast("Tu carrito está vacío");
+        return;
+    }
+    
+    const { data: { user } } = await sc.auth.getUser();
+    
+    if (!user) {
+        closeCart();
+        mostrarModalRegistroObligatorio();
+        return;
+    }
+    
     closeCart();
     document.getElementById('opciones-pago').style.display = 'block';
     document.getElementById('instrucciones-pago').style.display = 'none';
     document.getElementById('checkoutModal').style.display = 'flex';
 }
 
-// ================== CHECKOUT CON CULQI QR ==================
+function mostrarModalRegistroObligatorio() {
+    document.getElementById('registerRequiredModal').style.display = 'flex';
+}
+
+function closeRegisterRequired() {
+    document.getElementById('registerRequiredModal').style.display = 'none';
+}
+
+function irARegistro() {
+    window.location.href = 'login.html?action=register';
+}
+
+function irALogin() {
+    window.location.href = 'login.html';
+}
+
+// ================== SELECCIONAR MÉTODO DE PAGO ==================
 function seleccionarMetodo(metodo) {
-    // Validar monto mínimo para QR (Culqi requiere S/ 6.00 mínimo)
     if (metodo === 'qr' && totalCarrito() < 6) {
         showToast("El monto mínimo para pagar con QR es S/ 6.00");
         return;
@@ -271,7 +298,7 @@ function seleccionarMetodo(metodo) {
     }
 }
 
-// ✅ Generar QR real con Culqi
+// ================== GENERAR QR REAL CON CULQI ==================
 async function generarQRReal() {
     const detalle = document.getElementById('detalle-instrucciones');
     const total = totalCarrito();
@@ -304,7 +331,6 @@ async function generarQRReal() {
         } else {
             detalle.innerHTML = `
                 <p style="text-align:center; color:#D32F2F;">Error al generar el QR. Intenta de nuevo.</p>
-                <p style="text-align:center; font-size:0.8rem; color:#7A6A8C;">Respuesta: ${JSON.stringify(data)}</p>
             `;
         }
     } catch (error) {
@@ -315,6 +341,7 @@ async function generarQRReal() {
     }
 }
 
+// ================== CONFIRMAR PAGO ==================
 function validateCardForm() {
     const num = document.getElementById('cardNumber');
     const exp = document.getElementById('cardExpiry');
@@ -331,8 +358,13 @@ function validateCardForm() {
 
 async function confirmarPago() {
     if (metodoPagoElegido === 'tarjeta') { if (!validateCardForm()) return; }
+    
     const { data: { user } } = await sc.auth.getUser();
-    if (!user) { showToast("Debes iniciar sesión para comprar"); return; }
+    if (!user) {
+        closeCheckout();
+        mostrarModalRegistroObligatorio();
+        return;
+    }
 
     const { error } = await sc.from('pedidos').insert([
         { usuario_id: user.id, items: carrito, total: totalCarrito() }
@@ -359,11 +391,11 @@ function volverOpciones() {
 
 function closeCheckout() { document.getElementById('checkoutModal').style.display = 'none'; }
 
+// ================== TOAST ==================
 function showToast(message) {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
-    // Crear la notificación
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.innerHTML = `
@@ -375,25 +407,23 @@ function showToast(message) {
 
     container.appendChild(toast);
 
-    // Auto-eliminar después de 4 segundos
     const timeout = setTimeout(() => {
         cerrarToast(toast);
     }, 4000);
 
-    // Cerrar al hacer clic en la notificación
     toast.addEventListener('click', () => {
         clearTimeout(timeout);
         cerrarToast(toast);
     });
 }
 
-// Función auxiliar para cerrar con animación
 function cerrarToast(toast) {
     toast.style.transform = 'translateX(100%)';
     toast.style.opacity = '0';
     setTimeout(() => toast.remove(), 300);
 }
 
+// ================== INICIALIZACIÓN ==================
 window.onload = async function() {
     checkLoginStatus();
     await loadProducts();
@@ -404,6 +434,8 @@ window.onload = async function() {
 window.onclick = function(event) {
     const cartModal = document.getElementById('cartModal');
     const checkoutModal = document.getElementById('checkoutModal');
+    const registerModal = document.getElementById('registerRequiredModal');
     if (event.target === cartModal) closeCart();
     if (event.target === checkoutModal) closeCheckout();
+    if (event.target === registerModal) closeRegisterRequired();
 };
