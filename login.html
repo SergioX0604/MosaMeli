@@ -11,7 +11,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        
         body {
             min-height: 100vh;
             background: linear-gradient(135deg, #FFD1DC 0%, #D1C4E9 50%, #FFF8E1 100%);
@@ -20,16 +19,13 @@
             align-items: center;
             padding: 20px;
         }
-
         .overlay {
-            position: fixed;
-            top: 0; left: 0;
+            position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(4px);
             z-index: 1;
         }
-
         .auth-modal {
             position: relative;
             background: #fff;
@@ -41,207 +37,77 @@
             z-index: 2;
             animation: fadeInUp 0.4s ease-out;
         }
-
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         .close-btn {
-            position: absolute;
-            top: 15px; right: 15px;
-            background: #f5f5f5;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            color: #888;
-            font-size: 0.9rem;
-            transition: background 0.3s;
+            position: absolute; top: 15px; right: 15px;
+            background: #f5f5f5; border: none;
+            width: 30px; height: 30px; border-radius: 50%;
+            cursor: pointer; color: #888; font-size: 0.9rem;
         }
-
         .close-btn:hover { background: #e0e0e0; color: #333; }
-
-        .auth-logo {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .auth-logo img {
-            max-width: 160px;
-            height: auto;
-        }
-
-        .auth-modal h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 25px;
-        }
-
+        .auth-logo { text-align: center; margin-bottom: 20px; }
+        .auth-logo img { max-width: 160px; height: auto; }
+        .auth-modal h2 { font-size: 1.5rem; font-weight: 600; color: #333; margin-bottom: 25px; }
         .form-group { margin-bottom: 20px; }
-
-        .form-group label {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #555;
-            margin-bottom: 8px;
-        }
-
+        .form-group label { display: block; font-size: 0.9rem; font-weight: 500; color: #555; margin-bottom: 8px; }
         .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 0 12px;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            display: flex; align-items: center;
+            border: 1px solid #ddd; border-radius: 6px;
+            padding: 0 12px; transition: all 0.3s;
         }
-
         .input-wrapper:focus-within {
             border-color: #8E24AA;
             box-shadow: 0 0 0 3px rgba(142, 36, 170, 0.1);
         }
-
         .input-wrapper i { color: #888; font-size: 0.9rem; margin-right: 10px; }
-
         .input-wrapper input {
-            flex: 1;
-            border: none;
-            outline: none;
-            padding: 12px 0;
-            font-size: 0.95rem;
-            font-family: 'Poppins', sans-serif;
-            color: #333;
+            flex: 1; border: none; outline: none;
+            padding: 12px 0; font-size: 0.95rem;
+            font-family: 'Poppins', sans-serif; color: #333;
         }
-
         .input-wrapper input::placeholder { color: #aaa; }
-
-        .toggle-password {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #888;
-            padding: 0 5px;
-            font-size: 0.95rem;
-        }
-
+        .toggle-password { background: none; border: none; cursor: pointer; color: #888; padding: 0 5px; font-size: 0.95rem; }
         .toggle-password:hover { color: #8E24AA; }
-
-        .forgot-password {
-            text-align: right;
-            margin-top: -10px;
-            margin-bottom: 20px;
-        }
-
-        .forgot-password a {
-            font-size: 0.85rem;
-            color: #8E24AA;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
+        .forgot-password { text-align: right; margin-top: -10px; margin-bottom: 20px; }
+        .forgot-password a { font-size: 0.85rem; color: #8E24AA; text-decoration: none; font-weight: 500; }
         .btn-primary {
-            width: 100%;
-            background: #8E24AA;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 25px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
-            font-family: 'Poppins', sans-serif;
+            width: 100%; background: #8E24AA; color: white;
+            border: none; padding: 14px; border-radius: 25px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s; font-family: 'Poppins', sans-serif;
         }
-
-        .btn-primary:hover {
-            background: #7B1FA2;
-            transform: scale(1.01);
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 25px 0;
-            color: #999;
-            font-size: 0.85rem;
-        }
-
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #eee;
-        }
-
+        .btn-primary:hover { background: #7B1FA2; transform: scale(1.01); }
+        .divider { display: flex; align-items: center; margin: 25px 0; color: #999; font-size: 0.85rem; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #eee; }
         .divider span { padding: 0 15px; }
-
-        .social-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
+        .social-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
         .social-btn {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background: white;
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #555;
-            cursor: pointer;
-            transition: background 0.3s, border-color 0.3s;
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            gap: 8px; padding: 12px; border: 1px solid #ddd;
+            border-radius: 6px; background: white;
+            font-family: 'Poppins', sans-serif; font-size: 0.9rem;
+            font-weight: 500; color: #555; cursor: pointer; transition: all 0.3s;
         }
-
         .social-btn:hover { background: #f9f9f9; border-color: #bbb; }
-
-        .register-link {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: #666;
-        }
-
+        .register-link { text-align: center; margin-top: 20px; font-size: 0.9rem; color: #666; }
         .register-link a {
-            color: #8E24AA;
-            font-weight: 600;
-            text-decoration: none;
-            border: 1px solid #8E24AA;
-            padding: 10px 30px;
-            border-radius: 25px;
-            display: inline-block;
-            margin-top: 10px;
-            transition: all 0.3s;
+            color: #8E24AA; font-weight: 600; text-decoration: none;
+            border: 1px solid #8E24AA; padding: 10px 30px;
+            border-radius: 25px; display: inline-block;
+            margin-top: 10px; transition: all 0.3s;
         }
-
         .register-link a:hover { background: #8E24AA; color: white; }
-
         #register-section { display: none; }
         #login-section { display: block; }
-
-        .message {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            display: none;
-        }
+        .message { text-align: center; margin-top: 15px; font-size: 0.9rem; font-weight: 500; display: none; }
         #login-success, #register-success { color: #4CAF50; }
         #login-error { color: #D32F2F; }
     </style>
 </head>
 <body>
-
     <div class="overlay"></div>
 
     <div class="auth-modal">
@@ -257,30 +123,30 @@
         <div id="login-section">
             <h2>Iniciar sesión</h2>
             <form id="login-form">
-    <div class="form-group">
-        <label>Correo</label>
-        <div class="input-wrapper">
-            <i class="far fa-envelope"></i>
-            <input type="email" name="email" placeholder="Escribe tu correo" required>
-        </div>
-    </div>
-    <div class="form-group">
-        <label>Contraseña</label>
-        <div class="input-wrapper">
-            <i class="fas fa-lock"></i>
-            <input type="password" name="password" id="login-password" placeholder="Escribe tu contraseña" required>
-            <button type="button" class="toggle-password" onclick="togglePassword('login-password', this)">
-                <i class="fas fa-eye"></i>
-            </button>
-        </div>
-    </div>
-    <div class="forgot-password">
-        <a href="#" onclick="forgotPassword(); return false;">¿Olvidaste tu contraseña?</a>
-    </div>
-    <button type="submit" class="btn-primary">Ingresar</button>
-    <p id="login-success" class="message">¡Bienvenido! Redirigiendo...</p>
-    <p id="login-error" class="message">Correo o contraseña incorrectos</p>
-</form>
+                <div class="form-group">
+                    <label>Correo</label>
+                    <div class="input-wrapper">
+                        <i class="far fa-envelope"></i>
+                        <input type="email" name="email" placeholder="Escribe tu correo" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="login-password" placeholder="Escribe tu contraseña" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('login-password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="forgot-password">
+                    <a href="#" onclick="forgotPassword(); return false;">¿Olvidaste tu contraseña?</a>
+                </div>
+                <button type="submit" class="btn-primary">Ingresar</button>
+                <p id="login-success" class="message">¡Bienvenido! Redirigiendo...</p>
+                <p id="login-error" class="message">Correo o contraseña incorrectos</p>
+            </form>
 
             <div class="divider"><span>o inicia sesión con</span></div>
 
@@ -303,7 +169,6 @@
         <!-- Registro -->
         <div id="register-section">
             <h2>Crear cuenta</h2>
-            
             <form id="register-form">
                 <div class="form-group">
                     <label>Nombre de usuario</label>
@@ -312,7 +177,6 @@
                         <input type="text" name="username" placeholder="Tu nombre" required minlength="3">
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label>Correo</label>
                     <div class="input-wrapper">
@@ -320,7 +184,6 @@
                         <input type="email" name="email" placeholder="Escribe tu correo" required>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label>Contraseña</label>
                     <div class="input-wrapper">
@@ -331,9 +194,7 @@
                         </button>
                     </div>
                 </div>
-
                 <button type="submit" class="btn-primary">Registrarme</button>
-
                 <p id="register-success" class="message">¡Registro exitoso!</p>
             </form>
 

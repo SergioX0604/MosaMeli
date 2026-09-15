@@ -1,9 +1,9 @@
-// Usa la instancia global de supabaseClient
-const supabaseClient = window.supabaseClient;
+// Usa la instancia global de Supabase
+const sc = window.supabaseClient;
 
 // ================== VERIFICACIÓN DE ACCESO ==================
 async function verificarAcceso() {
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    const { data: { user } } = await sc.auth.getUser();
     if (!user) {
         window.location.href = 'login.html';
         return;
@@ -12,7 +12,7 @@ async function verificarAcceso() {
 
 // ================== CARGAR PRODUCTOS ==================
 async function cargarProductos() {
-    const { data, error } = await supabaseClient.from('productos').select('*').order('id');
+    const { data, error } = await sc.from('productos').select('*').order('id');
     if (error) {
         console.error(error);
         alert("Error al cargar productos");
@@ -55,7 +55,7 @@ async function agregarProducto() {
         return;
     }
 
-    const { error } = await supabaseClient.from('productos').insert([
+    const { error } = await sc.from('productos').insert([
         { nombre, categoria, precio, precio_original: precioOriginal, imagen, stock }
     ]);
 
@@ -74,11 +74,11 @@ async function agregarProducto() {
     cargarProductos();
 }
 
-// ================== EDITAR PRODUCTO (MODAL) ==================
+// ================== EDITAR PRODUCTO ==================
 let editProductId = null;
 
 async function openEditModal(id) {
-    const { data, error } = await supabaseClient.from('productos').select('*').eq('id', id).single();
+    const { data, error } = await sc.from('productos').select('*').eq('id', id).single();
     if (error) {
         alert("Error al obtener producto: " + error.message);
         return;
@@ -110,7 +110,7 @@ async function saveEdit() {
     const stock = document.getElementById('edit-stock').value;
     const imagen = document.getElementById('edit-imagen').value;
 
-    const { error } = await supabaseClient.from('productos').update({
+    const { error } = await sc.from('productos').update({
         nombre, categoria, precio, precio_original: precioOriginal, stock, imagen
     }).eq('id', editProductId);
 
@@ -127,7 +127,7 @@ async function saveEdit() {
 async function eliminarProducto(id) {
     if (!confirm("¿Seguro que quieres eliminar este producto?")) return;
 
-    const { error } = await supabaseClient.from('productos').delete().eq('id', id);
+    const { error } = await sc.from('productos').delete().eq('id', id);
     if (error) {
         alert("Error al eliminar: " + error.message);
         return;

@@ -17,6 +17,12 @@
     --sombra: 0 4px 12px rgba(155, 127, 212, 0.15);
     --sombra-hover: 0 8px 20px rgba(155, 127, 212, 0.25);
     --error: #EF5350;
+
+    /* ===== ALIAS DE COMPATIBILIDAD ===== */
+    --crema-pastel: var(--crema-logo);
+    --violeta-pastel: var(--violeta-logo-claro);
+    --violeta-intenso: var(--violeta-logo-oscuro);
+    --rosa-pastel: var(--rosa-logo-claro);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -210,7 +216,6 @@ body {
     padding: 0 15px;
 }
 
-/* Sidebar de filtros */
 .filters-sidebar {
     background: var(--blanco);
     padding: 18px;
@@ -218,7 +223,7 @@ body {
     box-shadow: var(--sombra);
     border: 2px solid var(--borde);
     margin-bottom: 20px;
-    display: none; /* Oculto en móvil por defecto */
+    display: none;
 }
 
 .filters-sidebar.visible { display: block; }
@@ -625,7 +630,7 @@ body {
 
 .toggle-password:hover { color: var(--violeta-logo); }
 
-/* ==================== RESPONSIVE: TABLET Y ESCRITORIO ==================== */
+/* ==================== RESPONSIVE ==================== */
 @media (min-width: 768px) {
     .main-header { padding: 12px 25px; flex-wrap: nowrap; }
     .logo img { height: 45px; }

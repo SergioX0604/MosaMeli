@@ -1,5 +1,5 @@
-// Usa la instancia global de supabaseClient (definida en supabaseClient.js)
-const supabaseClient = window.supabaseClient;
+// Usa la instancia global de Supabase
+const sc = window.supabaseClient;
 
 // Variables globales
 let productos = [];
@@ -9,12 +9,12 @@ let categoriasActivas = [];
 let filtroPrecioMax = 300;
 let soloDisponibles = false;
 
-// Cargar productos desde Supabase
+// Cargar productos
 async function loadProducts() {
     const grid = document.getElementById('productGrid');
     grid.innerHTML = '<p style="text-align:center; padding:50px; grid-column: 1/-1;">Cargando productos...</p>';
 
-    const { data, error } = await supabaseClient.from('productos').select('*').order('id');
+    const { data, error } = await sc.from('productos').select('*').order('id');
     if (error) {
         console.error(error);
         grid.innerHTML = `<p style="text-align:center; padding:50px; grid-column: 1/-1;">❌ No se pudo conectar</p>`;
@@ -22,43 +22,29 @@ async function loadProducts() {
     }
 
     productos = data.map(p => ({
-        id: p.id,
-        nombre: p.nombre,
-        categoria: p.categoria,
-        precio: p.precio,
-        precioOriginal: p.precio_original,
-        imagen: p.imagen,
-        stock: p.stock
+        id: p.id, nombre: p.nombre, categoria: p.categoria,
+        precio: p.precio, precioOriginal: p.precio_original,
+        imagen: p.imagen, stock: p.stock
     }));
     renderProductos();
 }
 
-// Renderizado de productos
+// Render
 function renderProductos() {
     const grid = document.getElementById('productGrid');
     const title = document.getElementById('categoryTitle');
     const count = document.getElementById('productCount');
 
     let productosFiltrados = productos;
-
-    if (categoriasActivas.length > 0) {
-        productosFiltrados = productosFiltrados.filter(p => categoriasActivas.includes(p.categoria));
-    }
-
+    if (categoriasActivas.length > 0) productosFiltrados = productosFiltrados.filter(p => categoriasActivas.includes(p.categoria));
     productosFiltrados = productosFiltrados.filter(p => p.precio <= filtroPrecioMax);
+    if (soloDisponibles) productosFiltrados = productosFiltrados.filter(p => p.stock > 0);
 
-    if (soloDisponibles) {
-        productosFiltrados = productosFiltrados.filter(p => p.stock > 0);
-    }
-
-    if (categoriasActivas.length === 0) {
-        title.textContent = 'Todos los productos';
-    } else if (categoriasActivas.length === 1) {
+    if (categoriasActivas.length === 0) title.textContent = 'Todos los productos';
+    else if (categoriasActivas.length === 1) {
         const nombre = categoriasActivas[0];
         title.textContent = nombre.charAt(0).toUpperCase() + nombre.slice(1);
-    } else {
-        title.textContent = 'Varios productos';
-    }
+    } else title.textContent = 'Varios productos';
     count.textContent = `${productosFiltrados.length} productos`;
 
     grid.innerHTML = productosFiltrados.map(p => {
@@ -84,18 +70,15 @@ function renderProductos() {
     if (productosFiltrados.length === 0) grid.innerHTML = '<p style="text-align:center; padding:50px; grid-column: 1/-1;">No se encontraron productos 😔</p>';
 }
 
-// Sincronización de UI
+// Sincronizar UI
 function syncFilterUI() {
     document.querySelectorAll('.cat-pill').forEach(btn => {
         btn.classList.remove('active');
         const onclick = btn.getAttribute('onclick') || '';
-        if (categoriasActivas.length === 0 && onclick.includes('showAll()')) {
-            btn.classList.add('active');
-        } else if (onclick.includes('showCategory')) {
+        if (categoriasActivas.length === 0 && onclick.includes('showAll()')) btn.classList.add('active');
+        else if (onclick.includes('showCategory')) {
             const match = onclick.match(/'([^']+)'/);
-            if (match && categoriasActivas.includes(match[1])) {
-                btn.classList.add('active');
-            }
+            if (match && categoriasActivas.includes(match[1])) btn.classList.add('active');
         }
     });
     document.querySelectorAll('.filter-cat').forEach(checkbox => {
@@ -103,11 +86,7 @@ function syncFilterUI() {
     });
 }
 
-function showAll() {
-    categoriasActivas = [];
-    syncFilterUI();
-    renderProductos();
-}
+function showAll() { categoriasActivas = []; syncFilterUI(); renderProductos(); }
 
 function showCategory(categoria) {
     const index = categoriasActivas.indexOf(categoria);
@@ -131,7 +110,6 @@ function clearFilters() {
     renderProductos();
 }
 
-// Búsqueda
 function searchProducts() {
     const query = document.getElementById('searchBar').value.toLowerCase();
     const grid = document.getElementById('productGrid');
@@ -164,7 +142,6 @@ function searchProducts() {
     if (resultados.length === 0) grid.innerHTML = '<p style="text-align:center; padding:50px;">No se encontraron productos</p>';
 }
 
-// Eventos de filtros
 function initFilterEvents() {
     document.querySelectorAll('.filter-cat').forEach(checkbox => {
         checkbox.addEventListener('change', (e) => {
@@ -197,21 +174,15 @@ function initFilterEvents() {
     }
 }
 
-// ================== NUEVA FUNCIÓN: MOSTRAR/OCULTAR FILTROS EN MÓVIL ==================
 function toggleFilters() {
     const sidebar = document.getElementById('filtersSidebar');
     if (!sidebar) return;
-    
     sidebar.classList.toggle('visible');
-    
     const btn = document.querySelector('.mobile-filter-btn');
     if (!btn) return;
-    
-    if (sidebar.classList.contains('visible')) {
-        btn.innerHTML = '<i class="fas fa-times"></i> Ocultar filtros';
-    } else {
-        btn.innerHTML = '<i class="fas fa-filter"></i> Mostrar filtros';
-    }
+    btn.innerHTML = sidebar.classList.contains('visible')
+        ? '<i class="fas fa-times"></i> Ocultar filtros'
+        : '<i class="fas fa-filter"></i> Mostrar filtros';
 }
 
 // Carrito
@@ -272,7 +243,6 @@ function seleccionarMetodo(metodo) {
     const titulo = document.getElementById('titulo-instrucciones');
     const detalle = document.getElementById('detalle-instrucciones');
     const total = totalCarrito().toFixed(2);
-
     const totalHTML = `<p style="font-size:1.2rem; font-weight:bold; color:#8E24AA; margin-bottom:15px; text-align:center;">Total a pagar: S/ ${total}</p>`;
 
     if (metodo === 'qr') {
@@ -309,16 +279,16 @@ function validateCardForm() {
 
 async function confirmarPago() {
     if (metodoPagoElegido === 'tarjeta') { if (!validateCardForm()) return; }
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    const { data: { user } } = await sc.auth.getUser();
     if (!user) { showToast("Debes iniciar sesión para comprar"); return; }
 
-    const { error } = await supabaseClient.from('pedidos').insert([
+    const { error } = await sc.from('pedidos').insert([
         { usuario_id: user.id, items: carrito, total: totalCarrito() }
     ]);
     if (error) { showToast("Error al guardar pedido"); return; }
 
     for (const item of carrito) {
-        await supabaseClient.from('productos').update({ stock: item.stock - 1 }).eq('id', item.id);
+        await sc.from('productos').update({ stock: item.stock - 1 }).eq('id', item.id);
     }
 
     showToast("¡Pago procesado con éxito! 🎉");
@@ -350,7 +320,6 @@ function showToast(message) {
     }, 3000);
 }
 
-// Inicialización
 window.onload = async function() {
     checkLoginStatus();
     await loadProducts();

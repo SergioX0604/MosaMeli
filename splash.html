@@ -85,6 +85,9 @@
     <button class="skip-btn" onclick="irAlInicio()">Saltar ➜</button>
 
     <script>
+        // Marcar el splash como visto (24 horas)
+        localStorage.setItem('splashLastSeen', Date.now().toString());
+
         // Reproducir sonido de bienvenida
         window.addEventListener('load', () => {
             try {
@@ -101,7 +104,11 @@
             irAlInicio();
         }, 3500);
 
+        // Función para ir al index (evita doble redirección)
+        let yaRedirigido = false;
         function irAlInicio() {
+            if (yaRedirigido) return;
+            yaRedirigido = true;
             window.location.href = 'index.html';
         }
     </script>

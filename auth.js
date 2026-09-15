@@ -1,4 +1,4 @@
-// Usa la instancia global de supabaseClient (definida en supabaseClient.js)
+// Usa la instancia global
 const authSupabase = window.supabaseClient;
 
 // ================== AUTENTICACIÓN (GLOBAL) ==================
@@ -24,7 +24,7 @@ async function logout() {
 }
 
 // ================== EVENTOS SOLO PARA LOGIN.HTML ==================
-const isLoginPage = window.location.pathname.endsWith('login.html');
+const isLoginPage = window.location.pathname.includes('login.html');
 
 if (isLoginPage) {
     document.addEventListener('DOMContentLoaded', async function() {
@@ -43,24 +43,33 @@ if (isLoginPage) {
         const registerForm = document.getElementById('register-form');
         const loginForm = document.getElementById('login-form');
 
-    if (loginForm) {
-    loginForm.addEventListener('submit', async function(e) {
-        e.preventDefault(); // ← ESTO ES CLAVE: evita que el formulario se envíe por URL
-        let email = e.target.elements.email.value.trim();
-        let password = e.target.elements.password.value;
+        // Registro
+        if (registerForm) {
+            registerForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                let username = e.target.elements.username.value.trim();
+                let email = e.target.elements.email.value.trim();
+                let password = e.target.elements.password.value;
 
-        const { error } = await authSupabase.auth.signInWithPassword({ email, password });
+                if (username.length < 3) { alert('El nombre debe tener al menos 3 caracteres'); return; }
+                if (password.length < 6) { alert('La contraseña debe tener al menos 6 caracteres'); return; }
 
-        if (error) {
-            document.getElementById('login-error').style.display = 'block';
-        } else {
-            document.getElementById('login-success').style.display = 'block';
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 500);
+                const { error } = await authSupabase.auth.signUp({
+                    email,
+                    password,
+                    options: { data: { username } }
+                });
+
+                if (error) {
+                    alert(error.message);
+                } else {
+                    document.getElementById('register-success').style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                }
+            });
         }
-    });
-}
 
         // Login
         if (loginForm) {
@@ -86,18 +95,14 @@ if (isLoginPage) {
 
 // ================== FUNCIONES DE LOS BOTONES ==================
 
-// Iniciar sesión con Google
 async function loginWithGoogle() {
     const { error } = await authSupabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-            redirectTo: window.location.origin + '/index.html'
-        }
+        options: { redirectTo: window.location.origin + '/index.html' }
     });
     if (error) alert('Error al iniciar con Google: ' + error.message);
 }
 
-// Guardar correo (Clave de acceso)
 function saveAccessKey() {
     const emailInput = document.querySelector('#login-form input[name="email"]');
     const passwordInput = document.querySelector('#login-form input[name="password"]');
@@ -106,25 +111,23 @@ function saveAccessKey() {
         alert('Primero escribe tu correo y contraseña para guardarlos');
         return;
     }
-
     localStorage.setItem('mosameli_saved_email', emailInput.value);
     alert('✅ Correo guardado. La próxima vez se autocompletará.');
 }
 
-// ¿Olvidaste tu contraseña?
 async function forgotPassword() {
     const emailInput = document.querySelector('#login-form input[name="email"]');
     const email = emailInput.value.trim();
 
     if (!email) {
-        alert('Por favor, escribe tu correo primero para enviarte el enlace de recuperación');
+        alert('Por favor, escribe tu correo primero');
         emailInput.focus();
         return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        alert('El correo ingresado no es válido. Asegúrate de escribirlo completo (ejemplo@dominio.com)');
+        alert('El correo no es válido');
         emailInput.focus();
         return;
     }
@@ -136,11 +139,10 @@ async function forgotPassword() {
     if (error) {
         alert('Error: ' + error.message);
     } else {
-        alert('✅ Te hemos enviado un correo a ' + email + ' con las instrucciones para recuperar tu contraseña.');
+        alert('✅ Te hemos enviado un correo a ' + email);
     }
 }
 
-// Alternar Login/Registro
 function toggleAuth(mode) {
     const registerSection = document.getElementById('register-section');
     const loginSection = document.getElementById('login-section');
@@ -157,7 +159,6 @@ function toggleAuth(mode) {
     if (loginError) loginError.style.display = 'none';
 }
 
-// Mostrar/ocultar contraseña
 function togglePassword(inputId, button) {
     const input = document.getElementById(inputId);
     const icon = button.querySelector('i');
