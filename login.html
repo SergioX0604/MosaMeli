@@ -105,6 +105,130 @@
         .message { text-align: center; margin-top: 15px; font-size: 0.9rem; font-weight: 500; display: none; }
         #login-success, #register-success { color: #4CAF50; }
         #login-error { color: #D32F2F; }
+
+        /* ==================== MODAL DE RECUPERAR CONTRASEÑA ==================== */
+        .forgot-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(74, 58, 92, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .forgot-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 35px 30px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(155, 127, 212, 0.4);
+            position: relative;
+            text-align: center;
+            animation: fadeInUp 0.3s ease-out;
+        }
+        .close-forgot {
+            position: absolute;
+            top: 15px; right: 20px;
+            font-size: 26px;
+            color: #888;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .close-forgot:hover { color: #8E24AA; }
+        .forgot-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .forgot-icon i { color: white; font-size: 1.8rem; }
+        .forgot-modal-content h2 {
+            font-size: 1.4rem;
+            color: #4A3A5C;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .forgot-desc {
+            font-size: 0.9rem;
+            color: #7A6A8C;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        .forgot-input-wrapper {
+            display: flex;
+            align-items: center;
+            border: 2px solid #EDE4F5;
+            border-radius: 12px;
+            padding: 0 14px;
+            background: #FFF8E1;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+        .forgot-input-wrapper:focus-within {
+            border-color: #9B7FD4;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(155, 127, 212, 0.15);
+        }
+        .forgot-input-wrapper i { color: #9B7FD4; margin-right: 10px; font-size: 0.95rem; }
+        .forgot-input-wrapper input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 14px 0;
+            font-size: 0.95rem;
+            font-family: 'Poppins', sans-serif;
+            background: transparent;
+            color: #4A3A5C;
+        }
+        .forgot-input-wrapper input::placeholder { color: #B0A5BD; }
+        .forgot-message {
+            display: none;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #F5F0FA;
+        }
+        .forgot-buttons { display: flex; gap: 10px; margin-top: 10px; }
+        .forgot-cancel {
+            flex: 1;
+            background: #F5F0FA;
+            color: #7A6A8C;
+            border: none;
+            padding: 14px;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .forgot-cancel:hover { background: #EDE4F5; }
+        .forgot-submit {
+            flex: 2;
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+        }
+        .forgot-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(155, 127, 212, 0.5);
+        }
+        .forgot-submit:disabled { opacity: 0.6; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -119,35 +243,34 @@
             <img src="img/logo-mosameli.png" alt="MosaMeli">
         </div>
 
-    <!-- Login -->
-    <div id="login-section">
-        <h2>Iniciar sesión</h2>
-        <form id="login-form" onsubmit="return false;">
-            <div class="form-group">
-                <label>Correo o usuario</label>
-                <div class="input-wrapper">
-                    <i class="far fa-user"></i>
-                    <input type="text" name="email" placeholder="Correo o nombre de usuario" required>
+        <!-- Login -->
+        <div id="login-section">
+            <h2>Iniciar sesión</h2>
+            <form id="login-form" onsubmit="return false;">
+                <div class="form-group">
+                    <label>Correo o usuario</label>
+                    <div class="input-wrapper">
+                        <i class="far fa-user"></i>
+                        <input type="text" name="email" placeholder="Correo o nombre de usuario" required>
+                    </div>
                 </div>
-            </div>
-            <div class="form-group">
-                <label>Contraseña</label>
-                <div class="input-wrapper">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" name="password" id="login-password" placeholder="Escribe tu contraseña" required>
-                    <button type="button" class="toggle-password" onclick="togglePassword('login-password', this)">
-                        <i class="fas fa-eye"></i>
-                    </button>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="login-password" placeholder="Escribe tu contraseña" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('login-password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="forgot-password">
-                <a href="#" onclick="forgotPassword(); return false;">¿Olvidaste tu contraseña?</a>
-            </div>
-            <button type="submit" class="btn-primary">Ingresar</button>
-            <p id="login-success" class="message">¡Bienvenido! Redirigiendo...</p>
-            <p id="login-error" class="message">Correo o contraseña incorrectos</p>
-        </form>
-
+                <div class="forgot-password">
+                    <a href="#" onclick="mostrarModalRecuperar(); return false;">¿Olvidaste tu contraseña?</a>
+                </div>
+                <button type="submit" class="btn-primary">Ingresar</button>
+                <p id="login-success" class="message">¡Bienvenido! Redirigiendo...</p>
+                <p id="login-error" class="message">Correo o contraseña incorrectos</p>
+            </form>
 
             <div class="divider"><span>o inicia sesión con</span></div>
 
@@ -203,6 +326,30 @@
                 ¿Ya tienes cuenta?
                 <br>
                 <a href="#" onclick="toggleAuth('login'); return false;">Iniciar sesión</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL DE RECUPERAR CONTRASEÑA ==================== -->
+    <div id="forgotPasswordModal" class="forgot-modal">
+        <div class="forgot-modal-content">
+            <span class="close-forgot" onclick="cerrarModalRecuperar()">&times;</span>
+            <div class="forgot-icon">
+                <i class="fas fa-key"></i>
+            </div>
+            <h2>Recuperar contraseña</h2>
+            <p class="forgot-desc">Escribe tu correo o nombre de usuario y te enviaremos un enlace para restablecer tu contraseña.</p>
+            
+            <div class="forgot-input-wrapper">
+                <i class="far fa-envelope"></i>
+                <input type="text" id="recover-email" placeholder="Correo o nombre de usuario" required>
+            </div>
+            
+            <p id="recover-message" class="forgot-message"></p>
+            
+            <div class="forgot-buttons">
+                <button type="button" class="forgot-cancel" onclick="cerrarModalRecuperar()">Cancelar</button>
+                <button type="button" class="forgot-submit" id="recover-btn" onclick="enviarRecuperacion()">Enviar enlace</button>
             </div>
         </div>
     </div>

@@ -11,7 +11,6 @@ async function checkLoginStatus() {
     if (!userName || !loginBtn || !logoutBtn) return;
 
     if (user) {
-        // Buscar username en la tabla perfiles
         const { data: perfil } = await authSupabase
             .from('perfiles')
             .select('username')
@@ -90,7 +89,7 @@ if (isLoginPage) {
                     return;
                 }
 
-                // ✅ Si el trigger no funcionó, insertar el perfil manualmente
+                // Insertar perfil manualmente (respaldo del trigger)
                 if (signUpData?.user) {
                     const { error: perfilError } = await authSupabase
                         .from('perfiles')
@@ -100,9 +99,7 @@ if (isLoginPage) {
                             username: username
                         }, { onConflict: 'id' });
 
-                    if (perfilError) {
-                        console.error('Error al crear perfil:', perfilError);
-                    }
+                    if (perfilError) console.error('Error al crear perfil:', perfilError);
                 }
 
                 document.getElementById('register-success').style.display = 'block';
@@ -189,13 +186,36 @@ function saveAccessKey() {
     alert('✅ Guardado. La próxima vez se autocompletará.');
 }
 
-async function forgotPassword() {
-    const emailInput = document.querySelector('#login-form input[name="email"]');
+// ================== RECUPERAR CONTRASEÑA (MODAL) ==================
+function mostrarModalRecuperar() {
+    const modal = document.getElementById('forgotPasswordModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Autocompletar el correo si ya lo escribió en el login
+        const loginEmail = document.querySelector('#login-form input[name="email"]');
+        if (loginEmail && loginEmail.value) {
+            const input = document.getElementById('recover-email');
+            if (input) input.value = loginEmail.value;
+        }
+    }
+}
+
+function cerrarModalRecuperar() {
+    const modal = document.getElementById('forgotPasswordModal');
+    if (modal) modal.style.display = 'none';
+}
+
+async function enviarRecuperacion() {
+    const emailInput = document.getElementById('recover-email');
+    const mensaje = document.getElementById('recover-message');
+    const btn = document.getElementById('recover-btn');
+    
     let identifier = emailInput.value.trim();
 
     if (!identifier) {
-        alert('Por favor, escribe tu correo primero');
-        emailInput.focus();
+        mensaje.textContent = 'Por favor, escribe tu correo';
+        mensaje.style.color = '#D32F2F';
+        mensaje.style.display = 'block';
         return;
     }
 
@@ -209,22 +229,49 @@ async function forgotPassword() {
             .maybeSingle();
 
         if (!perfil) {
-            alert('Usuario no encontrado');
+            mensaje.textContent = 'Usuario no encontrado';
+            mensaje.style.color = '#D32F2F';
+            mensaje.style.display = 'block';
             return;
         }
         identifier = perfil.email;
     }
+
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
 
     const { error } = await authSupabase.auth.resetPasswordForEmail(identifier, {
         redirectTo: window.location.origin + '/reset-password.html'
     });
 
     if (error) {
-        alert('Error: ' + error.message);
+        mensaje.textContent = 'Error: ' + error.message;
+        mensaje.style.color = '#D32F2F';
+        mensaje.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Enviar enlace';
     } else {
-        alert('✅ Te hemos enviado un correo a ' + identifier);
+        mensaje.textContent = '✅ Revisa tu correo. Te enviamos el enlace de recuperación a ' + identifier;
+        mensaje.style.color = '#4CAF50';
+        mensaje.style.display = 'block';
+        btn.textContent = 'Enviado';
+        setTimeout(() => {
+            cerrarModalRecuperar();
+            btn.disabled = false;
+            btn.textContent = 'Enviar enlace';
+            mensaje.style.display = 'none';
+            emailInput.value = '';
+        }, 3000);
     }
 }
+
+// Cerrar modal al hacer clic fuera
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('forgotPasswordModal');
+    if (event.target === modal) {
+        cerrarModalRecuperar();
+    }
+});
 
 function toggleAuth(mode) {
     const registerSection = document.getElementById('register-section');
