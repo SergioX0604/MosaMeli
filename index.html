@@ -149,7 +149,11 @@
             .register-required-content h2 { font-size: 1.3rem; }
         }
     </style>
-</head>
+    <!-- Botón de Admin (solo se muestra si eres admin) -->
+        <button id="adminBtn" class="icon-btn" style="display:none;" onclick="window.location.href='admin.html'">
+    <i class="fas fa-cog"></i>
+        </button>
+    </head>
 <body>
     <!-- Splash solo la primera vez por sesión -->
     <script>

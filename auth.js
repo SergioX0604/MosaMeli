@@ -7,6 +7,7 @@ async function checkLoginStatus() {
     const userName = document.getElementById('userName');
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
+    const adminBtn = document.getElementById('adminBtn');
 
     if (!userName || !loginBtn || !logoutBtn) return;
 
@@ -22,6 +23,11 @@ async function checkLoginStatus() {
         userName.style.display = 'inline';
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'inline';
+        
+        // Mostrar botón de admin solo si es el admin
+        if (adminBtn && user.email === 'espis0611@gmail.com') {
+            adminBtn.style.display = 'inline';
+        }
     }
 }
 
@@ -145,14 +151,21 @@ if (isLoginPage) {
                 // Iniciar sesión con el email resuelto
                 const { error } = await authSupabase.auth.signInWithPassword({ email, password });
 
-                if (error) {
-                    mostrarError('Correo/usuario o contraseña incorrectos');
-                } else {
+                    if (error) {
+                        document.getElementById('login-error').style.display = 'block';
+                    } else {
                     document.getElementById('login-success').style.display = 'block';
-                    setTimeout(() => {
+                setTimeout(() => {
+            // Verificar si hay una URL de destino guardada
+                    const redirectTo = localStorage.getItem('redirectAfterLogin');
+                    if (redirectTo) {
+                        localStorage.removeItem('redirectAfterLogin');
+                        window.location.href = redirectTo;
+                    } else {
                         window.location.href = 'index.html';
+                    }
                     }, 500);
-                }
+                    }
             });
         }
 

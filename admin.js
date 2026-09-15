@@ -1,12 +1,49 @@
 // Usa la instancia global de Supabase
 const sc = window.supabaseClient;
 
+// ⚠️ CAMBIA ESTO POR TU CORREO DE ADMINISTRADOR
+const ADMIN_EMAIL = 'espis0611@gmail.com'; // ← Tu correo aquí
+
+let esAdmin = false;
+
 // ================== VERIFICACIÓN DE ACCESO ==================
 async function verificarAcceso() {
-    const { data: { user } } = await sc.auth.getUser();
-    if (!user) {
+    // Esperar a que Supabase esté listo
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const { data: { user }, error } = await sc.auth.getUser();
+    
+    if (error || !user) {
+        console.log('No hay sesión activa, redirigiendo a login...');
+        // Guardar la URL de destino para volver después del login
+        localStorage.setItem('redirectAfterLogin', 'admin.html');
         window.location.href = 'login.html';
-        return;
+        return false;
+    }
+    
+    // Verificar si es admin
+    esAdmin = (user.email === ADMIN_EMAIL);
+    console.log('Usuario autenticado:', user.email);
+    console.log('¿Es admin?', esAdmin);
+    
+    // Configurar la UI según el rol
+    configurarUI();
+    
+    return true;
+}
+
+function configurarUI() {
+    const formAgregar = document.getElementById('form-agregar');
+    const header = document.querySelector('.admin-header h1');
+    
+    if (esAdmin) {
+        // Mostrar formulario de agregar
+        if (formAgregar) formAgregar.style.display = 'block';
+        if (header) header.innerHTML = '<img src="img/logo-mosameli.png" alt="MosaMeli" style="height:35px;background:white;padding:3px 8px;border-radius:8px;"> 🛠️ Administrador';
+    } else {
+        // Ocultar formulario de agregar (solo lectura)
+        if (formAgregar) formAgregar.style.display = 'none';
+        if (header) header.innerHTML = '<img src="img/logo-mosameli.png" alt="MosaMeli" style="height:35px;background:white;padding:3px 8px;border-radius:8px;"> 📦 Inventario (solo lectura)';
     }
 }
 
@@ -22,7 +59,7 @@ async function cargarProductos() {
     const tbody = document.getElementById('tabla-productos');
     
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color: #666;">📦 No hay productos en el inventario. Agrega el primero arriba.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color: #666;">📦 No hay productos en el inventario.</td></tr>';
         return;
     }
 
@@ -34,15 +71,19 @@ async function cargarProductos() {
             <td>S/ ${p.precio.toFixed(2)}</td>
             <td>${p.stock}</td>
             <td>
-                <button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>
-                <button class="btn-delete" onclick="eliminarProducto(${p.id})">Eliminar</button>
+                ${esAdmin ? `
+                    <button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>
+                    <button class="btn-delete" onclick="eliminarProducto(${p.id})">Eliminar</button>
+                ` : '<span style="color:#999; font-size:0.85rem;">Solo lectura</span>'}
             </td>
         </tr>
     `).join('');
 }
 
-// ================== AGREGAR PRODUCTO ==================
+// ================== AGREGAR PRODUCTO (solo admin) ==================
 async function agregarProducto() {
+    if (!esAdmin) { alert('No tienes permisos'); return; }
+
     const nombre = document.getElementById('nombre').value;
     const categoria = document.getElementById('categoria').value;
     const precio = document.getElementById('precio').value;
@@ -78,6 +119,8 @@ async function agregarProducto() {
 let editProductId = null;
 
 async function openEditModal(id) {
+    if (!esAdmin) { alert('No tienes permisos'); return; }
+    
     const { data, error } = await sc.from('productos').select('*').eq('id', id).single();
     if (error) {
         alert("Error al obtener producto: " + error.message);
@@ -101,7 +144,7 @@ function closeEditModal() {
 }
 
 async function saveEdit() {
-    if (!editProductId) return;
+    if (!editProductId || !esAdmin) return;
 
     const nombre = document.getElementById('edit-nombre').value;
     const categoria = document.getElementById('edit-categoria').value;
@@ -125,6 +168,7 @@ async function saveEdit() {
 
 // ================== ELIMINAR PRODUCTO ==================
 async function eliminarProducto(id) {
+    if (!esAdmin) { alert('No tienes permisos'); return; }
     if (!confirm("¿Seguro que quieres eliminar este producto?")) return;
 
     const { error } = await sc.from('productos').delete().eq('id', id);
@@ -138,6 +182,8 @@ async function eliminarProducto(id) {
 
 // ================== INICIALIZACIÓN ==================
 window.onload = async function() {
-    await verificarAcceso();
-    await cargarProductos();
+    const tieneAcceso = await verificarAcceso();
+    if (tieneAcceso) {
+        await cargarProductos();
+    }
 };
