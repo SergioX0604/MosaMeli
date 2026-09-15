@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MosaMeli - Bienvenido</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #FFD1DC 0%, #D1C4E9 50%, #FFF8E1 100%);
+            overflow: hidden;
+        }
+
+        .splash-container {
+            text-align: center;
+            animation: fadeInOut 3.5s ease-in-out forwards;
+        }
+
+        .splash-container img {
+            max-width: 320px;
+            width: 85%;
+            filter: drop-shadow(0 10px 30px rgba(142, 36, 170, 0.3));
+        }
+
+        .splash-container .slogan {
+            margin-top: 25px;
+            font-size: 0.95rem;
+            color: #8E24AA;
+            letter-spacing: 4px;
+            font-weight: 500;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 1s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(0.8); }
+            15% { opacity: 1; transform: scale(1); }
+            85% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.15); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .skip-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: rgba(142, 36, 170, 0.15);
+            color: #8E24AA;
+            border: 1px solid #8E24AA;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            opacity: 0;
+            animation: fadeInUp 0.5s ease-out 1.8s forwards;
+            transition: all 0.3s;
+        }
+
+        .skip-btn:hover {
+            background: #8E24AA;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="splash-container">
+        <img src="img/logo-mosameli.png" alt="MosaMeli">
+        <p class="slogan">TU MUNDO, EN UN CLICK</p>
+    </div>
+
+    <button class="skip-btn" onclick="irAlInicio()">Saltar ➜</button>
+
+    <script>
+        // Reproducir sonido de bienvenida
+        window.addEventListener('load', () => {
+            try {
+                const audio = new Audio('img/welcome.mp3');
+                audio.volume = 0.4;
+                audio.play().catch(e => console.log('Navegador bloqueó el audio automático'));
+            } catch (e) {
+                console.log('No se pudo cargar el audio');
+            }
+        });
+
+        // Redirigir al index después de 3.5 segundos
+        setTimeout(() => {
+            irAlInicio();
+        }, 3500);
+
+        function irAlInicio() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

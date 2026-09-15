@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Inventario - MosaMeli</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: var(--crema-pastel); padding: 20px; font-family: 'Poppins', sans-serif; }
+        .admin-header { background: var(--violeta-intenso); color: white; padding: 15px 25px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .admin-header h1 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .admin-header h1 img { height: 35px; background: white; padding: 3px 8px; border-radius: 8px; }
+        .admin-header button { background: white; color: var(--violeta-intenso); border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: 600; font-family: 'Poppins', sans-serif; }
+        .form-section { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: var(--sombra); }
+        .form-section h2 { color: var(--violeta-intenso); margin-bottom: 15px; font-size: 1.2rem; }
+        .form-section input { padding: 10px; border: 2px solid #eee; border-radius: 8px; margin-right: 10px; margin-bottom: 10px; font-family: 'Poppins', sans-serif; }
+        .form-section button { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: 'Poppins', sans-serif; }
+        .table-section { background: white; padding: 20px; border-radius: 15px; box-shadow: var(--sombra); overflow-x: auto; }
+        .table-section h2 { color: var(--violeta-intenso); margin-bottom: 15px; font-size: 1.2rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: var(--violeta-pastel); color: var(--violeta-intenso); }
+        tr:hover { background: var(--rosa-pastel); }
+        .btn-edit, .btn-delete { background: var(--violeta-intenso); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 5px; font-family: 'Poppins', sans-serif; }
+        .btn-delete { background: var(--rojo-precio); }
+        .edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .edit-modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .edit-modal-content h2 { color: var(--violeta-intenso); margin-bottom: 20px; }
+        .edit-modal-content label { display: block; margin-bottom: 5px; color: var(--texto-suave); font-size: 0.9rem; }
+        .edit-modal-content input { width: 100%; padding: 10px; margin-bottom: 15px; border: 2px solid #eee; border-radius: 8px; font-family: 'Poppins', sans-serif; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-buttons button { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-family: 'Poppins', sans-serif; }
+        .btn-cancel { background: #ccc; color: #333; }
+        .btn-save { background: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <h1>
+            <img src="img/logo-mosameli.png" alt="MosaMeli">
+            🛠️ Inventario
+        </h1>
+        <button onclick="window.location.href='index.html'">Volver a la tienda</button>
+    </div>
+
+    <div class="form-section" id="form-agregar">
+        <h2>Agregar nuevo producto</h2>
+        <input type="text" id="nombre" placeholder="Nombre">
+        <input type="text" id="categoria" placeholder="Categoría">
+        <input type="number" id="precio" placeholder="Precio">
+        <input type="number" id="precioOriginal" placeholder="Precio Original">
+        <input type="text" id="imagen" placeholder="URL de Imagen">
+        <input type="number" id="stock" placeholder="Stock">
+        <button onclick="agregarProducto()">Agregar</button>
+    </div>
+
+    <div class="table-section">
+        <h2>Inventario actual</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-productos"></tbody>
+        </table>
+    </div>
+
+    <div id="editModal" class="edit-modal">
+        <div class="edit-modal-content">
+            <h2>✏️ Editar Producto</h2>
+            <label>Nombre</label>
+            <input type="text" id="edit-nombre">
+            <label>Categoría</label>
+            <input type="text" id="edit-categoria">
+            <label>Precio</label>
+            <input type="number" id="edit-precio">
+            <label>Precio Original</label>
+            <input type="number" id="edit-precioOriginal">
+            <label>Stock</label>
+            <input type="number" id="edit-stock">
+            <label>Imagen (URL)</label>
+            <input type="text" id="edit-imagen">
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeEditModal()">Cancelar</button>
+                <button class="btn-save" onclick="saveEdit()">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

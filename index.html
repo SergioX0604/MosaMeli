@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MosaMeli - Tienda Online</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Splash solo la primera vez por sesión -->
+    <script>
+        if (!sessionStorage.getItem('splashVisto')) {
+            sessionStorage.setItem('splashVisto', 'true');
+            window.location.href = 'splash.html';
+        }
+    </script>
+
+    <!-- Header -->
+    <header class="main-header">
+        <div class="logo">
+            <img src="img/logo-mosameli.png" alt="MosaMeli">
+        </div>
+        <div class="header-actions">
+            <div class="search-bar">
+                <input type="text" id="searchBar" placeholder="Buscar productos...">
+                <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="user-area">
+                <span id="userName" style="display:none;"></span>
+                <button id="loginBtn" class="icon-btn" onclick="window.location.href='login.html'"><i class="fas fa-user"></i></button>
+                <button id="logoutBtn" class="icon-btn" style="display:none;" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+            <button class="icon-btn cart-btn" onclick="viewCart()">
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cartCount">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Categorías (pills) -->
+    <div class="category-nav">
+        <button class="cat-pill active" onclick="showAll()"><i class="fas fa-th-large"></i> Todo</button>
+        <button class="cat-pill" onclick="showCategory('hogar')"><i class="fas fa-home"></i> Hogar</button>
+        <button class="cat-pill" onclick="showCategory('bano')"><i class="fas fa-bath"></i> Baño</button>
+        <button class="cat-pill" onclick="showCategory('vestuario')"><i class="fas fa-tshirt"></i> Vestuario</button>
+        <button class="cat-pill" onclick="showCategory('juegos')"><i class="fas fa-gamepad"></i> Juegos</button>
+        <button class="cat-pill" onclick="showCategory('electronica')"><i class="fas fa-tv"></i> Electrónica</button>
+        <button class="cat-pill" onclick="showCategory('mascotas')"><i class="fas fa-dog"></i> Mascotas</button>
+    </div>
+
+    <!-- Botón de filtros para móvil -->
+    <button class="mobile-filter-btn" onclick="toggleFilters()">
+        <i class="fas fa-filter"></i> Mostrar filtros
+    </button>
+
+    <!-- Layout con filtros y productos -->
+    <main class="shop-layout">
+        <aside class="filters-sidebar" id="filtersSidebar">
+            <div class="filters-header">
+                <h3>Filtros</h3>
+                <button class="btn-clear-filters" onclick="clearFilters()">Borrar todo</button>
+            </div>
+            <div class="filter-group">
+                <h4>Categorías</h4>
+                <label><input type="checkbox" class="filter-cat" value="hogar"> Hogar</label>
+                <label><input type="checkbox" class="filter-cat" value="bano"> Baño</label>
+                <label><input type="checkbox" class="filter-cat" value="vestuario"> Vestuario</label>
+                <label><input type="checkbox" class="filter-cat" value="juegos"> Juegos</label>
+                <label><input type="checkbox" class="filter-cat" value="electronica"> Electrónica</label>
+                <label><input type="checkbox" class="filter-cat" value="mascotas"> Mascotas</label>
+            </div>
+            <div class="filter-group">
+                <h4>Precio</h4>
+                <input type="range" id="priceRange" min="0" max="300" value="300">
+                <p>Máximo: S/ <span id="priceValue">300</span></p>
+            </div>
+            <div class="filter-group">
+                <h4>Disponibilidad</h4>
+                <label><input type="checkbox" id="filterStock"> Solo productos disponibles</label>
+            </div>
+        </aside>
+
+        <section class="product-section">
+            <h2 id="categoryTitle">Todos los productos</h2>
+            <p id="productCount">Cargando productos...</p>
+            <div id="productGrid" class="product-grid"></div>
+        </section>
+    </main>
+
+    <!-- Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Modales -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCart()">&times;</span>
+            <h2><i class="fas fa-shopping-basket"></i> Tu Carrito</h2>
+            <div id="cartItems"></div>
+            <div class="cart-actions">
+                <button class="checkout-btn" onclick="openCheckout()">Finalizar Compra</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCheckout()">&times;</span>
+            <h2><i class="fas fa-credit-card"></i> Método de Pago</h2>
+            <div id="opciones-pago">
+                <div class="metodo-pago" onclick="seleccionarMetodo('qr')">
+                    <i class="fas fa-qrcode"></i>
+                    <div><strong>Yape, Plin o App Bancaria</strong><small>Escanea el QR</small></div>
+                </div>
+                <div class="metodo-pago" onclick="seleccionarMetodo('tarjeta')">
+                    <i class="fas fa-credit-card"></i>
+                    <div><strong>Tarjeta Débito/Crédito</strong><small>VISA / Mastercard</small></div>
+                </div>
+                <div class="metodo-pago" onclick="seleccionarMetodo('transferencia')">
+                    <i class="fas fa-university"></i>
+                    <div><strong>Transferencia Bancaria</strong><small>BCP / BBVA</small></div>
+                </div>
+            </div>
+            <div id="instrucciones-pago" style="display:none;">
+                <h3 id="titulo-instrucciones"></h3>
+                <div id="detalle-instrucciones"></div>
+                <button class="confirmar-pago-btn" onclick="confirmarPago()">Confirmar Pago</button>
+                <button class="volver-btn" onclick="volverOpciones()">Volver</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
