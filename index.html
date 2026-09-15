@@ -148,10 +148,61 @@
             .register-required-icon i { font-size: 1.6rem; }
             .register-required-content h2 { font-size: 1.3rem; }
         }
+        /* ==================== BOTÓN DE ADMIN DESTACADO ==================== */
+    .admin-btn {
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        color: #4A3A5C;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 25px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 12px rgba(255, 165, 0, 0.4);
+        animation: pulse-admin 2s ease-in-out infinite;
+        margin-right: 5px;
+    }
+    
+    .admin-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 18px rgba(255, 165, 0, 0.6);
+    }
+    
+    .admin-btn i {
+        font-size: 1rem;
+    }
+    
+    @keyframes pulse-admin {
+        0%, 100% {
+            box-shadow: 0 4px 12px rgba(255, 165, 0, 0.4);
+        }
+        50% {
+            box-shadow: 0 4px 20px rgba(255, 165, 0, 0.8), 0 0 0 8px rgba(255, 215, 0, 0.1);
+        }
+    }
+    
+    /* Responsive móvil */
+    @media (max-width: 600px) {
+        .admin-btn {
+            padding: 6px 10px;
+            font-size: 0.75rem;
+        }
+        .admin-btn span {
+            display: none; /* Ocultar el texto "Admin" en móvil */
+        }
+        .admin-btn i {
+            font-size: 1.1rem;
+        }
+    }
     </style>
     <!-- Botón de Admin (solo se muestra si eres admin) -->
-        <button id="adminBtn" class="icon-btn" style="display:none;" onclick="window.location.href='admin.html'">
-    <i class="fas fa-cog"></i>
+        <button id="adminBtn" class="admin-btn" style="display:none;" onclick="window.location.href='admin.html'">
+    <i class="fas fa-user-shield"></i> Admin
         </button>
     </head>
 <body>

@@ -24,9 +24,9 @@ async function checkLoginStatus() {
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'inline';
         
-        // Mostrar botón de admin solo si es el admin
+        // ✅ Mostrar botón de admin solo si es el admin
         if (adminBtn && user.email === 'espis0611@gmail.com') {
-            adminBtn.style.display = 'inline';
+            adminBtn.style.display = 'flex';
         }
     }
 }
