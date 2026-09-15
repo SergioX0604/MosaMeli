@@ -43,33 +43,24 @@ if (isLoginPage) {
         const registerForm = document.getElementById('register-form');
         const loginForm = document.getElementById('login-form');
 
-        // Registro
-        if (registerForm) {
-            registerForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                let username = e.target.elements.username.value.trim();
-                let email = e.target.elements.email.value.trim();
-                let password = e.target.elements.password.value;
+    if (loginForm) {
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault(); // ← ESTO ES CLAVE: evita que el formulario se envíe por URL
+        let email = e.target.elements.email.value.trim();
+        let password = e.target.elements.password.value;
 
-                if (username.length < 3) { alert('El nombre debe tener al menos 3 caracteres'); return; }
-                if (password.length < 6) { alert('La contraseña debe tener al menos 6 caracteres'); return; }
+        const { error } = await authSupabase.auth.signInWithPassword({ email, password });
 
-                const { error } = await authSupabase.auth.signUp({
-                    email,
-                    password,
-                    options: { data: { username } }
-                });
-
-                if (error) {
-                    alert(error.message);
-                } else {
-                    document.getElementById('register-success').style.display = 'block';
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1500);
-                }
-            });
+        if (error) {
+            document.getElementById('login-error').style.display = 'block';
+        } else {
+            document.getElementById('login-success').style.display = 'block';
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 500);
         }
+    });
+}
 
         // Login
         if (loginForm) {
