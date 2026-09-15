@@ -79,7 +79,7 @@ if (isLoginPage) {
                 }
 
                 // Crear usuario en Supabase Auth
-                const { error } = await authSupabase.auth.signUp({
+                const { data: signUpData, error } = await authSupabase.auth.signUp({
                     email,
                     password,
                     options: { data: { username } }
@@ -87,12 +87,28 @@ if (isLoginPage) {
 
                 if (error) {
                     alert(error.message);
-                } else {
-                    document.getElementById('register-success').style.display = 'block';
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1500);
+                    return;
                 }
+
+                // ✅ Si el trigger no funcionó, insertar el perfil manualmente
+                if (signUpData?.user) {
+                    const { error: perfilError } = await authSupabase
+                        .from('perfiles')
+                        .upsert({
+                            id: signUpData.user.id,
+                            email: email,
+                            username: username
+                        }, { onConflict: 'id' });
+
+                    if (perfilError) {
+                        console.error('Error al crear perfil:', perfilError);
+                    }
+                }
+
+                document.getElementById('register-success').style.display = 'block';
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
             });
         }
 
