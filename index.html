@@ -37,12 +37,17 @@
 </head>
 <body>
     <!-- Splash solo la primera vez por sesión -->
-    <script>
-        if (!sessionStorage.getItem('splashVisto')) {
-            sessionStorage.setItem('splashVisto', 'true');
-            window.location.href = 'splash.html';
-        }
-    </script>
+        <script>
+            // Mostrar splash solo si no se ha visto en las últimas 24 horas
+                const splashLastSeen = localStorage.getItem('splashLastSeen');
+                const now = Date.now();
+                const ONE_DAY = 24 * 60 * 60 * 1000;
+
+    if (!splashLastSeen || (now - parseInt(splashLastSeen)) > ONE_DAY) {
+        localStorage.setItem('splashLastSeen', now.toString());
+        window.location.href = 'splash.html';
+    }
+        </script>
 
     <!-- Header -->
     <header class="main-header">

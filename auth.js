@@ -32,7 +32,7 @@ async function logout() {
 }
 
 // ================== EVENTOS SOLO PARA LOGIN.HTML ==================
-const isLoginPage = window.location.pathname.includes('login.html');
+const isLoginPage = window.location.pathname.includes('login');
 
 if (isLoginPage) {
     document.addEventListener('DOMContentLoaded', async function() {
