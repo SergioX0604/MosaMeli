@@ -362,14 +362,36 @@ function closeCheckout() { document.getElementById('checkoutModal').style.displa
 function showToast(message) {
     const container = document.getElementById('toast-container');
     if (!container) return;
+
+    // Crear la notificación
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.innerHTML = message;
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button class="toast-close" onclick="event.stopPropagation(); this.parentElement.remove();">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
     container.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+
+    // Auto-eliminar después de 4 segundos
+    const timeout = setTimeout(() => {
+        cerrarToast(toast);
+    }, 4000);
+
+    // Cerrar al hacer clic en la notificación
+    toast.addEventListener('click', () => {
+        clearTimeout(timeout);
+        cerrarToast(toast);
+    });
+}
+
+// Función auxiliar para cerrar con animación
+function cerrarToast(toast) {
+    toast.style.transform = 'translateX(100%)';
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
 }
 
 window.onload = async function() {
