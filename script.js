@@ -13,7 +13,7 @@ let soloDisponibles = false;
 let productoActual = null;
 let imagenActualIndex = 0;
 let cantidadProducto = 1;
-window.imagenesProducto = [];
+window.mediaProducto = [];
 
 // ================== CARGAR PRODUCTOS ==================
 async function loadProducts() {
@@ -246,6 +246,7 @@ function abrirProducto(productoId) {
     document.getElementById('productDescription').textContent = 
         productoActual.descripcion || 'Producto de alta calidad seleccionado por MosaMeli.';
     
+    // Características
     const featuresDiv = document.getElementById('productFeatures');
     if (productoActual.caracteristicas) {
         const features = typeof productoActual.caracteristicas === 'string' 
@@ -263,59 +264,93 @@ function abrirProducto(productoId) {
     
     document.getElementById('productWarranty').textContent = productoActual.garantia || 'Garantía de 30 días';
     
-    // Imágenes
-    const imagenes = [productoActual.imagen];
+    // ================== GALERÍA MIXTA (IMÁGENES + VIDEO) ==================
+    const media = [];
+    
+    // 1. Imagen principal
+    media.push({ tipo: 'imagen', url: productoActual.imagen });
+    
+    // 2. Imágenes extra
     if (productoActual.imagenes_extra) {
         const extras = typeof productoActual.imagenes_extra === 'string'
             ? JSON.parse(productoActual.imagenes_extra)
             : productoActual.imagenes_extra;
-        imagenes.push(...extras);
+        extras.forEach(url => media.push({ tipo: 'imagen', url: url }));
     }
     
+    // 3. Video (si existe)
+    if (productoActual.video_url) {
+        media.push({ tipo: 'video', url: productoActual.video_url });
+    }
+    
+    window.mediaProducto = media;
     imagenActualIndex = 0;
-    document.getElementById('productMainImage').src = imagenes[0];
-    window.imagenesProducto = imagenes;
     
+    // Mostrar el primer elemento
+    mostrarMedia(0);
+    
+    // Miniaturas
     const thumbnails = document.getElementById('productThumbnails');
-    thumbnails.innerHTML = imagenes.map((img, i) => `
-        <div class="thumbnail ${i === 0 ? 'active' : ''}" onclick="cambiarImagen(${i}, '${img}')">
-            <img src="${img}" alt="Miniatura ${i + 1}">
-        </div>
-    `).join('');
-    
-    // ✅ Video del producto
-    const videoContainer = document.getElementById('productVideoContainer');
-    const videoElement = document.getElementById('productVideo');
-    if (productoActual.video_url && videoContainer && videoElement) {
-        videoElement.src = productoActual.video_url;
-        videoContainer.style.display = 'block';
-    } else if (videoContainer && videoElement) {
-        videoContainer.style.display = 'none';
-        videoElement.src = '';
-    }
+    thumbnails.innerHTML = media.map((item, i) => {
+        if (item.tipo === 'video') {
+            return `
+                <div class="thumbnail video-thumb ${i === 0 ? 'active' : ''}" onclick="mostrarMedia(${i})">
+                    <video src="${item.url}" muted preload="metadata"></video>
+                    <div class="play-icon"><i class="fas fa-play"></i></div>
+                </div>
+            `;
+        } else {
+            return `
+                <div class="thumbnail ${i === 0 ? 'active' : ''}" onclick="mostrarMedia(${i})">
+                    <img src="${item.url}" alt="Miniatura ${i + 1}">
+                </div>
+            `;
+        }
+    }).join('');
     
     document.getElementById('productModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
 
-function cambiarImagen(index, url) {
+// Mostrar imagen o video en el espacio principal
+function mostrarMedia(index) {
+    if (!window.mediaProducto.length) return;
     imagenActualIndex = index;
-    document.getElementById('productMainImage').src = url;
+    
+    const item = window.mediaProducto[index];
+    const img = document.getElementById('productMainImage');
+    const video = document.getElementById('productVideo');
+    
+    if (item.tipo === 'video') {
+        img.style.display = 'none';
+        video.style.display = 'block';
+        video.src = item.url;
+        video.load();
+    } else {
+        video.style.display = 'none';
+        video.pause();
+        video.src = '';
+        img.style.display = 'block';
+        img.src = item.url;
+    }
+    
+    // Actualizar miniaturas activas
     document.querySelectorAll('.thumbnail').forEach((t, i) => {
         t.classList.toggle('active', i === index);
     });
 }
 
+// Navegar entre elementos
 function prevImage() {
-    if (!window.imagenesProducto.length) return;
-    imagenActualIndex = (imagenActualIndex - 1 + window.imagenesProducto.length) % window.imagenesProducto.length;
-    cambiarImagen(imagenActualIndex, window.imagenesProducto[imagenActualIndex]);
+    if (!window.mediaProducto.length) return;
+    const newIndex = (imagenActualIndex - 1 + window.mediaProducto.length) % window.mediaProducto.length;
+    mostrarMedia(newIndex);
 }
 
 function nextImage() {
-    if (!window.imagenesProducto.length) return;
-    imagenActualIndex = (imagenActualIndex + 1) % window.imagenesProducto.length;
-    cambiarImagen(imagenActualIndex, window.imagenesProducto[imagenActualIndex]);
+    if (!window.mediaProducto.length) return;
+    const newIndex = (imagenActualIndex + 1) % window.mediaProducto.length;
+    mostrarMedia(newIndex);
 }
 
 function increaseQuantity() {
@@ -352,6 +387,11 @@ function buyNowFromModal() {
 }
 
 function closeProductModal() {
+    const video = document.getElementById('productVideo');
+    if (video) {
+        video.pause();
+        video.src = '';
+    }
     document.getElementById('productModal').style.display = 'none';
     document.body.style.overflow = 'auto';
     productoActual = null;
