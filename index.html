@@ -328,12 +328,13 @@
             text-align: center;
         }
 
-        /* ==================== CONTROL DE VOLUMEN MEJORADO ==================== */
+        /* ==================== CONTROL DE VOLUMEN ==================== */
         .volume-control {
             position: relative;
             display: flex;
             align-items: center;
         }
+
         .volume-slider-container {
             position: absolute;
             bottom: 55px;
@@ -365,9 +366,15 @@
             background: transparent;
         }
 
-        /* Mantener abierto mientras el mouse esté sobre el slider o el ícono */
-        .volume-control:hover .volume-slider-container,
-        .volume-slider-container:hover {
+        /* Clase activa que controla la visibilidad */
+        .volume-slider-container.volume-active {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            transform: translateX(-50%) translateY(0) !important;
+        }
+
+        /* Mostrar al hover si NO hay clase activa */
+        .volume-control:hover .volume-slider-container:not(.volume-active) {
             opacity: 1;
             pointer-events: auto;
             transform: translateX(-50%) translateY(0);
@@ -678,7 +685,6 @@
                         
                         <img id="productMainImage" src="" alt="Producto" style="display: block;">
                         
-                        <!-- Video con controles personalizados -->
                         <div class="video-wrapper" id="videoWrapper" style="display: none;">
                             <video id="productVideo" playsinline>
                                 Tu navegador no soporta videos HTML5.
@@ -708,7 +714,6 @@
                                     </div>
                                 </div>
                                 
-                                <!-- CONTROL DE VOLUMEN CON SLIDER -->
                                 <div class="volume-control">
                                     <button class="video-btn" onclick="toggleMute()" title="Silenciar">
                                         <i class="fas fa-volume-up" id="volumeIcon"></i>
