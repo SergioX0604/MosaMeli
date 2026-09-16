@@ -266,7 +266,6 @@ function abrirProducto(productoId) {
     
     document.getElementById('productWarranty').textContent = productoActual.garantia || 'Garantía de 30 días';
     
-    // Galería mixta
     const media = [];
     media.push({ tipo: 'imagen', url: productoActual.imagen });
     
@@ -310,7 +309,6 @@ function abrirProducto(productoId) {
     setTimeout(() => initImageZoom(), 100);
 }
 
-// Mostrar imagen o video
 function mostrarMedia(index) {
     if (!window.mediaProducto.length) return;
     imagenActualIndex = index;
@@ -402,7 +400,7 @@ function closeProductModal() {
     productoActual = null;
 }
 
-// ================== CONTROLES DE VIDEO PERSONALIZADOS ==================
+// ================== CONTROLES DE VIDEO ==================
 function initVideoControls() {
     const video = document.getElementById('productVideo');
     const wrapper = document.getElementById('videoWrapper');
@@ -412,7 +410,6 @@ function initVideoControls() {
     
     if (!video || !wrapper) return;
     
-    // Actualizar barra de progreso y tiempo
     video.addEventListener('timeupdate', () => {
         if (video.duration) {
             const percent = (video.currentTime / video.duration) * 100;
@@ -435,7 +432,6 @@ function initVideoControls() {
         videoTime.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
     });
     
-    // Auto-ocultar controles después de 3 segundos
     let hideTimeout;
     wrapper.addEventListener('mousemove', () => {
         wrapper.classList.add('controls-visible');
@@ -453,8 +449,13 @@ function initVideoControls() {
         }
     });
     
-    // Play/pause al hacer clic en el video
     video.addEventListener('click', togglePlayPause);
+    
+    // Inicializar volumen al 100%
+    video.volume = 1;
+    video.muted = false;
+    actualizarSliderVolumen(1);
+    actualizarIconoVolumen(1);
 }
 
 function formatTime(seconds) {
@@ -470,19 +471,6 @@ function togglePlayPause() {
         video.play();
     } else {
         video.pause();
-    }
-}
-
-function toggleMute() {
-    const video = document.getElementById('productVideo');
-    const icon = document.getElementById('volumeIcon');
-    video.muted = !video.muted;
-    if (video.muted) {
-        icon.classList.remove('fa-volume-up');
-        icon.classList.add('fa-volume-mute');
-    } else {
-        icon.classList.remove('fa-volume-mute');
-        icon.classList.add('fa-volume-up');
     }
 }
 
@@ -503,7 +491,7 @@ function toggleFullscreen() {
     }
 }
 
-// ================== VELOCIDAD DE REPRODUCCIÓN ==================
+// ================== VELOCIDAD ==================
 function toggleSpeedMenu(e) {
     if (e) e.stopPropagation();
     const menu = document.getElementById('speedMenu');
@@ -529,13 +517,99 @@ function setSpeed(speed) {
     document.getElementById('speedMenu').classList.remove('active');
 }
 
-// Cerrar menú de velocidad al hacer clic fuera
 document.addEventListener('click', (e) => {
     const menu = document.getElementById('speedMenu');
     const selector = document.querySelector('.speed-selector');
     if (menu && selector && !selector.contains(e.target)) {
         menu.classList.remove('active');
     }
+});
+
+// ================== CONTROL DE VOLUMEN ==================
+function toggleMute() {
+    const video = document.getElementById('productVideo');
+    const icon = document.getElementById('volumeIcon');
+    video.muted = !video.muted;
+    
+    if (video.muted) {
+        icon.classList.remove('fa-volume-up', 'fa-volume-down');
+        icon.classList.add('fa-volume-mute');
+        actualizarSliderVolumen(0);
+    } else {
+        icon.classList.remove('fa-volume-mute');
+        if (video.volume > 0.5) {
+            icon.classList.add('fa-volume-up');
+        } else {
+            icon.classList.add('fa-volume-down');
+        }
+        actualizarSliderVolumen(video.volume);
+    }
+}
+
+function setVolumeFromClick(e) {
+    e.stopPropagation();
+    const video = document.getElementById('productVideo');
+    const slider = document.getElementById('volumeSlider');
+    const rect = slider.getBoundingClientRect();
+    
+    const clickY = e.clientY - rect.top;
+    const volume = Math.max(0, Math.min(1, 1 - (clickY / rect.height)));
+    
+    video.volume = volume;
+    video.muted = volume === 0;
+    actualizarSliderVolumen(volume);
+    actualizarIconoVolumen(volume);
+}
+
+function actualizarSliderVolumen(volume) {
+    const fill = document.getElementById('volumeFill');
+    const thumb = document.getElementById('volumeThumb');
+    const percent = document.getElementById('volumePercent');
+    
+    if (!fill || !thumb || !percent) return;
+    
+    const percentValue = Math.round(volume * 100);
+    fill.style.height = percentValue + '%';
+    thumb.style.bottom = percentValue + '%';
+    percent.textContent = percentValue + '%';
+}
+
+function actualizarIconoVolumen(volume) {
+    const icon = document.getElementById('volumeIcon');
+    if (!icon) return;
+    
+    icon.classList.remove('fa-volume-up', 'fa-volume-down', 'fa-volume-mute');
+    
+    if (volume === 0) {
+        icon.classList.add('fa-volume-mute');
+    } else if (volume < 0.5) {
+        icon.classList.add('fa-volume-down');
+    } else {
+        icon.classList.add('fa-volume-up');
+    }
+}
+
+// Inicializar arrastre del slider de volumen
+document.addEventListener('DOMContentLoaded', () => {
+    const slider = document.getElementById('volumeSlider');
+    if (!slider) return;
+    
+    let isDragging = false;
+    
+    slider.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        setVolumeFromClick(e);
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            setVolumeFromClick(e);
+        }
+    });
+    
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
 });
 
 // ================== ZOOM EN IMÁGENES ==================
@@ -641,7 +715,6 @@ function updateFullscreenTransform() {
     img.style.transform = `scale(${zoomLevel})`;
 }
 
-// Cerrar con ESC
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeFullscreenImage();

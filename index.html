@@ -160,7 +160,7 @@
             transform: translate(-50%, -50%) scale(1.15);
         }
 
-        /* ==================== INDICADOR DE ZOOM (ARRIBA) ==================== */
+        /* ==================== INDICADOR DE ZOOM ==================== */
         .zoom-hint {
             position: absolute;
             top: 12px;
@@ -186,7 +186,7 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* ==================== VIDEO CON CONTROLES AUTOOCULTABLES ==================== */
+        /* ==================== VIDEO CON CONTROLES ==================== */
         .video-wrapper {
             position: relative;
             width: 100%;
@@ -204,8 +204,6 @@
             display: block;
             cursor: pointer;
         }
-
-        /* Controles (ocultos por defecto) */
         .video-controls {
             position: absolute;
             bottom: 0;
@@ -222,15 +220,12 @@
             pointer-events: none;
             z-index: 5;
         }
-
         .video-wrapper:hover .video-controls,
         .video-wrapper.controls-visible .video-controls {
             opacity: 1;
             transform: translateY(0);
             pointer-events: auto;
         }
-
-        /* Botones */
         .video-btn {
             background: rgba(255,255,255,0.2);
             border: none;
@@ -252,10 +247,8 @@
             transform: scale(1.1);
         }
 
-        /* Selector de velocidad */
-        .speed-selector {
-            position: relative;
-        }
+        /* ==================== SELECTOR DE VELOCIDAD ==================== */
+        .speed-selector { position: relative; }
         .speed-menu {
             position: absolute;
             bottom: 50px;
@@ -294,9 +287,7 @@
             text-align: center;
             white-space: nowrap;
         }
-        .speed-option:hover {
-            background: rgba(155, 127, 212, 0.5);
-        }
+        .speed-option:hover { background: rgba(155, 127, 212, 0.5); }
         .speed-option.active {
             background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
             font-weight: 700;
@@ -310,7 +301,7 @@
             text-align: center;
         }
 
-        /* Barra de progreso */
+        /* ==================== BARRA DE PROGRESO ==================== */
         .video-progress {
             flex: 1;
             height: 6px;
@@ -327,15 +318,83 @@
             width: 0%;
             transition: width 0.1s linear;
         }
-
-        /* Tiempo */
         .video-time {
             color: white;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-family: 'Poppins', sans-serif;
             font-weight: 500;
             flex-shrink: 0;
-            min-width: 40px;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        /* ==================== CONTROL DE VOLUMEN ==================== */
+        .volume-control {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .volume-slider-container {
+            position: absolute;
+            bottom: 55px;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: rgba(74, 58, 92, 0.95);
+            padding: 15px 10px;
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+        .volume-control:hover .volume-slider-container {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+        .volume-slider {
+            width: 8px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+        .volume-slider-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, #9B7FD4 0%, #F5A6B8 100%);
+            border-radius: 4px;
+            transition: height 0.1s;
+        }
+        .volume-slider-thumb {
+            position: absolute;
+            left: 50%;
+            bottom: 100%;
+            transform: translate(-50%, 50%);
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            transition: bottom 0.1s;
+            pointer-events: none;
+        }
+        .volume-percent {
+            color: white;
+            font-size: 0.7rem;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
         /* ==================== MODAL DE PANTALLA COMPLETA ==================== */
@@ -432,8 +491,11 @@
             .fullscreen-controls button { width: 40px; height: 40px; }
             .video-controls { padding: 20px 10px 10px 10px; gap: 8px; }
             .video-btn { width: 34px; height: 34px; font-size: 0.8rem; }
-            .video-time { font-size: 0.75rem; }
+            .video-time { font-size: 0.7rem; min-width: 60px; }
             .speed-label { font-size: 0.7rem; }
+            .volume-slider-container { bottom: 45px; padding: 12px 8px; }
+            .volume-slider { height: 80px; }
+            .volume-percent { font-size: 0.65rem; }
         }
         @media (max-width: 500px) {
             .register-required-content { padding: 25px 20px; }
@@ -616,7 +678,7 @@
                                     <div class="video-progress-bar" id="progressBar"></div>
                                 </div>
                                 
-                                <span class="video-time" id="videoTime">0:00</span>
+                                <span class="video-time" id="videoTime">0:00 / 0:00</span>
                                 
                                 <div class="speed-selector">
                                     <button class="video-btn" onclick="toggleSpeedMenu(event)" title="Velocidad">
@@ -631,9 +693,19 @@
                                     </div>
                                 </div>
                                 
-                                <button class="video-btn" onclick="toggleMute()" title="Silenciar">
-                                    <i class="fas fa-volume-up" id="volumeIcon"></i>
-                                </button>
+                                <!-- CONTROL DE VOLUMEN CON SLIDER -->
+                                <div class="volume-control">
+                                    <button class="video-btn" onclick="toggleMute()" title="Silenciar">
+                                        <i class="fas fa-volume-up" id="volumeIcon"></i>
+                                    </button>
+                                    <div class="volume-slider-container">
+                                        <div class="volume-slider" id="volumeSlider">
+                                            <div class="volume-slider-fill" id="volumeFill"></div>
+                                            <div class="volume-slider-thumb" id="volumeThumb"></div>
+                                        </div>
+                                        <span class="volume-percent" id="volumePercent">100%</span>
+                                    </div>
+                                </div>
                                 
                                 <button class="video-btn" onclick="toggleFullscreen()" title="Pantalla completa">
                                     <i class="fas fa-expand"></i>
