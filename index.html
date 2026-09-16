@@ -9,26 +9,17 @@
     <meta name="keywords" content="tienda online, MosaMeli, productos hogar, vestuario, electrónica, mascotas, Perú">
     <meta name="author" content="MosaMeli">
 
-    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
 
-    <!-- Open Graph -->
     <meta property="og:title" content="MosaMeli - Tu mundo en un click">
     <meta property="og:description" content="Descubre productos increíbles para tu hogar, familia y mascotas. Envío gratis a todo el Perú.">
     <meta property="og:image" content="https://mosameli.com/img/logo-mosameli.png">
     <meta property="og:url" content="https://mosameli.com">
     <meta property="og:type" content="website">
 
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="MosaMeli - Tu mundo en un click">
-    <meta name="twitter:description" content="Tienda online con productos para el hogar, familia y mascotas.">
-    <meta name="twitter:image" content="https://mosameli.com/img/logo-mosameli.png">
-
-    <!-- Fuentes y CSS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -36,7 +27,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        /* ==================== BOTÓN DE ADMIN DESTACADO ==================== */
+        /* ==================== BOTÓN DE ADMIN ==================== */
         .admin-btn {
             background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
             color: #4A3A5C;
@@ -55,141 +46,153 @@
             animation: pulse-admin 2s ease-in-out infinite;
             flex-shrink: 0;
         }
-        
-        .admin-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 18px rgba(255, 165, 0, 0.6);
-        }
-        
-        .admin-btn i {
-            font-size: 0.95rem;
-        }
-        
+        .admin-btn:hover { transform: scale(1.05); box-shadow: 0 6px 18px rgba(255, 165, 0, 0.6); }
+        .admin-btn i { font-size: 0.95rem; }
         @keyframes pulse-admin {
-            0%, 100% {
-                box-shadow: 0 4px 12px rgba(255, 165, 0, 0.4);
-            }
-            50% {
-                box-shadow: 0 4px 20px rgba(255, 165, 0, 0.8), 0 0 0 6px rgba(255, 215, 0, 0.1);
-            }
+            0%, 100% { box-shadow: 0 4px 12px rgba(255, 165, 0, 0.4); }
+            50% { box-shadow: 0 4px 20px rgba(255, 165, 0, 0.8), 0 0 0 6px rgba(255, 215, 0, 0.1); }
         }
 
         /* ==================== MODAL DE REGISTRO OBLIGATORIO ==================== */
-        .register-required-content {
-            text-align: center;
-            padding: 35px 30px;
-        }
+        .register-required-content { text-align: center; padding: 35px 30px; }
         .register-required-icon {
-            width: 80px;
-            height: 80px;
+            width: 80px; height: 80px;
             background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            box-shadow: 0 8px 20px rgba(155, 127, 212, 0.4);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px; box-shadow: 0 8px 20px rgba(155, 127, 212, 0.4);
         }
-        .register-required-icon i {
-            color: white;
-            font-size: 2rem;
-        }
-        .register-required-content h2 {
-            font-size: 1.5rem;
-            color: #4A3A5C;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        .register-required-text {
-            font-size: 0.95rem;
-            color: #7A6A8C;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-        .register-required-text strong {
-            color: #9B7FD4;
-        }
-        .register-required-benefits {
-            background: #F5F0FA;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .benefit-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 0;
-            font-size: 0.85rem;
-            color: #4A3A5C;
-        }
-        .benefit-item i {
-            color: #9B7FD4;
-            font-size: 1rem;
-            width: 20px;
-            text-align: center;
-        }
-        .register-required-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .register-required-icon i { color: white; font-size: 2rem; }
+        .register-required-content h2 { font-size: 1.5rem; color: #4A3A5C; margin-bottom: 15px; font-weight: 600; }
+        .register-required-text { font-size: 0.95rem; color: #7A6A8C; line-height: 1.6; margin-bottom: 20px; }
+        .register-required-text strong { color: #9B7FD4; }
+        .register-required-benefits { background: #F5F0FA; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: left; }
+        .benefit-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 0.85rem; color: #4A3A5C; }
+        .benefit-item i { color: #9B7FD4; font-size: 1rem; width: 20px; text-align: center; }
+        .register-required-buttons { display: flex; flex-direction: column; gap: 10px; }
         .btn-register-now {
             background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 25px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+            color: white; border: none; padding: 14px; border-radius: 25px;
+            font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.95rem;
+            cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
         }
-        .btn-register-now:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(155, 127, 212, 0.5);
-        }
+        .btn-register-now:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(155, 127, 212, 0.5); }
         .btn-login-now {
-            background: white;
-            color: #7E57C2;
-            border: 2px solid #9B7FD4;
-            padding: 12px;
-            border-radius: 25px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.3s;
+            background: white; color: #7E57C2; border: 2px solid #9B7FD4;
+            padding: 12px; border-radius: 25px; font-family: 'Poppins', sans-serif;
+            font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.3s;
         }
-        .btn-login-now:hover {
-            background: #F5F0FA;
-        }
+        .btn-login-now:hover { background: #F5F0FA; }
         .btn-cancel-register {
-            background: none;
-            color: #7A6A8C;
-            border: none;
-            padding: 10px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.85rem;
-            cursor: pointer;
+            background: none; color: #7A6A8C; border: none; padding: 10px;
+            font-family: 'Poppins', sans-serif; font-size: 0.85rem; cursor: pointer;
             text-decoration: underline;
         }
-        .btn-cancel-register:hover {
-            color: #9B7FD4;
-        }
+        .btn-cancel-register:hover { color: #9B7FD4; }
 
-        /* Responsive */
-        @media (max-width: 600px) {
-            .admin-btn {
-                padding: 6px 10px;
-                font-size: 0.75rem;
-            }
-            .admin-btn i {
-                font-size: 1rem;
-            }
+        /* ==================== MODAL DE DETALLE DE PRODUCTO ==================== */
+        .product-detail-content {
+            max-width: 1100px;
+            width: 95%;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .close-product {
+            position: absolute; top: 15px; right: 20px;
+            font-size: 30px; color: #7A6A8C; cursor: pointer; z-index: 10;
+            background: white; width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s;
+        }
+        .close-product:hover { background: #F5F0FA; color: #9B7FD4; transform: rotate(90deg); }
+        .product-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+        .product-gallery {
+            background: #F5F0FA; padding: 30px;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .product-main-image {
+            position: relative; width: 100%; height: 400px; border-radius: 16px;
+            overflow: hidden; background: white;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .product-main-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .gallery-nav {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.9); border: none; width: 40px; height: 40px;
+            border-radius: 50%; cursor: pointer; color: #7E57C2; font-size: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: all 0.3s;
+        }
+        .gallery-nav:hover { background: white; transform: translateY(-50%) scale(1.1); }
+        .gallery-nav.prev { left: 15px; }
+        .gallery-nav.next { right: 15px; }
+        .product-thumbnails { display: flex; gap: 10px; margin-top: 15px; justify-content: center; flex-wrap: wrap; }
+        .thumbnail {
+            width: 65px; height: 65px; border-radius: 10px; cursor: pointer;
+            border: 2px solid transparent; overflow: hidden; background: white; transition: all 0.3s;
+        }
+        .thumbnail.active { border-color: #9B7FD4; transform: scale(1.05); }
+        .thumbnail img { width: 100%; height: 100%; object-fit: cover; }
+        .product-detail-info { padding: 35px 30px; overflow-y: auto; max-height: 90vh; }
+        .product-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white; padding: 4px 12px; border-radius: 20px;
+            font-size: 0.75rem; font-weight: 700; margin-bottom: 10px;
+        }
+        .product-detail-info h2 { font-size: 1.5rem; color: #4A3A5C; margin-bottom: 6px; font-weight: 600; }
+        .product-brand { color: #9B7FD4; font-size: 0.85rem; font-weight: 500; margin-bottom: 10px; }
+        .product-rating { display: flex; align-items: center; gap: 4px; color: #FFA500; font-size: 0.9rem; margin-bottom: 15px; }
+        .product-rating span { color: #7A6A8C; font-size: 0.8rem; margin-left: 6px; }
+        .product-detail-price { display: flex; align-items: baseline; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .detail-current-price { font-size: 1.8rem; font-weight: 700; color: #7E57C2; }
+        .detail-original-price { font-size: 1rem; color: #B0A5BD; text-decoration: line-through; }
+        .detail-discount { background: #E57373; color: white; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+        .product-description {
+            font-size: 0.9rem; color: #4A3A5C; line-height: 1.6; margin-bottom: 20px;
+            padding: 15px; background: #F5F0FA; border-radius: 12px; border-left: 4px solid #9B7FD4;
+        }
+        .product-features { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .feature-item { background: white; border: 2px solid #EDE4F5; border-radius: 10px; padding: 10px; font-size: 0.8rem; }
+        .feature-item strong { color: #7E57C2; display: block; margin-bottom: 3px; font-size: 0.75rem; }
+        .feature-item span { color: #4A3A5C; }
+        .product-quantity { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .product-quantity label { font-weight: 600; color: #4A3A5C; font-size: 0.9rem; }
+        .quantity-selector { display: flex; align-items: center; background: #F5F0FA; border-radius: 25px; padding: 4px; }
+        .quantity-selector button {
+            width: 32px; height: 32px; border-radius: 50%; border: none; background: white;
+            cursor: pointer; font-size: 1.1rem; font-weight: bold; color: #7E57C2; transition: all 0.2s;
+        }
+        .quantity-selector button:hover { background: #9B7FD4; color: white; }
+        .quantity-selector input {
+            width: 50px; text-align: center; border: none; background: transparent;
+            font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 1rem; color: #4A3A5C;
+        }
+        .product-detail-actions { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn-detail-add {
+            flex: 1; background: #F8BBD0; color: #7E57C2; border: 2px solid #F5A6B8;
+            padding: 14px; border-radius: 25px; font-family: 'Poppins', sans-serif;
+            font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-detail-add:hover { background: #F5A6B8; color: white; }
+        .btn-detail-buy {
+            flex: 1; background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white; border: none; padding: 14px; border-radius: 25px;
+            font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+        }
+        .btn-detail-buy:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(155, 127, 212, 0.5); }
+        .product-shipping-info { border-top: 1px solid #EDE4F5; padding-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .shipping-item { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #4A3A5C; }
+        .shipping-item i { color: #9B7FD4; width: 20px; text-align: center; }
+
+        @media (max-width: 768px) {
+            .product-detail-grid { grid-template-columns: 1fr; }
+            .product-main-image { height: 280px; }
+            .product-detail-info { padding: 25px 20px; }
+            .product-detail-info h2 { font-size: 1.3rem; }
+            .detail-current-price { font-size: 1.5rem; }
+            .product-detail-actions { flex-direction: column; }
+            .admin-btn { padding: 6px 10px; font-size: 0.75rem; }
         }
         @media (max-width: 500px) {
             .register-required-content { padding: 25px 20px; }
@@ -200,7 +203,6 @@
     </style>
 </head>
 <body>
-    <!-- Splash solo la primera vez por sesión -->
     <script>
         if (!sessionStorage.getItem('splashVisto')) {
             sessionStorage.setItem('splashVisto', 'true');
@@ -218,18 +220,14 @@
                 <input type="text" id="searchBar" placeholder="Buscar productos...">
                 <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
             </div>
-            
             <div class="user-area">
                 <span id="userName" style="display:none;"></span>
                 <button id="loginBtn" class="icon-btn" onclick="window.location.href='login.html'"><i class="fas fa-user"></i></button>
                 <button id="logoutBtn" class="icon-btn" style="display:none;" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
             </div>
-
-            <!-- ✅ BOTÓN DE ADMIN DENTRO DEL HEADER -->
             <button id="adminBtn" class="admin-btn" onclick="window.location.href='admin.html'">
                 <i class="fas fa-user-shield"></i> Admin
             </button>
-
             <button class="icon-btn cart-btn" onclick="viewCart()">
                 <i class="fas fa-shopping-cart"></i>
                 <span id="cartCount">0</span>
@@ -248,7 +246,6 @@
         <button class="cat-pill" onclick="showCategory('mascotas')"><i class="fas fa-dog"></i> Mascotas</button>
     </div>
 
-    <!-- Botón de filtros móvil -->
     <button class="mobile-filter-btn" onclick="toggleFilters()">
         <i class="fas fa-filter"></i> Mostrar filtros
     </button>
@@ -333,49 +330,81 @@
     <div id="registerRequiredModal" class="modal">
         <div class="modal-content register-required-content">
             <span class="close" onclick="closeRegisterRequired()">&times;</span>
-            
-            <div class="register-required-icon">
-                <i class="fas fa-user-plus"></i>
-            </div>
-            
+            <div class="register-required-icon"><i class="fas fa-user-plus"></i></div>
             <h2>Regístrate para comprar</h2>
-            
             <p class="register-required-text">
                 Es necesario su registro para proceder con su compra. 
                 Así podremos emitir su <strong>boleta o factura</strong> y enviarle 
                 el comprobante de su pedido.
             </p>
-            
             <div class="register-required-benefits">
-                <div class="benefit-item">
-                    <i class="fas fa-file-invoice"></i>
-                    <span>Boletas y facturas electrónicas</span>
-                </div>
-                <div class="benefit-item">
-                    <i class="fas fa-history"></i>
-                    <span>Historial de compras</span>
-                </div>
-                <div class="benefit-item">
-                    <i class="fas fa-truck"></i>
-                    <span>Seguimiento de tus envíos</span>
-                </div>
+                <div class="benefit-item"><i class="fas fa-file-invoice"></i><span>Boletas y facturas electrónicas</span></div>
+                <div class="benefit-item"><i class="fas fa-history"></i><span>Historial de compras</span></div>
+                <div class="benefit-item"><i class="fas fa-truck"></i><span>Seguimiento de tus envíos</span></div>
             </div>
-            
             <div class="register-required-buttons">
-                <button class="btn-register-now" onclick="irARegistro()">
-                    <i class="fas fa-user-plus"></i> Registrarme ahora
-                </button>
-                <button class="btn-login-now" onclick="irALogin()">
-                    <i class="fas fa-sign-in-alt"></i> Ya tengo cuenta
-                </button>
-                <button class="btn-cancel-register" onclick="closeRegisterRequired()">
-                    Seguir explorando
-                </button>
+                <button class="btn-register-now" onclick="irARegistro()"><i class="fas fa-user-plus"></i> Registrarme ahora</button>
+                <button class="btn-login-now" onclick="irALogin()"><i class="fas fa-sign-in-alt"></i> Ya tengo cuenta</button>
+                <button class="btn-cancel-register" onclick="closeRegisterRequired()">Seguir explorando</button>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPTS -->
+    <!-- Modal de Detalle de Producto -->
+    <div id="productModal" class="modal">
+        <div class="modal-content product-detail-content">
+            <span class="close-product" onclick="closeProductModal()">&times;</span>
+            <div class="product-detail-grid">
+                <div class="product-gallery">
+                    <div class="product-main-image">
+                        <img id="productMainImage" src="" alt="Producto">
+                        <button class="gallery-nav prev" onclick="prevImage()"><i class="fas fa-chevron-left"></i></button>
+                        <button class="gallery-nav next" onclick="nextImage()"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="product-thumbnails" id="productThumbnails"></div>
+                </div>
+                <div class="product-detail-info">
+                    <span class="product-badge" id="productBadge"></span>
+                    <h2 id="productDetailName">Nombre del producto</h2>
+                    <p class="product-brand" id="productBrand"></p>
+                    <div class="product-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                        <span>4.5 (128 reseñas)</span>
+                    </div>
+                    <div class="product-detail-price">
+                        <span class="detail-current-price" id="productDetailPrice"></span>
+                        <span class="detail-original-price" id="productDetailOriginalPrice"></span>
+                        <span class="detail-discount" id="productDetailDiscount"></span>
+                    </div>
+                    <p class="product-description" id="productDescription"></p>
+                    <div class="product-features" id="productFeatures"></div>
+                    <div class="product-quantity">
+                        <label>Cantidad:</label>
+                        <div class="quantity-selector">
+                            <button onclick="decreaseQuantity()">−</button>
+                            <input type="number" id="productQuantity" value="1" min="1" readonly>
+                            <button onclick="increaseQuantity()">+</button>
+                        </div>
+                    </div>
+                    <div class="product-detail-actions">
+                        <button class="btn-detail-add" onclick="addToCartFromModal()">
+                            <i class="fas fa-cart-plus"></i> Agregar al carrito
+                        </button>
+                        <button class="btn-detail-buy" onclick="buyNowFromModal()">
+                            <i class="fas fa-bolt"></i> Comprar ahora
+                        </button>
+                    </div>
+                    <div class="product-shipping-info">
+                        <div class="shipping-item"><i class="fas fa-truck"></i><span>Envío gratis a todo el Perú</span></div>
+                        <div class="shipping-item"><i class="fas fa-shield-alt"></i><span id="productWarranty">Garantía de 30 días</span></div>
+                        <div class="shipping-item"><i class="fas fa-undo"></i><span>Devolución sin costo</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabaseClient.js"></script>
     <script src="auth.js"></script>

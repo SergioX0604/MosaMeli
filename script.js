@@ -9,6 +9,12 @@ let categoriasActivas = [];
 let filtroPrecioMax = 300;
 let soloDisponibles = false;
 
+// Variables del modal de producto
+let productoActual = null;
+let imagenActualIndex = 0;
+let cantidadProducto = 1;
+window.imagenesProducto = [];
+
 // ================== CARGAR PRODUCTOS ==================
 async function loadProducts() {
     const grid = document.getElementById('productGrid');
@@ -22,9 +28,19 @@ async function loadProducts() {
     }
 
     productos = data.map(p => ({
-        id: p.id, nombre: p.nombre, categoria: p.categoria,
-        precio: p.precio, precioOriginal: p.precio_original,
-        imagen: p.imagen, stock: p.stock
+        id: p.id,
+        nombre: p.nombre,
+        categoria: p.categoria,
+        precio: p.precio,
+        precioOriginal: p.precio_original,
+        imagen: p.imagen,
+        stock: p.stock,
+        descripcion: p.descripcion,
+        caracteristicas: p.caracteristicas,
+        imagenes_extra: p.imagenes_extra,
+        video_url: p.video_url,
+        marca: p.marca,
+        garantia: p.garantia
     }));
     renderProductos();
 }
@@ -52,7 +68,7 @@ function renderProductos() {
         return `
             <div class="product-card">
                 ${descuento > 0 ? `<span class="discount-tag">-${descuento}%</span>` : ''}
-                <img src="${p.imagen}" class="product-image">
+                <img src="${p.imagen}" class="product-image" onclick="abrirProducto(${p.id})" style="cursor:pointer;">
                 <div class="product-info">
                     <h3>${p.nombre}</h3>
                     <div class="price-container">
@@ -125,7 +141,7 @@ function searchProducts() {
         return `
             <div class="product-card">
                 ${descuento > 0 ? `<span class="discount-tag">-${descuento}%</span>` : ''}
-                <img src="${p.imagen}" class="product-image">
+                <img src="${p.imagen}" class="product-image" onclick="abrirProducto(${p.id})" style="cursor:pointer;">
                 <div class="product-info">
                     <h3>${p.nombre}</h3>
                     <div class="price-container">
@@ -226,20 +242,141 @@ function updateCartCount() { document.getElementById('cartCount').textContent = 
 function totalCarrito() { return carrito.reduce((sum, item) => sum + item.precio, 0); }
 function closeCart() { document.getElementById('cartModal').style.display = 'none'; }
 
-// ================== CHECKOUT CON REGISTRO OBLIGATORIO ==================
-async function openCheckout() {
-    if (carrito.length === 0) {
-        showToast("Tu carrito está vacío");
-        return;
+// ================== MODAL DE DETALLE DE PRODUCTO ==================
+function abrirProducto(productoId) {
+    productoActual = productos.find(p => p.id === productoId);
+    if (!productoActual) return;
+    
+    cantidadProducto = 1;
+    document.getElementById('productQuantity').value = 1;
+    
+    const descuento = productoActual.precioOriginal 
+        ? Math.round(((productoActual.precioOriginal - productoActual.precio) / productoActual.precioOriginal) * 100) 
+        : 0;
+    const badge = document.getElementById('productBadge');
+    badge.textContent = descuento > 0 ? `-${descuento}% OFF` : '';
+    badge.style.display = descuento > 0 ? 'inline-block' : 'none';
+    
+    document.getElementById('productDetailName').textContent = productoActual.nombre;
+    document.getElementById('productBrand').textContent = productoActual.marca || 'MosaMeli';
+    
+    document.getElementById('productDetailPrice').textContent = `S/ ${productoActual.precio.toFixed(2)}`;
+    const originalPrice = document.getElementById('productDetailOriginalPrice');
+    if (productoActual.precioOriginal) {
+        originalPrice.textContent = `S/ ${productoActual.precioOriginal.toFixed(2)}`;
+        originalPrice.style.display = 'inline';
+    } else {
+        originalPrice.style.display = 'none';
     }
+    
+    document.getElementById('productDescription').textContent = 
+        productoActual.descripcion || 'Producto de alta calidad seleccionado por MosaMeli. Ideal para el día a día.';
+    
+    const featuresDiv = document.getElementById('productFeatures');
+    if (productoActual.caracteristicas) {
+        const features = typeof productoActual.caracteristicas === 'string' 
+            ? JSON.parse(productoActual.caracteristicas) 
+            : productoActual.caracteristicas;
+        featuresDiv.innerHTML = Object.entries(features).map(([key, value]) => `
+            <div class="feature-item">
+                <strong>${key}</strong>
+                <span>${value}</span>
+            </div>
+        `).join('');
+    } else {
+        featuresDiv.innerHTML = '';
+    }
+    
+    document.getElementById('productWarranty').textContent = productoActual.garantia || 'Garantía de 30 días';
+    
+    const imagenes = [productoActual.imagen];
+    if (productoActual.imagenes_extra) {
+        const extras = typeof productoActual.imagenes_extra === 'string'
+            ? JSON.parse(productoActual.imagenes_extra)
+            : productoActual.imagenes_extra;
+        imagenes.push(...extras);
+    }
+    
+    imagenActualIndex = 0;
+    document.getElementById('productMainImage').src = imagenes[0];
+    window.imagenesProducto = imagenes;
+    
+    const thumbnails = document.getElementById('productThumbnails');
+    thumbnails.innerHTML = imagenes.map((img, i) => `
+        <div class="thumbnail ${i === 0 ? 'active' : ''}" onclick="cambiarImagen(${i}, '${img}')">
+            <img src="${img}" alt="Miniatura ${i + 1}">
+        </div>
+    `).join('');
+    
+    document.getElementById('productModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function cambiarImagen(index, url) {
+    imagenActualIndex = index;
+    document.getElementById('productMainImage').src = url;
+    document.querySelectorAll('.thumbnail').forEach((t, i) => {
+        t.classList.toggle('active', i === index);
+    });
+}
+
+function prevImage() {
+    if (!window.imagenesProducto.length) return;
+    imagenActualIndex = (imagenActualIndex - 1 + window.imagenesProducto.length) % window.imagenesProducto.length;
+    cambiarImagen(imagenActualIndex, window.imagenesProducto[imagenActualIndex]);
+}
+
+function nextImage() {
+    if (!window.imagenesProducto.length) return;
+    imagenActualIndex = (imagenActualIndex + 1) % window.imagenesProducto.length;
+    cambiarImagen(imagenActualIndex, window.imagenesProducto[imagenActualIndex]);
+}
+
+function increaseQuantity() {
+    cantidadProducto++;
+    document.getElementById('productQuantity').value = cantidadProducto;
+}
+
+function decreaseQuantity() {
+    if (cantidadProducto > 1) {
+        cantidadProducto--;
+        document.getElementById('productQuantity').value = cantidadProducto;
+    }
+}
+
+function addToCartFromModal() {
+    if (!productoActual) return;
+    for (let i = 0; i < cantidadProducto; i++) {
+        carrito.push(productoActual);
+    }
+    saveCart();
+    showToast(`✅ ${cantidadProducto} x ${productoActual.nombre}`);
+    closeProductModal();
+}
+
+function buyNowFromModal() {
+    if (!productoActual) return;
+    carrito = [];
+    for (let i = 0; i < cantidadProducto; i++) {
+        carrito.push(productoActual);
+    }
+    saveCart();
+    closeProductModal();
+    viewCart();
+}
+
+function closeProductModal() {
+    document.getElementById('productModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    productoActual = null;
+}
+
+// ================== CHECKOUT ==================
+async function openCheckout() {
+    if (carrito.length === 0) { showToast("Tu carrito está vacío"); return; }
     
     const { data: { user } } = await sc.auth.getUser();
-    
-    if (!user) {
-        closeCart();
-        mostrarModalRegistroObligatorio();
-        return;
-    }
+    if (!user) { closeCart(); mostrarModalRegistroObligatorio(); return; }
     
     closeCart();
     document.getElementById('opciones-pago').style.display = 'block';
@@ -255,15 +392,9 @@ function closeRegisterRequired() {
     document.getElementById('registerRequiredModal').style.display = 'none';
 }
 
-function irARegistro() {
-    window.location.href = 'login.html?action=register';
-}
+function irARegistro() { window.location.href = 'login.html?action=register'; }
+function irALogin() { window.location.href = 'login.html'; }
 
-function irALogin() {
-    window.location.href = 'login.html';
-}
-
-// ================== SELECCIONAR MÉTODO DE PAGO ==================
 function seleccionarMetodo(metodo) {
     if (metodo === 'qr' && totalCarrito() < 6) {
         showToast("El monto mínimo para pagar con QR es S/ 6.00");
@@ -298,7 +429,6 @@ function seleccionarMetodo(metodo) {
     }
 }
 
-// ================== GENERAR QR REAL CON CULQI ==================
 async function generarQRReal() {
     const detalle = document.getElementById('detalle-instrucciones');
     const total = totalCarrito();
@@ -329,19 +459,14 @@ async function generarQRReal() {
                 <p style="text-align:center; margin-top:5px; font-size:0.75rem; color:#B0A5BD;">Válido por 1 hora</p>
             `;
         } else {
-            detalle.innerHTML = `
-                <p style="text-align:center; color:#D32F2F;">Error al generar el QR. Intenta de nuevo.</p>
-            `;
+            detalle.innerHTML = `<p style="text-align:center; color:#D32F2F;">Error al generar el QR. Intenta de nuevo.</p>`;
         }
     } catch (error) {
         console.error("Error:", error);
-        detalle.innerHTML = `
-            <p style="text-align:center; color:#D32F2F;">Error: ${error.message}</p>
-        `;
+        detalle.innerHTML = `<p style="text-align:center; color:#D32F2F;">Error: ${error.message}</p>`;
     }
 }
 
-// ================== CONFIRMAR PAGO ==================
 function validateCardForm() {
     const num = document.getElementById('cardNumber');
     const exp = document.getElementById('cardExpiry');
@@ -360,11 +485,7 @@ async function confirmarPago() {
     if (metodoPagoElegido === 'tarjeta') { if (!validateCardForm()) return; }
     
     const { data: { user } } = await sc.auth.getUser();
-    if (!user) {
-        closeCheckout();
-        mostrarModalRegistroObligatorio();
-        return;
-    }
+    if (!user) { closeCheckout(); mostrarModalRegistroObligatorio(); return; }
 
     const { error } = await sc.from('pedidos').insert([
         { usuario_id: user.id, items: carrito, total: totalCarrito() }
@@ -407,9 +528,7 @@ function showToast(message) {
 
     container.appendChild(toast);
 
-    const timeout = setTimeout(() => {
-        cerrarToast(toast);
-    }, 4000);
+    const timeout = setTimeout(() => { cerrarToast(toast); }, 4000);
 
     toast.addEventListener('click', () => {
         clearTimeout(timeout);
@@ -435,7 +554,9 @@ window.onclick = function(event) {
     const cartModal = document.getElementById('cartModal');
     const checkoutModal = document.getElementById('checkoutModal');
     const registerModal = document.getElementById('registerRequiredModal');
+    const productModal = document.getElementById('productModal');
     if (event.target === cartModal) closeCart();
     if (event.target === checkoutModal) closeCheckout();
     if (event.target === registerModal) closeRegisterRequired();
+    if (event.target === productModal) closeProductModal();
 };
