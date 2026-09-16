@@ -263,6 +263,7 @@ function abrirProducto(productoId) {
     
     document.getElementById('productWarranty').textContent = productoActual.garantia || 'Garantía de 30 días';
     
+    // Imágenes
     const imagenes = [productoActual.imagen];
     if (productoActual.imagenes_extra) {
         const extras = typeof productoActual.imagenes_extra === 'string'
@@ -281,6 +282,17 @@ function abrirProducto(productoId) {
             <img src="${img}" alt="Miniatura ${i + 1}">
         </div>
     `).join('');
+    
+    // ✅ Video del producto
+    const videoContainer = document.getElementById('productVideoContainer');
+    const videoElement = document.getElementById('productVideo');
+    if (productoActual.video_url && videoContainer && videoElement) {
+        videoElement.src = productoActual.video_url;
+        videoContainer.style.display = 'block';
+    } else if (videoContainer && videoElement) {
+        videoContainer.style.display = 'none';
+        videoElement.src = '';
+    }
     
     document.getElementById('productModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
