@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    
+    <!-- Página de inicio -->
+    <url>
+        <loc>https://mosameli.com/</loc>
+        <lastmod>2026-09-15</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <!-- Página de inicio (index.html) -->
+    <url>
+        <loc>https://mosameli.com/index.html</loc>
+        <lastmod>2026-09-15</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <!-- Login y registro -->
+    <url>
+        <loc>https://mosameli.com/login.html</loc>
+        <lastmod>2026-09-15</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Recuperar contraseña -->
+    <url>
+        <loc>https://mosameli.com/reset-password.html</loc>
+        <lastmod>2026-09-15</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <!-- Splash -->
+    <url>
+        <loc>https://mosameli.com/splash.html</loc>
+        <lastmod>2026-09-15</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.3</priority>
+    </url>
+
+    <!-- Panel de admin (no recomendado indexar, pero lo incluimos) -->
+    <url>
+        <loc>https://mosameli.com/admin.html</loc>
+        <lastmod>2026-09-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.3</priority>
+    </url>
+
+</urlset>
