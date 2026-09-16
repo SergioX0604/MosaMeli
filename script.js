@@ -15,6 +15,9 @@ let imagenActualIndex = 0;
 let cantidadProducto = 1;
 window.mediaProducto = [];
 
+// Variables de velocidad
+let velocidadActual = 1;
+
 // ================== CARGAR PRODUCTOS ==================
 async function loadProducts() {
     const grid = document.getElementById('productGrid');
@@ -246,7 +249,6 @@ function abrirProducto(productoId) {
     document.getElementById('productDescription').textContent = 
         productoActual.descripcion || 'Producto de alta calidad seleccionado por MosaMeli.';
     
-    // Características
     const featuresDiv = document.getElementById('productFeatures');
     if (productoActual.caracteristicas) {
         const features = typeof productoActual.caracteristicas === 'string' 
@@ -264,7 +266,7 @@ function abrirProducto(productoId) {
     
     document.getElementById('productWarranty').textContent = productoActual.garantia || 'Garantía de 30 días';
     
-    // ================== GALERÍA MIXTA ==================
+    // Galería mixta
     const media = [];
     media.push({ tipo: 'imagen', url: productoActual.imagen });
     
@@ -305,28 +307,31 @@ function abrirProducto(productoId) {
     document.getElementById('productModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
     
-    // Inicializar zoom
     setTimeout(() => initImageZoom(), 100);
 }
 
-// Mostrar imagen o video en el espacio principal
+// Mostrar imagen o video
 function mostrarMedia(index) {
     if (!window.mediaProducto.length) return;
     imagenActualIndex = index;
     
     const item = window.mediaProducto[index];
     const img = document.getElementById('productMainImage');
+    const wrapper = document.getElementById('videoWrapper');
     const video = document.getElementById('productVideo');
     const container = document.getElementById('imageZoomContainer');
     
     if (item.tipo === 'video') {
         img.style.display = 'none';
-        video.style.display = 'block';
+        wrapper.style.display = 'flex';
         video.src = item.url;
         video.load();
+        video.playbackRate = velocidadActual;
         container.style.cursor = 'default';
+        
+        setTimeout(() => initVideoControls(), 100);
     } else {
-        video.style.display = 'none';
+        wrapper.style.display = 'none';
         video.pause();
         video.src = '';
         img.style.display = 'block';
@@ -397,6 +402,142 @@ function closeProductModal() {
     productoActual = null;
 }
 
+// ================== CONTROLES DE VIDEO PERSONALIZADOS ==================
+function initVideoControls() {
+    const video = document.getElementById('productVideo');
+    const wrapper = document.getElementById('videoWrapper');
+    const progressBar = document.getElementById('progressBar');
+    const videoTime = document.getElementById('videoTime');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    
+    if (!video || !wrapper) return;
+    
+    // Actualizar barra de progreso y tiempo
+    video.addEventListener('timeupdate', () => {
+        if (video.duration) {
+            const percent = (video.currentTime / video.duration) * 100;
+            progressBar.style.width = percent + '%';
+            videoTime.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
+        }
+    });
+    
+    video.addEventListener('play', () => {
+        playPauseIcon.classList.remove('fa-play');
+        playPauseIcon.classList.add('fa-pause');
+    });
+    
+    video.addEventListener('pause', () => {
+        playPauseIcon.classList.remove('fa-pause');
+        playPauseIcon.classList.add('fa-play');
+    });
+    
+    video.addEventListener('loadedmetadata', () => {
+        videoTime.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
+    });
+    
+    // Auto-ocultar controles después de 3 segundos
+    let hideTimeout;
+    wrapper.addEventListener('mousemove', () => {
+        wrapper.classList.add('controls-visible');
+        clearTimeout(hideTimeout);
+        hideTimeout = setTimeout(() => {
+            if (!video.paused) {
+                wrapper.classList.remove('controls-visible');
+            }
+        }, 3000);
+    });
+    
+    wrapper.addEventListener('mouseleave', () => {
+        if (!video.paused) {
+            wrapper.classList.remove('controls-visible');
+        }
+    });
+    
+    // Play/pause al hacer clic en el video
+    video.addEventListener('click', togglePlayPause);
+}
+
+function formatTime(seconds) {
+    if (isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
+function togglePlayPause() {
+    const video = document.getElementById('productVideo');
+    if (video.paused) {
+        video.play();
+    } else {
+        video.pause();
+    }
+}
+
+function toggleMute() {
+    const video = document.getElementById('productVideo');
+    const icon = document.getElementById('volumeIcon');
+    video.muted = !video.muted;
+    if (video.muted) {
+        icon.classList.remove('fa-volume-up');
+        icon.classList.add('fa-volume-mute');
+    } else {
+        icon.classList.remove('fa-volume-mute');
+        icon.classList.add('fa-volume-up');
+    }
+}
+
+function seekVideo(e) {
+    const video = document.getElementById('productVideo');
+    const progress = e.currentTarget;
+    const rect = progress.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    video.currentTime = percent * video.duration;
+}
+
+function toggleFullscreen() {
+    const wrapper = document.getElementById('videoWrapper');
+    if (!document.fullscreenElement) {
+        wrapper.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// ================== VELOCIDAD DE REPRODUCCIÓN ==================
+function toggleSpeedMenu(e) {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById('speedMenu');
+    menu.classList.toggle('active');
+}
+
+function setSpeed(speed) {
+    const video = document.getElementById('productVideo');
+    const label = document.getElementById('speedLabel');
+    const options = document.querySelectorAll('.speed-option');
+    
+    velocidadActual = speed;
+    video.playbackRate = speed;
+    label.textContent = speed + 'x';
+    
+    options.forEach(opt => {
+        opt.classList.remove('active');
+        if (parseFloat(opt.textContent) === speed) {
+            opt.classList.add('active');
+        }
+    });
+    
+    document.getElementById('speedMenu').classList.remove('active');
+}
+
+// Cerrar menú de velocidad al hacer clic fuera
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('speedMenu');
+    const selector = document.querySelector('.speed-selector');
+    if (menu && selector && !selector.contains(e.target)) {
+        menu.classList.remove('active');
+    }
+});
+
 // ================== ZOOM EN IMÁGENES ==================
 let zoomLevel = 1;
 
@@ -405,17 +546,14 @@ function initImageZoom() {
     const img = document.getElementById('productMainImage');
     if (!container || !img) return;
     
-    // Remover listeners previos para evitar duplicados
     container.removeEventListener('mousemove', handleMouseMove);
     container.removeEventListener('mouseleave', handleMouseLeave);
     container.removeEventListener('click', handleImageClick);
     
-    // Agregar listeners
     container.addEventListener('mousemove', handleMouseMove);
     container.addEventListener('mouseleave', handleMouseLeave);
     container.addEventListener('click', handleImageClick);
     
-    // Doble tap en móvil
     let lastTap = 0;
     container.addEventListener('touchend', (e) => {
         const currentTime = new Date().getTime();
