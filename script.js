@@ -32,7 +32,6 @@ async function loadProducts() {
         nombre: p.nombre,
         categoria: p.categoria,
         precio: p.precio,
-        precioOriginal: p.precio_original,
         imagen: p.imagen,
         stock: p.stock,
         descripcion: p.descripcion,
@@ -63,25 +62,20 @@ function renderProductos() {
     } else title.textContent = 'Varios productos';
     count.textContent = `${productosFiltrados.length} productos`;
 
-    grid.innerHTML = productosFiltrados.map(p => {
-        const descuento = p.precioOriginal ? Math.round(((p.precioOriginal - p.precio) / p.precioOriginal) * 100) : 0;
-        return `
-            <div class="product-card">
-                ${descuento > 0 ? `<span class="discount-tag">-${descuento}%</span>` : ''}
-                <img src="${p.imagen}" class="product-image" onclick="abrirProducto(${p.id})" style="cursor:pointer;">
-                <div class="product-info">
-                    <h3>${p.nombre}</h3>
-                    <div class="price-container">
-                        <span class="current-price">S/ ${p.precio.toFixed(2)}</span>
-                        ${p.precioOriginal ? `<span class="original-price">S/ ${p.precioOriginal.toFixed(2)}</span>` : ''}
-                    </div>
-                    <p class="shipping-info"><i class="fas fa-truck"></i> Envío gratis</p>
-                    <button class="btn-buy-now" onclick="buyNow(${p.id})">Comprar ahora</button>
-                    <button class="btn-add-cart" onclick="addToCart(${p.id})"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
+    grid.innerHTML = productosFiltrados.map(p => `
+        <div class="product-card">
+            <img src="${p.imagen}" class="product-image" onclick="abrirProducto(${p.id})" style="cursor:pointer;">
+            <div class="product-info">
+                <h3>${p.nombre}</h3>
+                <div class="price-container">
+                    <span class="current-price">S/ ${p.precio.toFixed(2)}</span>
                 </div>
+                <p class="shipping-info"><i class="fas fa-truck"></i> Envío gratis</p>
+                <button class="btn-buy-now" onclick="buyNow(${p.id})">Comprar ahora</button>
+                <button class="btn-add-cart" onclick="addToCart(${p.id})"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
             </div>
-        `;
-    }).join('');
+        </div>
+    `).join('');
 
     if (productosFiltrados.length === 0) grid.innerHTML = '<p style="text-align:center; padding:50px; grid-column: 1/-1;">No se encontraron productos 😔</p>';
 }
@@ -136,24 +130,19 @@ function searchProducts() {
     title.textContent = `Resultados para "${query}"`;
     count.textContent = `${resultados.length} productos`;
 
-    grid.innerHTML = resultados.map(p => {
-        const descuento = p.precioOriginal ? Math.round(((p.precioOriginal - p.precio) / p.precioOriginal) * 100) : 0;
-        return `
-            <div class="product-card">
-                ${descuento > 0 ? `<span class="discount-tag">-${descuento}%</span>` : ''}
-                <img src="${p.imagen}" class="product-image" onclick="abrirProducto(${p.id})" style="cursor:pointer;">
-                <div class="product-info">
-                    <h3>${p.nombre}</h3>
-                    <div class="price-container">
-                        <span class="current-price">S/ ${p.precio.toFixed(2)}</span>
-                        ${p.precioOriginal ? `<span class="original-price">S/ ${p.precioOriginal.toFixed(2)}</span>` : ''}
-                    </div>
-                    <button class="btn-buy-now" onclick="buyNow(${p.id})">Comprar ahora</button>
-                    <button class="btn-add-cart" onclick="addToCart(${p.id})"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
+    grid.innerHTML = resultados.map(p => `
+        <div class="product-card">
+            <img src="${p.imagen}" class="product-image" onclick="abrirProducto(${p.id})" style="cursor:pointer;">
+            <div class="product-info">
+                <h3>${p.nombre}</h3>
+                <div class="price-container">
+                    <span class="current-price">S/ ${p.precio.toFixed(2)}</span>
                 </div>
+                <button class="btn-buy-now" onclick="buyNow(${p.id})">Comprar ahora</button>
+                <button class="btn-add-cart" onclick="addToCart(${p.id})"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
             </div>
-        `;
-    }).join('');
+        </div>
+    `).join('');
 
     if (resultados.length === 0) grid.innerHTML = '<p style="text-align:center; padding:50px;">No se encontraron productos</p>';
 }
@@ -250,27 +239,12 @@ function abrirProducto(productoId) {
     cantidadProducto = 1;
     document.getElementById('productQuantity').value = 1;
     
-    const descuento = productoActual.precioOriginal 
-        ? Math.round(((productoActual.precioOriginal - productoActual.precio) / productoActual.precioOriginal) * 100) 
-        : 0;
-    const badge = document.getElementById('productBadge');
-    badge.textContent = descuento > 0 ? `-${descuento}% OFF` : '';
-    badge.style.display = descuento > 0 ? 'inline-block' : 'none';
-    
     document.getElementById('productDetailName').textContent = productoActual.nombre;
     document.getElementById('productBrand').textContent = productoActual.marca || 'MosaMeli';
-    
     document.getElementById('productDetailPrice').textContent = `S/ ${productoActual.precio.toFixed(2)}`;
-    const originalPrice = document.getElementById('productDetailOriginalPrice');
-    if (productoActual.precioOriginal) {
-        originalPrice.textContent = `S/ ${productoActual.precioOriginal.toFixed(2)}`;
-        originalPrice.style.display = 'inline';
-    } else {
-        originalPrice.style.display = 'none';
-    }
     
     document.getElementById('productDescription').textContent = 
-        productoActual.descripcion || 'Producto de alta calidad seleccionado por MosaMeli. Ideal para el día a día.';
+        productoActual.descripcion || 'Producto de alta calidad seleccionado por MosaMeli.';
     
     const featuresDiv = document.getElementById('productFeatures');
     if (productoActual.caracteristicas) {
@@ -527,9 +501,7 @@ function showToast(message) {
     `;
 
     container.appendChild(toast);
-
     const timeout = setTimeout(() => { cerrarToast(toast); }, 4000);
-
     toast.addEventListener('click', () => {
         clearTimeout(timeout);
         cerrarToast(toast);

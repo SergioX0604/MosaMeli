@@ -330,19 +330,6 @@ body {
     border-color: var(--rosa-logo-claro);
 }
 
-.discount-tag {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: linear-gradient(135deg, var(--rosa-logo) 0%, var(--rosa-logo-oscuro) 100%);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    z-index: 2;
-}
-
 .product-image {
     width: 100%;
     height: 150px;
@@ -376,12 +363,6 @@ body {
     font-size: 1.15rem;
     font-weight: 700;
     color: var(--violeta-logo-oscuro);
-}
-
-.original-price {
-    font-size: 0.75rem;
-    color: var(--texto-suave);
-    text-decoration: line-through;
 }
 
 .shipping-info {
@@ -719,4 +700,16 @@ body {
     .main-header { padding: 12px 30px; }
     .category-nav { padding: 15px 30px; }
     .shop-layout { padding: 20px 30px; }
+}
+/* Precio único (sin descuentos) */
+.detail-current-price {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #7E57C2;
+}
+
+.current-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #7E57C2;
 }
