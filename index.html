@@ -164,17 +164,31 @@
             transform: translate(-50%, -50%) scale(1.15);
         }
 
-        /* ==================== INDICADOR DE ZOOM ==================== */
+        /* ==================== INDICADOR DE ZOOM (ARRIBA) ==================== */
         .zoom-hint {
-            position: absolute; bottom: 15px; left: 50%;
-            transform: translateX(-50%);
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
             background: rgba(74, 58, 92, 0.85);
-            color: white; padding: 6px 14px; border-radius: 20px;
-            font-size: 0.75rem; display: flex; align-items: center; gap: 6px;
-            opacity: 0; transition: opacity 0.3s; pointer-events: none;
-            backdrop-filter: blur(4px); z-index: 3;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            backdrop-filter: blur(4px);
+            z-index: 3;
+            white-space: nowrap;
         }
-        .product-main-image:hover .zoom-hint { opacity: 1; }
+        .product-main-image:hover .zoom-hint {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
 
         /* ==================== MODAL DE PANTALLA COMPLETA ==================== */
         .image-fullscreen-modal {
@@ -430,17 +444,18 @@
             <div class="product-detail-grid">
                 <div class="product-gallery">
                     <div class="product-main-image" id="imageZoomContainer">
+                        <!-- Indicador de zoom (ARRIBA) -->
+                        <div class="zoom-hint">
+                            <i class="fas fa-search-plus"></i> Pasa el cursor para hacer zoom
+                        </div>
+                        
                         <img id="productMainImage" src="" alt="Producto" style="display: block;">
                         <video id="productVideo" controls style="display: none;">
                             Tu navegador no soporta videos HTML5.
                         </video>
+                        
                         <button class="gallery-nav prev" onclick="prevImage()"><i class="fas fa-chevron-left"></i></button>
                         <button class="gallery-nav next" onclick="nextImage()"><i class="fas fa-chevron-right"></i></button>
-                        
-                        <!-- Indicador de zoom -->
-                        <div class="zoom-hint">
-                            <i class="fas fa-search-plus"></i> Pasa el cursor para hacer zoom
-                        </div>
                     </div>
                     <div class="product-thumbnails" id="productThumbnails"></div>
                 </div>
