@@ -18,6 +18,9 @@ window.mediaProducto = [];
 // Variables de velocidad
 let velocidadActual = 1;
 
+// Variables de volumen
+let isDraggingVolume = false;
+
 // ================== CARGAR PRODUCTOS ==================
 async function loadProducts() {
     const grid = document.getElementById('productGrid');
@@ -456,6 +459,9 @@ function initVideoControls() {
     video.muted = false;
     actualizarSliderVolumen(1);
     actualizarIconoVolumen(1);
+    
+    // Inicializar control de volumen mejorado
+    setTimeout(() => initVolumeControl(), 100);
 }
 
 function formatTime(seconds) {
@@ -525,7 +531,84 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// ================== CONTROL DE VOLUMEN ==================
+// ================== CONTROL DE VOLUMEN MEJORADO ==================
+function initVolumeControl() {
+    const slider = document.getElementById('volumeSlider');
+    const container = document.querySelector('.volume-slider-container');
+    const volumeControl = document.querySelector('.volume-control');
+    
+    if (!slider || !container || !volumeControl) return;
+    
+    // Arrastrar con el mouse
+    slider.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        isDraggingVolume = true;
+        setVolumeFromClick(e);
+        container.style.opacity = '1';
+        container.style.pointerEvents = 'auto';
+        container.style.transform = 'translateX(-50%) translateY(0)';
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (isDraggingVolume) {
+            e.preventDefault();
+            setVolumeFromClick(e);
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'auto';
+            container.style.transform = 'translateX(-50%) translateY(0)';
+        }
+    });
+    
+    document.addEventListener('mouseup', () => {
+        isDraggingVolume = false;
+    });
+    
+    // Mantener abierto al pasar el mouse sobre el slider
+    container.addEventListener('mouseenter', () => {
+        container.style.opacity = '1';
+        container.style.pointerEvents = 'auto';
+        container.style.transform = 'translateX(-50%) translateY(0)';
+    });
+    
+    container.addEventListener('mouseleave', () => {
+        if (!isDraggingVolume) {
+            setTimeout(() => {
+                if (!container.matches(':hover') && !volumeControl.matches(':hover')) {
+                    container.style.opacity = '0';
+                    container.style.pointerEvents = 'none';
+                    container.style.transform = 'translateX(-50%) translateY(10px)';
+                }
+            }, 300);
+        }
+    });
+    
+    // Touch para móvil
+    slider.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        isDraggingVolume = true;
+        setVolumeFromTouch(e);
+        container.style.opacity = '1';
+        container.style.pointerEvents = 'auto';
+    }, { passive: false });
+    
+    document.addEventListener('touchmove', (e) => {
+        if (isDraggingVolume) {
+            e.preventDefault();
+            setVolumeFromTouch(e);
+        }
+    }, { passive: false });
+    
+    document.addEventListener('touchend', () => {
+        isDraggingVolume = false;
+        setTimeout(() => {
+            if (!container.matches(':hover') && !volumeControl.matches(':hover')) {
+                container.style.opacity = '0';
+                container.style.pointerEvents = 'none';
+            }
+        }, 1500);
+    });
+}
+
 function toggleMute() {
     const video = document.getElementById('productVideo');
     const icon = document.getElementById('volumeIcon');
@@ -561,6 +644,21 @@ function setVolumeFromClick(e) {
     actualizarIconoVolumen(volume);
 }
 
+function setVolumeFromTouch(e) {
+    const video = document.getElementById('productVideo');
+    const slider = document.getElementById('volumeSlider');
+    const rect = slider.getBoundingClientRect();
+    const touch = e.touches[0];
+    
+    const clickY = touch.clientY - rect.top;
+    const volume = Math.max(0, Math.min(1, 1 - (clickY / rect.height)));
+    
+    video.volume = volume;
+    video.muted = volume === 0;
+    actualizarSliderVolumen(volume);
+    actualizarIconoVolumen(volume);
+}
+
 function actualizarSliderVolumen(volume) {
     const fill = document.getElementById('volumeFill');
     const thumb = document.getElementById('volumeThumb');
@@ -588,29 +686,6 @@ function actualizarIconoVolumen(volume) {
         icon.classList.add('fa-volume-up');
     }
 }
-
-// Inicializar arrastre del slider de volumen
-document.addEventListener('DOMContentLoaded', () => {
-    const slider = document.getElementById('volumeSlider');
-    if (!slider) return;
-    
-    let isDragging = false;
-    
-    slider.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        setVolumeFromClick(e);
-    });
-    
-    document.addEventListener('mousemove', (e) => {
-        if (isDragging) {
-            setVolumeFromClick(e);
-        }
-    });
-    
-    document.addEventListener('mouseup', () => {
-        isDragging = false;
-    });
-});
 
 // ================== ZOOM EN IMÁGENES ==================
 let zoomLevel = 1;

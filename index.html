@@ -328,7 +328,7 @@
             text-align: center;
         }
 
-        /* ==================== CONTROL DE VOLUMEN ==================== */
+        /* ==================== CONTROL DE VOLUMEN MEJORADO ==================== */
         .volume-control {
             position: relative;
             display: flex;
@@ -348,16 +348,31 @@
             gap: 8px;
             opacity: 0;
             pointer-events: none;
-            transition: all 0.3s;
+            transition: opacity 0.2s ease, transform 0.2s ease;
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 24px rgba(0,0,0,0.4);
             z-index: 10;
         }
-        .volume-control:hover .volume-slider-container {
+
+        /* Puente invisible para conectar el ícono con el slider */
+        .volume-slider-container::before {
+            content: '';
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            height: 25px;
+            background: transparent;
+        }
+
+        /* Mantener abierto mientras el mouse esté sobre el slider o el ícono */
+        .volume-control:hover .volume-slider-container,
+        .volume-slider-container:hover {
             opacity: 1;
             pointer-events: auto;
             transform: translateX(-50%) translateY(0);
         }
+
         .volume-slider {
             width: 8px;
             height: 100px;
