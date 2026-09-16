@@ -114,9 +114,19 @@
             position: relative; width: 100%; height: 400px; border-radius: 16px;
             overflow: hidden; background: white;
             display: flex; align-items: center; justify-content: center;
+            cursor: zoom-in;
         }
-        .product-main-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .product-main-image video { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 16px; background: #000; }
+        .product-main-image img {
+            max-width: 100%; max-height: 100%; object-fit: contain;
+            transition: transform 0.2s ease;
+            transform-origin: center center;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+        .product-main-image video {
+            max-width: 100%; max-height: 100%; object-fit: contain;
+            border-radius: 16px; background: #000;
+        }
         .gallery-nav {
             position: absolute; top: 50%; transform: translateY(-50%);
             background: rgba(255,255,255,0.9); border: none; width: 40px; height: 40px;
@@ -152,6 +162,56 @@
         .thumbnail.video-thumb:hover .play-icon {
             background: #9B7FD4;
             transform: translate(-50%, -50%) scale(1.15);
+        }
+
+        /* ==================== INDICADOR DE ZOOM ==================== */
+        .zoom-hint {
+            position: absolute; bottom: 15px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(74, 58, 92, 0.85);
+            color: white; padding: 6px 14px; border-radius: 20px;
+            font-size: 0.75rem; display: flex; align-items: center; gap: 6px;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none;
+            backdrop-filter: blur(4px); z-index: 3;
+        }
+        .product-main-image:hover .zoom-hint { opacity: 1; }
+
+        /* ==================== MODAL DE PANTALLA COMPLETA ==================== */
+        .image-fullscreen-modal {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 3000; justify-content: center; align-items: center;
+            cursor: zoom-out; animation: fadeIn 0.3s ease;
+        }
+        .image-fullscreen-modal.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .image-fullscreen-modal img {
+            max-width: 90%; max-height: 90%; object-fit: contain;
+            cursor: default; transition: transform 0.2s ease;
+            user-select: none; -webkit-user-drag: none; border-radius: 8px;
+        }
+        .close-fullscreen {
+            position: absolute; top: 20px; right: 30px;
+            color: white; font-size: 40px; cursor: pointer; z-index: 3001;
+            line-height: 1; transition: transform 0.3s;
+        }
+        .close-fullscreen:hover { transform: scale(1.2) rotate(90deg); color: #F5A6B8; }
+        .fullscreen-controls {
+            position: absolute; bottom: 30px; left: 50%;
+            transform: translateX(-50%);
+            display: flex; gap: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 10px 20px; border-radius: 50px;
+            backdrop-filter: blur(10px); z-index: 3001;
+        }
+        .fullscreen-controls button {
+            background: white; border: none; width: 45px; height: 45px;
+            border-radius: 50%; cursor: pointer; color: #7E57C2; font-size: 1.1rem;
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s;
+        }
+        .fullscreen-controls button:hover {
+            background: #9B7FD4; color: white; transform: scale(1.1);
         }
 
         .product-detail-info { padding: 35px 30px; overflow-y: auto; max-height: 90vh; }
@@ -205,6 +265,10 @@
             .detail-current-price { font-size: 1.5rem; }
             .product-detail-actions { flex-direction: column; }
             .admin-btn { padding: 6px 10px; font-size: 0.75rem; }
+            .zoom-hint { display: none; }
+            .product-main-image { cursor: pointer; }
+            .close-fullscreen { top: 15px; right: 20px; font-size: 32px; }
+            .fullscreen-controls button { width: 40px; height: 40px; }
         }
         @media (max-width: 500px) {
             .register-required-content { padding: 25px 20px; }
@@ -365,13 +429,18 @@
             <span class="close-product" onclick="closeProductModal()">&times;</span>
             <div class="product-detail-grid">
                 <div class="product-gallery">
-                    <div class="product-main-image">
+                    <div class="product-main-image" id="imageZoomContainer">
                         <img id="productMainImage" src="" alt="Producto" style="display: block;">
                         <video id="productVideo" controls style="display: none;">
                             Tu navegador no soporta videos HTML5.
                         </video>
                         <button class="gallery-nav prev" onclick="prevImage()"><i class="fas fa-chevron-left"></i></button>
                         <button class="gallery-nav next" onclick="nextImage()"><i class="fas fa-chevron-right"></i></button>
+                        
+                        <!-- Indicador de zoom -->
+                        <div class="zoom-hint">
+                            <i class="fas fa-search-plus"></i> Pasa el cursor para hacer zoom
+                        </div>
                     </div>
                     <div class="product-thumbnails" id="productThumbnails"></div>
                 </div>
@@ -406,6 +475,17 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de imagen en pantalla completa -->
+    <div id="imageFullscreenModal" class="image-fullscreen-modal" onclick="closeFullscreenImage()">
+        <span class="close-fullscreen" onclick="closeFullscreenImage()">&times;</span>
+        <img id="fullscreenImage" src="" alt="Imagen completa" onclick="event.stopPropagation()">
+        <div class="fullscreen-controls" onclick="event.stopPropagation()">
+            <button onclick="zoomOut(event)"><i class="fas fa-search-minus"></i></button>
+            <button onclick="resetZoom(event)"><i class="fas fa-compress"></i></button>
+            <button onclick="zoomIn(event)"><i class="fas fa-search-plus"></i></button>
         </div>
     </div>
 

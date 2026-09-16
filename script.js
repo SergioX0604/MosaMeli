@@ -264,13 +264,10 @@ function abrirProducto(productoId) {
     
     document.getElementById('productWarranty').textContent = productoActual.garantia || 'Garantía de 30 días';
     
-    // ================== GALERÍA MIXTA (IMÁGENES + VIDEO) ==================
+    // ================== GALERÍA MIXTA ==================
     const media = [];
-    
-    // 1. Imagen principal
     media.push({ tipo: 'imagen', url: productoActual.imagen });
     
-    // 2. Imágenes extra
     if (productoActual.imagenes_extra) {
         const extras = typeof productoActual.imagenes_extra === 'string'
             ? JSON.parse(productoActual.imagenes_extra)
@@ -278,7 +275,6 @@ function abrirProducto(productoId) {
         extras.forEach(url => media.push({ tipo: 'imagen', url: url }));
     }
     
-    // 3. Video (si existe)
     if (productoActual.video_url) {
         media.push({ tipo: 'video', url: productoActual.video_url });
     }
@@ -286,10 +282,8 @@ function abrirProducto(productoId) {
     window.mediaProducto = media;
     imagenActualIndex = 0;
     
-    // Mostrar el primer elemento
     mostrarMedia(0);
     
-    // Miniaturas
     const thumbnails = document.getElementById('productThumbnails');
     thumbnails.innerHTML = media.map((item, i) => {
         if (item.tipo === 'video') {
@@ -310,6 +304,9 @@ function abrirProducto(productoId) {
     
     document.getElementById('productModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    
+    // Inicializar zoom
+    setTimeout(() => initImageZoom(), 100);
 }
 
 // Mostrar imagen o video en el espacio principal
@@ -320,27 +317,30 @@ function mostrarMedia(index) {
     const item = window.mediaProducto[index];
     const img = document.getElementById('productMainImage');
     const video = document.getElementById('productVideo');
+    const container = document.getElementById('imageZoomContainer');
     
     if (item.tipo === 'video') {
         img.style.display = 'none';
         video.style.display = 'block';
         video.src = item.url;
         video.load();
+        container.style.cursor = 'default';
     } else {
         video.style.display = 'none';
         video.pause();
         video.src = '';
         img.style.display = 'block';
         img.src = item.url;
+        img.style.transform = 'scale(1)';
+        img.style.transformOrigin = 'center center';
+        container.style.cursor = 'zoom-in';
     }
     
-    // Actualizar miniaturas activas
     document.querySelectorAll('.thumbnail').forEach((t, i) => {
         t.classList.toggle('active', i === index);
     });
 }
 
-// Navegar entre elementos
 function prevImage() {
     if (!window.mediaProducto.length) return;
     const newIndex = (imagenActualIndex - 1 + window.mediaProducto.length) % window.mediaProducto.length;
@@ -396,6 +396,120 @@ function closeProductModal() {
     document.body.style.overflow = 'auto';
     productoActual = null;
 }
+
+// ================== ZOOM EN IMÁGENES ==================
+let zoomLevel = 1;
+
+function initImageZoom() {
+    const container = document.getElementById('imageZoomContainer');
+    const img = document.getElementById('productMainImage');
+    if (!container || !img) return;
+    
+    // Remover listeners previos para evitar duplicados
+    container.removeEventListener('mousemove', handleMouseMove);
+    container.removeEventListener('mouseleave', handleMouseLeave);
+    container.removeEventListener('click', handleImageClick);
+    
+    // Agregar listeners
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mouseleave', handleMouseLeave);
+    container.addEventListener('click', handleImageClick);
+    
+    // Doble tap en móvil
+    let lastTap = 0;
+    container.addEventListener('touchend', (e) => {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0) {
+            e.preventDefault();
+            openFullscreenImage();
+        }
+        lastTap = currentTime;
+    });
+}
+
+function handleMouseMove(e) {
+    const container = document.getElementById('imageZoomContainer');
+    const img = document.getElementById('productMainImage');
+    
+    if (img.style.display === 'none') return;
+    
+    const rect = container.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    img.style.transformOrigin = `${x}% ${y}%`;
+    img.style.transform = 'scale(1.8)';
+    container.style.cursor = 'zoom-out';
+}
+
+function handleMouseLeave() {
+    const img = document.getElementById('productMainImage');
+    const container = document.getElementById('imageZoomContainer');
+    img.style.transform = 'scale(1)';
+    img.style.transformOrigin = 'center center';
+    container.style.cursor = 'zoom-in';
+}
+
+function handleImageClick() {
+    const img = document.getElementById('productMainImage');
+    if (img.style.display === 'none') return;
+    openFullscreenImage();
+}
+
+// ================== PANTALLA COMPLETA ==================
+function openFullscreenImage() {
+    const img = document.getElementById('productMainImage');
+    const modal = document.getElementById('imageFullscreenModal');
+    const fullscreenImg = document.getElementById('fullscreenImage');
+    
+    if (img.style.display === 'none' || !img.src) return;
+    
+    fullscreenImg.src = img.src;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    zoomLevel = 1;
+    fullscreenImg.style.transform = 'scale(1)';
+}
+
+function closeFullscreenImage() {
+    const modal = document.getElementById('imageFullscreenModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+    zoomLevel = 1;
+}
+
+function zoomIn(e) {
+    if (e) e.stopPropagation();
+    zoomLevel = Math.min(zoomLevel + 0.3, 3);
+    updateFullscreenTransform();
+}
+
+function zoomOut(e) {
+    if (e) e.stopPropagation();
+    zoomLevel = Math.max(zoomLevel - 0.3, 0.5);
+    updateFullscreenTransform();
+}
+
+function resetZoom(e) {
+    if (e) e.stopPropagation();
+    zoomLevel = 1;
+    updateFullscreenTransform();
+}
+
+function updateFullscreenTransform() {
+    const img = document.getElementById('fullscreenImage');
+    img.style.transform = `scale(${zoomLevel})`;
+}
+
+// Cerrar con ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeFullscreenImage();
+        closeProductModal();
+    }
+});
 
 // ================== CHECKOUT ==================
 async function openCheckout() {
@@ -579,8 +693,10 @@ window.onclick = function(event) {
     const checkoutModal = document.getElementById('checkoutModal');
     const registerModal = document.getElementById('registerRequiredModal');
     const productModal = document.getElementById('productModal');
+    const fullscreenModal = document.getElementById('imageFullscreenModal');
     if (event.target === cartModal) closeCart();
     if (event.target === checkoutModal) closeCheckout();
     if (event.target === registerModal) closeRegisterRequired();
     if (event.target === productModal) closeProductModal();
+    if (event.target === fullscreenModal) closeFullscreenImage();
 };
