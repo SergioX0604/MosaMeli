@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Bloquear páginas privadas
+Disallow: /admin.html
+Disallow: /admin.js
+Disallow: /login.html
+Disallow: /reset-password.html
+Disallow: /splash.html
+Disallow: /auth.js
+Disallow: /supabaseClient.js
+
+# Permitir recursos estáticos
+Allow: /img/
+Allow: /styles.css
+Allow: /script.js
+
+Sitemap: https://mosameli.com/sitemap.xml

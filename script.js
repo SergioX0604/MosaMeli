@@ -255,7 +255,16 @@ function loadCart() { const c = localStorage.getItem(getCartKey()); if (c) { car
 
 function addToCart(productoId) {
     const producto = productos.find(p => p.id === productoId);
+    if (!producto) { showToast("Producto no encontrado"); return; }
     if (producto.stock <= 0) { showToast("Producto agotado"); return; }
+    
+    // ✅ Validar cuántas unidades ya están en el carrito
+    const enCarrito = carrito.filter(i => i.id === productoId).length;
+    if (enCarrito >= producto.stock) {
+        showToast(`⚠️ Solo hay ${producto.stock} unidades disponibles`);
+        return;
+    }
+    
     carrito.push(producto);
     saveCart();
     showToast(`✅ ${producto.nombre} agregado`);
@@ -458,6 +467,16 @@ function decreaseQuantity() {
 
 function addToCartFromModal() {
     if (!productoActual) return;
+    
+    // ✅ Validar stock total
+    const enCarrito = carrito.filter(i => i.id === productoActual.id).length;
+    const totalSolicitado = enCarrito + cantidadProducto;
+    
+    if (totalSolicitado > productoActual.stock) {
+        showToast(`⚠️ Solo hay ${productoActual.stock} unidades disponibles`);
+        return;
+    }
+    
     for (let i = 0; i < cantidadProducto; i++) {
         carrito.push(productoActual);
     }
@@ -468,6 +487,12 @@ function addToCartFromModal() {
 
 function buyNowFromModal() {
     if (!productoActual) return;
+    
+    if (cantidadProducto > productoActual.stock) {
+        showToast(`⚠️ Solo hay ${productoActual.stock} unidades disponibles`);
+        return;
+    }
+    
     carrito = [];
     for (let i = 0; i < cantidadProducto; i++) {
         carrito.push(productoActual);
@@ -1227,20 +1252,54 @@ function copiarDato(texto) {
 }
 
 async function confirmarPago() {
-    if (carrito.length === 0) { showToast("Tu carrito está vacío"); return; }
+    // ✅ Validar carrito
+    if (carrito.length === 0) { 
+        showToast("Tu carrito está vacío"); 
+        return; 
+    }
     
-    // Validar que se haya calculado el delivery
-    if (costoDeliverySeleccionado === 0 && !direccionClienteSeleccionada) {
-        showToast("⚠️ Por favor, selecciona tu ubicación en el mapa de delivery");
-        abrirMapa();
+    // ✅ Validar método de pago
+    if (!metodoPagoElegido) {
+        showToast("⚠️ Selecciona un método de pago");
+        volverOpciones();
         return;
     }
+    
+    // ✅ Validar delivery
+    if (costoDeliverySeleccionado === 0 && !direccionClienteSeleccionada) {
+        // Verificar si es porque el carrito califica para envío gratis
+        const subtotal = totalCarrito();
+        if (subtotal < CONFIG_DELIVERY.gratisDesde) {
+            showToast("⚠️ Por favor, selecciona tu ubicación en el mapa de delivery");
+            abrirMapa();
+            return;
+        }
+    }
 
+    // ✅ Validar sesión
     const { data: { user } } = await sc.auth.getUser();
     if (!user) { 
         closeCheckout(); 
         mostrarModalRegistroObligatorio(); 
         return; 
+    }
+    
+    // ✅ VALIDAR STOCK ANTES DE PROCESAR
+    const cantidades = {};
+    carrito.forEach(item => {
+        cantidades[item.id] = (cantidades[item.id] || 0) + 1;
+    });
+    
+    for (const [id, cantidad] of Object.entries(cantidades)) {
+        const producto = productos.find(p => p.id == id);
+        if (!producto) {
+            showToast(`⚠️ Un producto ya no está disponible`);
+            return;
+        }
+        if (producto.stock < cantidad) {
+            showToast(`⚠️ Stock insuficiente para ${producto.nombre} (quedan ${producto.stock})`);
+            return;
+        }
     }
     
     // Obtener perfil
@@ -1258,6 +1317,7 @@ async function confirmarPago() {
         new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + 
         Math.floor(Math.random() * 10000).toString().padStart(4, '0');
 
+    // Insertar pedido
     const { data: pedido, error } = await sc.from('pedidos').insert([
         { 
             usuario_id: user.id, 
@@ -1279,9 +1339,14 @@ async function confirmarPago() {
         return; 
     }
 
-    // Descontar stock
-    for (const item of carrito) {
-        await sc.from('productos').update({ stock: item.stock - 1 }).eq('id', item.id);
+    // ✅ DESCONTAR STOCK CORRECTAMENTE (agrupado por producto)
+    for (const [id, cantidad] of Object.entries(cantidades)) {
+        const producto = productos.find(p => p.id == id);
+        if (producto) {
+            await sc.from('productos')
+                .update({ stock: producto.stock - cantidad })
+                .eq('id', id);
+        }
     }
 
     // Enviar correo de confirmación
@@ -1293,15 +1358,18 @@ async function confirmarPago() {
                 pedido_id: pedido.id,
                 codigo_seguimiento: codigoSeguimiento,
                 items: carrito,
-                total: totalCarrito(),
-                metodo_pago: metodoPagoElegido
+                total: totalFinal,           // ✅ Usa totalFinal (incluye delivery)
+                subtotal: subtotal,
+                costo_delivery: costoDeliverySeleccionado,
+                metodo_pago: metodoPagoElegido,
+                direccion: direccionClienteSeleccionada
             }
         });
     } catch (e) {
         console.error("Error al enviar correo:", e);
     }
 
-    // Mostrar mensaje de éxito con código de seguimiento
+    // Mostrar mensaje de éxito
     const detalle = document.getElementById('detalle-instrucciones');
     detalle.innerHTML = `
         <div style="text-align: center; padding: 30px;">
@@ -1330,8 +1398,13 @@ async function confirmarPago() {
     document.querySelector('.confirmar-pago-btn').style.display = 'none';
     document.querySelector('.volver-btn').textContent = 'Cerrar';
 
+    // Limpiar carrito y delivery
     carrito = [];
     saveCart();
+    costoDeliverySeleccionado = 0;
+    distanciaDelivery = 0;
+    direccionClienteSeleccionada = '';
+    metodoPagoElegido = null;
     
     setTimeout(() => {
         document.getElementById('checkoutModal').style.display = 'none';
@@ -1347,9 +1420,17 @@ function volverOpciones() {
 }
 
 function closeCheckout() { 
-    document.getElementById('checkoutModal').style.display = 'none';
-    document.querySelector('.confirmar-pago-btn').style.display = 'block';
-    document.querySelector('.volver-btn').textContent = 'Volver';
+    const modal = document.getElementById('checkoutModal');
+    if (modal) modal.style.display = 'none';
+    
+    const btnConfirmar = document.querySelector('.confirmar-pago-btn');
+    if (btnConfirmar) btnConfirmar.style.display = 'block';
+    
+    const btnVolver = document.querySelector('.volver-btn');
+    if (btnVolver) btnVolver.textContent = 'Volver';
+    
+    // Resetear método de pago al cerrar
+    metodoPagoElegido = null;
 }
 
 // ================== TOAST ==================
@@ -1409,10 +1490,9 @@ function initMapa() {
         maxZoom: 18
     }).addTo(mapaDelivery);
     
-    // ⚠️ NO agregamos marcador del origen exacto (privacidad)
-    // En su lugar, agregamos un círculo neutro que representa la zona de cobertura
+    // Círculo centro (privacidad)
     const circuloCentro = L.circle([origen.lat, origen.lng], {
-        radius: 500, // 500 metros de radio (representa la zona general)
+        radius: 500,
         color: '#7E57C2',
         fillColor: '#9B7FD4',
         fillOpacity: 0.3,
@@ -1426,7 +1506,7 @@ function initMapa() {
         </div>
     `);
     
-    // Dibujar los círculos de las zonas (de mayor a menor)
+    // Dibujar zonas (de mayor a menor)
     CONFIG_DELIVERY.zonas.slice().reverse().forEach(zona => {
         const circulo = L.circle([origen.lat, origen.lng], {
             radius: zona.radio * 1000,
@@ -1447,17 +1527,20 @@ function initMapa() {
         circulosZonas.push(circulo);
     });
     
-    // Evento: clic en el mapa para seleccionar la ubicación del cliente
+    // ✅ Forzar recalcular tamaño después de renderizar
+    setTimeout(() => {
+        mapaDelivery.invalidateSize();
+    }, 300);
+    
+    // Evento: clic para seleccionar ubicación
     mapaDelivery.on('click', function(e) {
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
         
-        // Eliminar marcador anterior
         if (marcadorCliente) {
             mapaDelivery.removeLayer(marcadorCliente);
         }
         
-        // Agregar marcador del cliente
         const iconoCliente = L.divIcon({
             className: 'custom-icon-cliente',
             html: '<div style="background: #F44336; width: 28px; height: 28px; border-radius: 50%; border: 4px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">📍</div>',
@@ -1467,22 +1550,17 @@ function initMapa() {
         
         marcadorCliente = L.marker([lat, lng], { icon: iconoCliente }).addTo(mapaDelivery);
         
-        // Calcular distancia
         const distancia = calcularDistancia(origen.lat, origen.lng, lat, lng);
         distanciaDelivery = distancia;
         
-        // Calcular costo
         const { costo, zonaNombre } = calcularCostoDelivery(distancia);
         
-        // Verificar si aplica delivery gratis
         const subtotal = totalCarrito();
         const esGratis = subtotal >= CONFIG_DELIVERY.gratisDesde;
         costoDeliverySeleccionado = esGratis ? 0 : costo;
         
-        // Guardar coordenadas para el pedido
         direccionClienteSeleccionada = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
         
-        // Mostrar resultado
         const resultDiv = document.getElementById('deliveryResult');
         const costDiv = document.getElementById('deliveryCost');
         
@@ -1494,6 +1572,7 @@ function initMapa() {
                 </small>
             `;
             costoDeliverySeleccionado = 0;
+            direccionClienteSeleccionada = '';
         } else if (esGratis) {
             costDiv.innerHTML = `
                 <span style="color: #4CAF50;">¡GRATIS!</span>

@@ -7,11 +7,21 @@ const ADMIN_EMAIL = 'espis0611@gmail.com';
 // ================== VERIFICACIÓN DE ACCESO ==================
 async function verificarAcceso() {
     const { data: { user } } = await sc.auth.getUser();
+    
+    // Sin sesión → redirigir a login
     if (!user) {
         localStorage.setItem('redirectAfterLogin', 'admin.html');
         window.location.href = 'login.html';
         return false;
     }
+    
+    // ✅ VERIFICAR QUE SEA EL ADMIN
+    if (user.email !== ADMIN_EMAIL) {
+        alert('⛔ Acceso denegado. Solo administradores pueden entrar aquí.');
+        window.location.href = 'index.html';
+        return false;
+    }
+    
     return true;
 }
 
@@ -37,7 +47,7 @@ async function cargarProductos() {
             <td>${p.id}</td>
             <td>${p.nombre}</td>
             <td>${p.categoria}</td>
-            <td>S/ ${p.precio.toFixed(2)}</td>
+            <td>S/ ${Number(p.precio).toFixed(2)}</td>
             <td>${p.stock}</td>
             <td>
                 <button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>
@@ -49,20 +59,37 @@ async function cargarProductos() {
 
 // ================== AGREGAR PRODUCTO ==================
 async function agregarProducto() {
-    const nombre = document.getElementById('nombre').value;
-    const categoria = document.getElementById('categoria').value;
-    const precio = document.getElementById('precio').value;
-    const precioOriginal = document.getElementById('precioOriginal').value;
-    const imagen = document.getElementById('imagen').value;
-    const stock = document.getElementById('stock').value;
+    const nombre = document.getElementById('nombre').value.trim();
+    const categoria = document.getElementById('categoria').value.trim();
+    const precio = parseFloat(document.getElementById('precio').value);
+    const precioOriginal = parseFloat(document.getElementById('precioOriginal').value) || null;
+    const imagen = document.getElementById('imagen').value.trim();
+    const stock = parseInt(document.getElementById('stock').value);
 
-    if (!nombre || !categoria || !precio || !stock) {
+    if (!nombre || !categoria || isNaN(precio) || isNaN(stock)) {
         alert("Por favor completa todos los campos obligatorios");
         return;
     }
 
+    if (precio <= 0) {
+        alert("El precio debe ser mayor a 0");
+        return;
+    }
+
+    if (stock < 0) {
+        alert("El stock no puede ser negativo");
+        return;
+    }
+
     const { error } = await sc.from('productos').insert([
-        { nombre, categoria, precio, precio_original: precioOriginal, imagen, stock }
+        { 
+            nombre, 
+            categoria, 
+            precio, 
+            precio_original: precioOriginal, 
+            imagen, 
+            stock 
+        }
     ]);
 
     if (error) {
@@ -110,15 +137,25 @@ function closeEditModal() {
 async function saveEdit() {
     if (!editProductId) return;
 
-    const nombre = document.getElementById('edit-nombre').value;
-    const categoria = document.getElementById('edit-categoria').value;
-    const precio = document.getElementById('edit-precio').value;
-    const precioOriginal = document.getElementById('edit-precioOriginal').value;
-    const stock = document.getElementById('edit-stock').value;
-    const imagen = document.getElementById('edit-imagen').value;
+    const nombre = document.getElementById('edit-nombre').value.trim();
+    const categoria = document.getElementById('edit-categoria').value.trim();
+    const precio = parseFloat(document.getElementById('edit-precio').value);
+    const precioOriginal = parseFloat(document.getElementById('edit-precioOriginal').value) || null;
+    const stock = parseInt(document.getElementById('edit-stock').value);
+    const imagen = document.getElementById('edit-imagen').value.trim();
+
+    if (!nombre || !categoria || isNaN(precio) || isNaN(stock)) {
+        alert("Por favor completa todos los campos");
+        return;
+    }
 
     const { error } = await sc.from('productos').update({
-        nombre, categoria, precio, precio_original: precioOriginal || null, stock, imagen
+        nombre, 
+        categoria, 
+        precio, 
+        precio_original: precioOriginal, 
+        stock, 
+        imagen
     }).eq('id', editProductId);
 
     if (error) {
@@ -167,6 +204,9 @@ async function cargarPedidos() {
 
     container.innerHTML = data.map(pedido => {
         const estadoActual = pedido.estado || 'pedido_recibido';
+        const total = Number(pedido.total) || 0;
+        const costoDelivery = Number(pedido.costo_delivery) || 0;
+        const distancia = Number(pedido.distancia_delivery) || 0;
         
         return `
             <div class="pedido-card">
@@ -176,10 +216,10 @@ async function cargarPedidos() {
                         <p>${pedido.cliente_nombre || 'Cliente'} - ${pedido.cliente_email || ''}</p>
                     </div>
                     <div class="pedido-total">
-                        Total: S/ ${pedido.total.toFixed(2)}
-                        ${pedido.costo_delivery ? `<br><small style="font-size: 0.75rem; color: #7A6A8C;">(delivery: S/ ${pedido.costo_delivery.toFixed(2)} - ${pedido.distancia_delivery ? pedido.distancia_delivery.toFixed(1) + ' km' : ''})</small>` : ''}
-                        </div>
+                        Total: S/ ${total.toFixed(2)}
+                        ${costoDelivery ? `<br><small style="font-size: 0.75rem; color: #7A6A8C;">(delivery: S/ ${costoDelivery.toFixed(2)} - ${distancia ? distancia.toFixed(1) + ' km' : ''})</small>` : ''}
                     </div>
+                </div>
                 
                 <div class="pedido-estado">
                     <label>Estado:</label>
@@ -210,7 +250,6 @@ async function cargarPedidos() {
 async function cambiarEstado(pedidoId, nuevoEstado) {
     console.log('🔄 Intentando cambiar estado:', pedidoId, '→', nuevoEstado);
     
-    // PASO 1: Actualizar el estado en Supabase
     const actualizaciones = { estado: nuevoEstado };
     const ahora = new Date().toISOString();
     
@@ -219,15 +258,12 @@ async function cambiarEstado(pedidoId, nuevoEstado) {
     if (nuevoEstado === 'en_camino') actualizaciones.fecha_envio = ahora;
     if (nuevoEstado === 'entregado') actualizaciones.fecha_entrega = ahora;
 
-    console.log('📤 Enviando a Supabase:', actualizaciones);
-
     const { data, error } = await sc
         .from('pedidos')
         .update(actualizaciones)
         .eq('id', pedidoId)
         .select();
 
-    // Si la actualización falla, mostrar error y detener
     if (error) {
         console.error('❌ Error de Supabase:', error);
         alert('❌ Error al actualizar: ' + error.message);
@@ -237,10 +273,9 @@ async function cambiarEstado(pedidoId, nuevoEstado) {
     console.log('✅ Estado actualizado en Supabase:', data);
     showToastAdmin('✅ Estado actualizado correctamente');
     
-    // PASO 2: Recargar la lista (para que se vea el cambio inmediatamente)
     await cargarPedidos();
     
-    // PASO 3: Intentar enviar el correo SIN bloquear el flujo
+    // Enviar correo sin bloquear
     try {
         const { data: pedido } = await sc
             .from('pedidos')
@@ -249,8 +284,6 @@ async function cambiarEstado(pedidoId, nuevoEstado) {
             .single();
 
         if (pedido && pedido.cliente_email) {
-            console.log('📧 Enviando correo a:', pedido.cliente_email);
-            
             await sc.functions.invoke('notificar-estado', {
                 body: {
                     cliente_email: pedido.cliente_email,
@@ -261,11 +294,9 @@ async function cambiarEstado(pedidoId, nuevoEstado) {
                 }
             });
             
-            console.log('📧 Correo enviado');
             showToastAdmin('📧 Correo enviado al cliente');
         }
     } catch (emailError) {
-        // Si falla el correo, NO detenemos nada. El estado ya se guardó.
         console.warn('⚠️ Correo no enviado:', emailError);
     }
 }
@@ -371,11 +402,26 @@ function showToastAdmin(message) {
 }
 
 // ================== INICIALIZACIÓN ==================
-window.onload = async function() {
-    const tieneAcceso = await verificarAcceso();
-    if (tieneAcceso) {
-        await cargarProductos();
-        if (document.getElementById('pedidosList')) cargarPedidos();
-        if (document.getElementById('resenasPendientes')) cargarResenasPendientes();
-    }
-};
+window.addEventListener('load', async function() {
+    checkLoginStatus();
+    await loadProducts();
+    loadCart();
+    initFilterEvents();
+    setTimeout(() => initVolumeControl(), 500);
+});
+
+window.addEventListener('click', function(event) {
+    const cartModal = document.getElementById('cartModal');
+    const checkoutModal = document.getElementById('checkoutModal');
+    const registerModal = document.getElementById('registerRequiredModal');
+    const productModal = document.getElementById('productModal');
+    const fullscreenModal = document.getElementById('imageFullscreenModal');
+    const reviewModal = document.getElementById('reviewModal');
+    
+    if (event.target === cartModal) closeCart();
+    if (event.target === checkoutModal) closeCheckout();
+    if (event.target === registerModal) closeRegisterRequired();
+    if (event.target === productModal) closeProductModal();
+    if (event.target === fullscreenModal) closeFullscreenImage();
+    if (event.target === reviewModal) cerrarModalResena();
+});
