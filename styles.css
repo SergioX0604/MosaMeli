@@ -818,3 +818,158 @@ body {
 }
 .btn-approve:hover { background: #388E3C; }
 .btn-reject:hover { background: #D32F2F; }
+/* ==================== MODAL DEL MAPA DE DELIVERY ==================== */
+.map-modal-content {
+    max-width: 700px;
+    width: 95%;
+}
+
+.map-modal-content h2 {
+    color: #7E57C2;
+    font-size: 1.4rem;
+    margin-bottom: 5px;
+}
+
+.map-subtitle {
+    color: #7A6A8C;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+}
+
+#map {
+    width: 100%;
+    height: 400px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    z-index: 1;
+}
+
+.delivery-legend {
+    background: #F5F0FA;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.delivery-legend h4 {
+    color: #7E57C2;
+    font-size: 1rem;
+    margin-bottom: 12px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 0.85rem;
+    color: #4A3A5C;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+}
+
+.legend-item strong {
+    color: #7E57C2;
+}
+
+.delivery-result {
+    background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
+    border: 2px solid #4CAF50;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.delivery-result p:first-child {
+    color: #2E7D32;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.delivery-cost {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2E7D32;
+    margin-bottom: 15px;
+}
+
+.btn-confirmar-delivery {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-confirmar-delivery:hover {
+    background: #388E3C;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(76, 175, 80, 0.4);
+}
+
+.btn-ver-mapa {
+    background: #F8BBD0;
+    color: #7E57C2;
+    border: 2px solid #F5A6B8;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-ver-mapa:hover {
+    background: #F5A6B8;
+    color: white;
+}
+
+.cart-summary {
+    background: #F5F0FA;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.cart-summary .linea {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 0.9rem;
+    color: #4A3A5C;
+}
+
+.cart-summary .linea.total {
+    border-top: 2px solid #9B7FD4;
+    margin-top: 8px;
+    padding-top: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #7E57C2;
+}
+
+@media (max-width: 600px) {
+    #map { height: 300px; }
+    .map-modal-content h2 { font-size: 1.2rem; }
+    .delivery-cost { font-size: 1.6rem; }
+}

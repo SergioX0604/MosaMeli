@@ -14,6 +14,10 @@
     <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
 
+    <!-- Leaflet (mapas gratis) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <meta property="og:title" content="MosaMeli - Tu mundo en un click">
     <meta property="og:description" content="Descubre productos increíbles para tu hogar, familia y mascotas. Envío gratis a todo el Perú.">
     <meta property="og:image" content="https://mosameli.com/img/logo-mosameli.png">
@@ -1047,6 +1051,45 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal del Mapa de Delivery -->
+<div id="mapModal" class="modal">
+    <div class="modal-content map-modal-content">
+        <span class="close" onclick="cerrarMapa()">&times;</span>
+        <h2>🗺️ Costos de Delivery</h2>
+        <p class="map-subtitle">Haz clic en el mapa para calcular tu delivery</p>
+        
+        <div id="map"></div>
+        
+        <div class="delivery-legend">
+            <h4>Zonas de cobertura MosaMeli (Chaclacayo)</h4>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #4CAF50;"></span>
+                <span>Zona 1 (0-2 km): <strong>S/ 5.00</strong></span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #FFC107;"></span>
+                <span>Zona 2 (2-4 km): <strong>S/ 7.00</strong></span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #FF9800;"></span>
+                <span>Zona 3 (4-7 km): <strong>S/ 10.00</strong></span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #F44336;"></span>
+                <span>Zona 4 (7-10 km): <strong>S/ 15.00</strong></span>
+            </div>
+        </div>
+        
+        <div id="deliveryResult" class="delivery-result" style="display:none;">
+            <p>📍 Tu ubicación aproximada</p>
+            <p class="delivery-cost" id="deliveryCost"></p>
+            <button class="btn-confirmar-delivery" onclick="aplicarDelivery()">
+                ✅ Usar este delivery
+            </button>
+        </div>
+    </div>
+</div>
 
     <!-- Modal de registro obligatorio -->
     <div id="registerRequiredModal" class="modal">

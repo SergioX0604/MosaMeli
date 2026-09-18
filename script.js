@@ -9,6 +9,35 @@ let categoriasActivas = [];
 let filtroPrecioMax = 300;
 let soloDisponibles = false;
 
+// ================== CONFIGURACIÓN DE DELIVERY ==================
+const CONFIG_DELIVERY = {
+    // ⚠️ Coordenadas desplazadas para proteger la ubicación exacta del negocio
+    // Se movió ~600m del punto exacto para difuminar la ubicación
+    origen: {
+        lat: -11.9726,       // Coordenada desplazada (NO la exacta)
+        lng: -76.7790,       // Coordenada desplazada (NO la exacta)
+        nombre: 'Zona de cobertura MosaMeli - Chaclacayo'
+    },
+    
+    // Zonas de delivery por radio
+    zonas: [
+        { radio: 2,  costo: 5.00,  color: '#4CAF50', nombre: 'Zona 1 - Chaclacayo Centro' },
+        { radio: 4,  costo: 7.00,  color: '#FFC107', nombre: 'Zona 2 - Chaclacayo Cercano' },
+        { radio: 7,  costo: 10.00, color: '#FF9800', nombre: 'Zona 3 - Chaclacayo Alto' },
+        { radio: 10, costo: 15.00, color: '#F44336', nombre: 'Zona 4 - Chosica / Ricardo Palma' }
+    ],
+    
+    // Delivery gratis desde este monto
+    gratisDesde: 150.00
+};
+
+let mapaDelivery = null;
+let marcadorCliente = null;
+let circulosZonas = [];
+let costoDeliverySeleccionado = 0;
+let distanciaDelivery = 0;
+let direccionClienteSeleccionada = '';
+
 // Variables del modal de producto
 let productoActual = null;
 let imagenActualIndex = 0;
@@ -242,16 +271,44 @@ function buyNow(productoId) {
 function viewCart() {
     const modal = document.getElementById('cartModal');
     const itemsDiv = document.getElementById('cartItems');
-    if (carrito.length === 0) itemsDiv.innerHTML = '<p style="text-align:center; padding:20px;">Tu carrito está vacío</p>';
-    else {
-        itemsDiv.innerHTML = carrito.map((item, index) => `
-            <div class="cart-item">
-                <span>${item.nombre}</span>
-                <span>S/ ${item.precio.toFixed(2)}</span>
-                <button onclick="removeFromCart(${index})"><i class="fas fa-trash-alt"></i></button>
-            </div>
-        `).join('') + `<h3 style="text-align:right; margin-top:15px;">Total: S/ ${totalCarrito().toFixed(2)}</h3>`;
+    
+    if (carrito.length === 0) {
+        itemsDiv.innerHTML = '<p style="text-align:center; padding:20px;">Tu carrito está vacío</p>';
+        modal.style.display = 'flex';
+        return;
     }
+    
+    const subtotal = totalCarrito();
+    const total = subtotal + costoDeliverySeleccionado;
+    
+    itemsDiv.innerHTML = carrito.map((item, index) => `
+        <div class="cart-item">
+            <span>${item.nombre}</span>
+            <span>S/ ${item.precio.toFixed(2)}</span>
+            <button onclick="removeFromCart(${index})"><i class="fas fa-trash-alt"></i></button>
+        </div>
+    `).join('');
+    
+    itemsDiv.innerHTML += `
+        <div class="cart-summary">
+            <div class="linea">
+                <span>Subtotal</span>
+                <span>S/ ${subtotal.toFixed(2)}</span>
+            </div>
+            <div class="linea">
+                <span>Delivery</span>
+                <span>${costoDeliverySeleccionado > 0 ? `S/ ${costoDeliverySeleccionado.toFixed(2)}` : 'Por calcular'}</span>
+            </div>
+            <div class="linea total">
+                <span>Total</span>
+                <span>S/ ${total.toFixed(2)}</span>
+            </div>
+        </div>
+        <button class="btn-ver-mapa" onclick="abrirMapa()">
+            <i class="fas fa-map-marked-alt"></i> Ver mapa de delivery
+        </button>
+    `;
+    
     modal.style.display = 'flex';
 }
 
@@ -1170,37 +1227,50 @@ function copiarDato(texto) {
 }
 
 async function confirmarPago() {
+    if (carrito.length === 0) { showToast("Tu carrito está vacío"); return; }
+    
+    // Validar que se haya calculado el delivery
+    if (costoDeliverySeleccionado === 0 && !direccionClienteSeleccionada) {
+        showToast("⚠️ Por favor, selecciona tu ubicación en el mapa de delivery");
+        abrirMapa();
+        return;
+    }
+
     const { data: { user } } = await sc.auth.getUser();
     if (!user) { 
         closeCheckout(); 
         mostrarModalRegistroObligatorio(); 
         return; 
     }
-
-    // Obtener perfil del cliente
+    
+    // Obtener perfil
     const { data: perfil } = await sc.from('perfiles')
         .select('username')
         .eq('id', user.id)
         .single();
     
     const clienteNombre = perfil?.username || user.email.split('@')[0];
+    const subtotal = totalCarrito();
+    const totalFinal = subtotal + costoDeliverySeleccionado;
     
-    // Generar código de seguimiento único
+    // Generar código de seguimiento
     const codigoSeguimiento = 'MOSA-' + 
         new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + 
         Math.floor(Math.random() * 10000).toString().padStart(4, '0');
 
-    // Guardar el pedido
     const { data: pedido, error } = await sc.from('pedidos').insert([
         { 
             usuario_id: user.id, 
             items: carrito, 
-            total: totalCarrito(),
+            total: totalFinal,
             metodo_pago: metodoPagoElegido,
             estado: 'pedido_recibido',
             codigo_seguimiento: codigoSeguimiento,
             cliente_nombre: clienteNombre,
-            cliente_email: user.email
+            cliente_email: user.email,
+            costo_delivery: costoDeliverySeleccionado,
+            distancia_delivery: distanciaDelivery,
+            direccion_cliente: direccionClienteSeleccionada
         }
     ]).select().single();
     
@@ -1308,6 +1378,174 @@ function cerrarToast(toast) {
     toast.style.transform = 'translateX(100%)';
     toast.style.opacity = '0';
     setTimeout(() => toast.remove(), 300);
+}
+
+// ================== SISTEMA DE MAPA DE DELIVERY ==================
+function abrirMapa() {
+    document.getElementById('mapModal').style.display = 'flex';
+    setTimeout(() => {
+        initMapa();
+    }, 100);
+}
+
+function cerrarMapa() {
+    document.getElementById('mapModal').style.display = 'none';
+}
+
+function initMapa() {
+    if (mapaDelivery) {
+        mapaDelivery.invalidateSize();
+        return;
+    }
+    
+    const origen = CONFIG_DELIVERY.origen;
+    
+    // Crear el mapa centrado en el origen
+    mapaDelivery = L.map('map').setView([origen.lat, origen.lng], 13);
+    
+    // Agregar capa de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 18
+    }).addTo(mapaDelivery);
+    
+    // ⚠️ NO agregamos marcador del origen exacto (privacidad)
+    // En su lugar, agregamos un círculo neutro que representa la zona de cobertura
+    const circuloCentro = L.circle([origen.lat, origen.lng], {
+        radius: 500, // 500 metros de radio (representa la zona general)
+        color: '#7E57C2',
+        fillColor: '#9B7FD4',
+        fillOpacity: 0.3,
+        weight: 3
+    }).addTo(mapaDelivery);
+    
+    circuloCentro.bindPopup(`
+        <div style="text-align: center;">
+            <strong style="color: #7E57C2;">Zona de cobertura MosaMeli</strong><br>
+            <small style="color: #666;">Chaclacayo, Lima</small>
+        </div>
+    `);
+    
+    // Dibujar los círculos de las zonas (de mayor a menor)
+    CONFIG_DELIVERY.zonas.slice().reverse().forEach(zona => {
+        const circulo = L.circle([origen.lat, origen.lng], {
+            radius: zona.radio * 1000,
+            color: zona.color,
+            fillColor: zona.color,
+            fillOpacity: 0.15,
+            weight: 2,
+            dashArray: '5, 5'
+        }).addTo(mapaDelivery);
+        
+        circulo.bindPopup(`
+            <div style="text-align: center;">
+                <strong style="color: ${zona.color};">${zona.nombre}</strong><br>
+                Hasta ${zona.radio} km<br>
+                <strong style="color: #7E57C2;">Costo: S/ ${zona.costo.toFixed(2)}</strong>
+            </div>
+        `);
+        circulosZonas.push(circulo);
+    });
+    
+    // Evento: clic en el mapa para seleccionar la ubicación del cliente
+    mapaDelivery.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        
+        // Eliminar marcador anterior
+        if (marcadorCliente) {
+            mapaDelivery.removeLayer(marcadorCliente);
+        }
+        
+        // Agregar marcador del cliente
+        const iconoCliente = L.divIcon({
+            className: 'custom-icon-cliente',
+            html: '<div style="background: #F44336; width: 28px; height: 28px; border-radius: 50%; border: 4px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">📍</div>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+        });
+        
+        marcadorCliente = L.marker([lat, lng], { icon: iconoCliente }).addTo(mapaDelivery);
+        
+        // Calcular distancia
+        const distancia = calcularDistancia(origen.lat, origen.lng, lat, lng);
+        distanciaDelivery = distancia;
+        
+        // Calcular costo
+        const { costo, zonaNombre } = calcularCostoDelivery(distancia);
+        
+        // Verificar si aplica delivery gratis
+        const subtotal = totalCarrito();
+        const esGratis = subtotal >= CONFIG_DELIVERY.gratisDesde;
+        costoDeliverySeleccionado = esGratis ? 0 : costo;
+        
+        // Guardar coordenadas para el pedido
+        direccionClienteSeleccionada = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        
+        // Mostrar resultado
+        const resultDiv = document.getElementById('deliveryResult');
+        const costDiv = document.getElementById('deliveryCost');
+        
+        if (distancia > 10) {
+            costDiv.innerHTML = `
+                <span style="color: #D32F2F;">Fuera de cobertura</span>
+                <small style="display: block; font-size: 0.75rem; color: #7A6A8C; margin-top: 5px;">
+                    Contáctanos por WhatsApp al 937 309 837
+                </small>
+            `;
+            costoDeliverySeleccionado = 0;
+        } else if (esGratis) {
+            costDiv.innerHTML = `
+                <span style="color: #4CAF50;">¡GRATIS!</span>
+                <small style="display: block; font-size: 0.75rem; color: #2E7D32; margin-top: 5px;">
+                    ${zonaNombre} (${distancia.toFixed(1)} km) - Envío gratis
+                </small>
+            `;
+        } else {
+            costDiv.innerHTML = `
+                S/ ${costo.toFixed(2)}
+                <small style="display: block; font-size: 0.75rem; color: #7A6A8C; margin-top: 5px;">
+                    ${zonaNombre} (${distancia.toFixed(1)} km)
+                </small>
+            `;
+        }
+        
+        resultDiv.style.display = 'block';
+    });
+}
+
+function calcularDistancia(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    
+    const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+function calcularCostoDelivery(distancia) {
+    for (const zona of CONFIG_DELIVERY.zonas) {
+        if (distancia <= zona.radio) {
+            return { costo: zona.costo, zonaNombre: zona.nombre };
+        }
+    }
+    return { costo: 0, zonaNombre: 'Fuera de cobertura' };
+}
+
+function aplicarDelivery() {
+    cerrarMapa();
+    mostrarResumenCarrito();
+    showToast(`✅ Delivery aplicado: S/ ${costoDeliverySeleccionado.toFixed(2)}`);
+}
+
+function mostrarResumenCarrito() {
+    // Actualizar el carrito con el delivery
+    viewCart();
 }
 
 // ================== INICIALIZACIÓN ==================

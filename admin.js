@@ -175,8 +175,11 @@ async function cargarPedidos() {
                         <strong>#${pedido.codigo_seguimiento || 'Sin código'}</strong>
                         <p>${pedido.cliente_nombre || 'Cliente'} - ${pedido.cliente_email || ''}</p>
                     </div>
-                    <div class="pedido-total">S/ ${pedido.total.toFixed(2)}</div>
-                </div>
+                    <div class="pedido-total">
+                        Total: S/ ${pedido.total.toFixed(2)}
+                        ${pedido.costo_delivery ? `<br><small style="font-size: 0.75rem; color: #7A6A8C;">(delivery: S/ ${pedido.costo_delivery.toFixed(2)} - ${pedido.distancia_delivery ? pedido.distancia_delivery.toFixed(1) + ' km' : ''})</small>` : ''}
+                        </div>
+                    </div>
                 
                 <div class="pedido-estado">
                     <label>Estado:</label>
