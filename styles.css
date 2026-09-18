@@ -138,13 +138,56 @@ body {
     border: 2px solid white;
 }
 
+/* ==================== ZONA DE USUARIO EN EL HEADER ==================== */
 .user-area {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
     color: white;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 600;
+}
+
+.user-area span#userName {
+    display: inline-block;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: capitalize;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 14px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-area .icon-btn {
+    background: rgba(255, 255, 255, 0.15);
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.3s;
+}
+
+.user-area .icon-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+@media (max-width: 600px) {
+    .user-area span#userName {
+        max-width: 90px;
+        font-size: 0.8rem;
+        padding: 5px 10px;
+    }
+    .user-area .icon-btn {
+        width: 34px;
+        height: 34px;
+    }
 }
 
 /* ==================== CATEGORÍAS ==================== */

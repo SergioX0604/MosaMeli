@@ -16,15 +16,20 @@ async function checkLoginStatus() {
             .from('perfiles')
             .select('username')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
-        const nombreMostrar = perfil?.username || user.user_metadata?.username || user.email;
-        userName.textContent = `Hola, ${nombreMostrar}`;
+        let nombreMostrar = perfil?.username || 
+                            user.user_metadata?.username || 
+                            user.email.split('@')[0];
+
+        // Quitar sufijo _1, _2, etc. si existe
+        nombreMostrar = nombreMostrar.replace(/_\d+$/, '');
+
+        userName.textContent = nombreMostrar;
         userName.style.display = 'inline';
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'inline';
         
-        // ✅ Mostrar botón de admin solo si es el admin
         if (adminBtn && user.email === 'espis0611@gmail.com') {
             adminBtn.style.display = 'flex';
         }

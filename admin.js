@@ -205,6 +205,9 @@ async function cargarPedidos() {
 }
 
 async function cambiarEstado(pedidoId, nuevoEstado) {
+    console.log('🔄 Intentando cambiar estado:', pedidoId, '→', nuevoEstado);
+    
+    // PASO 1: Actualizar el estado en Supabase
     const actualizaciones = { estado: nuevoEstado };
     const ahora = new Date().toISOString();
     
@@ -213,17 +216,28 @@ async function cambiarEstado(pedidoId, nuevoEstado) {
     if (nuevoEstado === 'en_camino') actualizaciones.fecha_envio = ahora;
     if (nuevoEstado === 'entregado') actualizaciones.fecha_entrega = ahora;
 
-    const { error } = await sc
+    console.log('📤 Enviando a Supabase:', actualizaciones);
+
+    const { data, error } = await sc
         .from('pedidos')
         .update(actualizaciones)
-        .eq('id', pedidoId);
+        .eq('id', pedidoId)
+        .select();
 
+    // Si la actualización falla, mostrar error y detener
     if (error) {
-        alert('Error al actualizar: ' + error.message);
+        console.error('❌ Error de Supabase:', error);
+        alert('❌ Error al actualizar: ' + error.message);
         return;
     }
 
-    // Enviar correo al cliente con el nuevo estado
+    console.log('✅ Estado actualizado en Supabase:', data);
+    showToastAdmin('✅ Estado actualizado correctamente');
+    
+    // PASO 2: Recargar la lista (para que se vea el cambio inmediatamente)
+    await cargarPedidos();
+    
+    // PASO 3: Intentar enviar el correo SIN bloquear el flujo
     try {
         const { data: pedido } = await sc
             .from('pedidos')
@@ -231,21 +245,26 @@ async function cambiarEstado(pedidoId, nuevoEstado) {
             .eq('id', pedidoId)
             .single();
 
-        await sc.functions.invoke('notificar-estado', {
-            body: {
-                cliente_email: pedido.cliente_email,
-                cliente_nombre: pedido.cliente_nombre,
-                codigo_seguimiento: pedido.codigo_seguimiento,
-                nuevo_estado: nuevoEstado,
-                pedido_id: pedido.id
-            }
-        });
-    } catch (e) {
-        console.log('Correo no enviado:', e);
+        if (pedido && pedido.cliente_email) {
+            console.log('📧 Enviando correo a:', pedido.cliente_email);
+            
+            await sc.functions.invoke('notificar-estado', {
+                body: {
+                    cliente_email: pedido.cliente_email,
+                    cliente_nombre: pedido.cliente_nombre,
+                    codigo_seguimiento: pedido.codigo_seguimiento,
+                    nuevo_estado: nuevoEstado,
+                    pedido_id: pedido.id
+                }
+            });
+            
+            console.log('📧 Correo enviado');
+            showToastAdmin('📧 Correo enviado al cliente');
+        }
+    } catch (emailError) {
+        // Si falla el correo, NO detenemos nada. El estado ya se guardó.
+        console.warn('⚠️ Correo no enviado:', emailError);
     }
-
-    showToastAdmin('✅ Estado actualizado y cliente notificado');
-    cargarPedidos();
 }
 
 // ================== GESTIÓN DE RESEÑAS ==================
