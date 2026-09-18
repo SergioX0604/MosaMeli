@@ -2,49 +2,17 @@
 const sc = window.supabaseClient;
 
 // ⚠️ CAMBIA ESTO POR TU CORREO DE ADMINISTRADOR
-const ADMIN_EMAIL = 'espis0611@gmail.com'; // ← Tu correo aquí
-
-let esAdmin = false;
+const ADMIN_EMAIL = 'espis0611@gmail.com';
 
 // ================== VERIFICACIÓN DE ACCESO ==================
 async function verificarAcceso() {
-    // Esperar a que Supabase esté listo
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const { data: { user }, error } = await sc.auth.getUser();
-    
-    if (error || !user) {
-        console.log('No hay sesión activa, redirigiendo a login...');
-        // Guardar la URL de destino para volver después del login
+    const { data: { user } } = await sc.auth.getUser();
+    if (!user) {
         localStorage.setItem('redirectAfterLogin', 'admin.html');
         window.location.href = 'login.html';
         return false;
     }
-    
-    // Verificar si es admin
-    esAdmin = (user.email === ADMIN_EMAIL);
-    console.log('Usuario autenticado:', user.email);
-    console.log('¿Es admin?', esAdmin);
-    
-    // Configurar la UI según el rol
-    configurarUI();
-    
     return true;
-}
-
-function configurarUI() {
-    const formAgregar = document.getElementById('form-agregar');
-    const header = document.querySelector('.admin-header h1');
-    
-    if (esAdmin) {
-        // Mostrar formulario de agregar
-        if (formAgregar) formAgregar.style.display = 'block';
-        if (header) header.innerHTML = '<img src="img/logo-mosameli.png" alt="MosaMeli" style="height:35px;background:white;padding:3px 8px;border-radius:8px;"> 🛠️ Administrador';
-    } else {
-        // Ocultar formulario de agregar (solo lectura)
-        if (formAgregar) formAgregar.style.display = 'none';
-        if (header) header.innerHTML = '<img src="img/logo-mosameli.png" alt="MosaMeli" style="height:35px;background:white;padding:3px 8px;border-radius:8px;"> 📦 Inventario (solo lectura)';
-    }
 }
 
 // ================== CARGAR PRODUCTOS ==================
@@ -57,6 +25,7 @@ async function cargarProductos() {
     }
 
     const tbody = document.getElementById('tabla-productos');
+    if (!tbody) return;
     
     if (data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color: #666;">📦 No hay productos en el inventario.</td></tr>';
@@ -71,19 +40,15 @@ async function cargarProductos() {
             <td>S/ ${p.precio.toFixed(2)}</td>
             <td>${p.stock}</td>
             <td>
-                ${esAdmin ? `
-                    <button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>
-                    <button class="btn-delete" onclick="eliminarProducto(${p.id})">Eliminar</button>
-                ` : '<span style="color:#999; font-size:0.85rem;">Solo lectura</span>'}
+                <button class="btn-edit" onclick="openEditModal(${p.id})">Editar</button>
+                <button class="btn-delete" onclick="eliminarProducto(${p.id})">Eliminar</button>
             </td>
         </tr>
     `).join('');
 }
 
-// ================== AGREGAR PRODUCTO (solo admin) ==================
+// ================== AGREGAR PRODUCTO ==================
 async function agregarProducto() {
-    if (!esAdmin) { alert('No tienes permisos'); return; }
-
     const nombre = document.getElementById('nombre').value;
     const categoria = document.getElementById('categoria').value;
     const precio = document.getElementById('precio').value;
@@ -113,14 +78,13 @@ async function agregarProducto() {
     document.getElementById('stock').value = '';
 
     cargarProductos();
+    showToastAdmin("✅ Producto agregado");
 }
 
 // ================== EDITAR PRODUCTO ==================
 let editProductId = null;
 
 async function openEditModal(id) {
-    if (!esAdmin) { alert('No tienes permisos'); return; }
-    
     const { data, error } = await sc.from('productos').select('*').eq('id', id).single();
     if (error) {
         alert("Error al obtener producto: " + error.message);
@@ -131,7 +95,7 @@ async function openEditModal(id) {
     document.getElementById('edit-nombre').value = data.nombre;
     document.getElementById('edit-categoria').value = data.categoria;
     document.getElementById('edit-precio').value = data.precio;
-    document.getElementById('edit-precioOriginal').value = data.precio_original;
+    document.getElementById('edit-precioOriginal').value = data.precio_original || '';
     document.getElementById('edit-stock').value = data.stock;
     document.getElementById('edit-imagen').value = data.imagen;
 
@@ -144,7 +108,7 @@ function closeEditModal() {
 }
 
 async function saveEdit() {
-    if (!editProductId || !esAdmin) return;
+    if (!editProductId) return;
 
     const nombre = document.getElementById('edit-nombre').value;
     const categoria = document.getElementById('edit-categoria').value;
@@ -154,7 +118,7 @@ async function saveEdit() {
     const imagen = document.getElementById('edit-imagen').value;
 
     const { error } = await sc.from('productos').update({
-        nombre, categoria, precio, precio_original: precioOriginal, stock, imagen
+        nombre, categoria, precio, precio_original: precioOriginal || null, stock, imagen
     }).eq('id', editProductId);
 
     if (error) {
@@ -164,11 +128,11 @@ async function saveEdit() {
 
     closeEditModal();
     cargarProductos();
+    showToastAdmin("✅ Producto actualizado");
 }
 
 // ================== ELIMINAR PRODUCTO ==================
 async function eliminarProducto(id) {
-    if (!esAdmin) { alert('No tienes permisos'); return; }
     if (!confirm("¿Seguro que quieres eliminar este producto?")) return;
 
     const { error } = await sc.from('productos').delete().eq('id', id);
@@ -178,15 +142,111 @@ async function eliminarProducto(id) {
     }
 
     cargarProductos();
+    showToastAdmin("🗑️ Producto eliminado");
 }
 
-// ================== INICIALIZACIÓN ==================
-window.onload = async function() {
-    const tieneAcceso = await verificarAcceso();
-    if (tieneAcceso) {
-        await cargarProductos();
+// ================== GESTIÓN DE PEDIDOS ==================
+async function cargarPedidos() {
+    const { data, error } = await sc
+        .from('pedidos')
+        .select('*')
+        .order('fecha', { ascending: false });
+
+    if (error) {
+        console.error(error);
+        return;
     }
-};
+
+    const container = document.getElementById('pedidosList');
+    if (!container) return;
+
+    if (data.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding:30px; color:#7A6A8C;">📦 No hay pedidos aún</p>';
+        return;
+    }
+
+    container.innerHTML = data.map(pedido => {
+        const estadoActual = pedido.estado || 'pedido_recibido';
+        
+        return `
+            <div class="pedido-card">
+                <div class="pedido-header">
+                    <div>
+                        <strong>#${pedido.codigo_seguimiento || 'Sin código'}</strong>
+                        <p>${pedido.cliente_nombre || 'Cliente'} - ${pedido.cliente_email || ''}</p>
+                    </div>
+                    <div class="pedido-total">S/ ${pedido.total.toFixed(2)}</div>
+                </div>
+                
+                <div class="pedido-estado">
+                    <label>Estado:</label>
+                    <select onchange="cambiarEstado(${pedido.id}, this.value)">
+                        <option value="pedido_recibido" ${estadoActual === 'pedido_recibido' ? 'selected' : ''}>⏳ Pedido recibido</option>
+                        <option value="pago_verificado" ${estadoActual === 'pago_verificado' ? 'selected' : ''}>✅ Pago verificado</option>
+                        <option value="en_preparacion" ${estadoActual === 'en_preparacion' ? 'selected' : ''}>📦 En preparación</option>
+                        <option value="en_camino" ${estadoActual === 'en_camino' ? 'selected' : ''}>🚚 En camino</option>
+                        <option value="entregado" ${estadoActual === 'entregado' ? 'selected' : ''}>🏠 Entregado</option>
+                    </select>
+                </div>
+                
+                <div class="pedido-items">
+                    ${(pedido.items || []).map(item => `<span>${item.nombre}</span>`).join('')}
+                </div>
+                
+                <div class="pedido-footer">
+                    <span class="pedido-metodo">💰 ${pedido.metodo_pago || 'No especificado'}</span>
+                    <a href="seguimiento.html?codigo=${pedido.codigo_seguimiento}" target="_blank" class="btn-ver-pedido">
+                        🔗 Ver seguimiento
+                    </a>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function cambiarEstado(pedidoId, nuevoEstado) {
+    const actualizaciones = { estado: nuevoEstado };
+    const ahora = new Date().toISOString();
+    
+    if (nuevoEstado === 'pago_verificado') actualizaciones.fecha_pago_verificado = ahora;
+    if (nuevoEstado === 'en_preparacion') actualizaciones.fecha_preparacion = ahora;
+    if (nuevoEstado === 'en_camino') actualizaciones.fecha_envio = ahora;
+    if (nuevoEstado === 'entregado') actualizaciones.fecha_entrega = ahora;
+
+    const { error } = await sc
+        .from('pedidos')
+        .update(actualizaciones)
+        .eq('id', pedidoId);
+
+    if (error) {
+        alert('Error al actualizar: ' + error.message);
+        return;
+    }
+
+    // Enviar correo al cliente con el nuevo estado
+    try {
+        const { data: pedido } = await sc
+            .from('pedidos')
+            .select('*')
+            .eq('id', pedidoId)
+            .single();
+
+        await sc.functions.invoke('notificar-estado', {
+            body: {
+                cliente_email: pedido.cliente_email,
+                cliente_nombre: pedido.cliente_nombre,
+                codigo_seguimiento: pedido.codigo_seguimiento,
+                nuevo_estado: nuevoEstado,
+                pedido_id: pedido.id
+            }
+        });
+    } catch (e) {
+        console.log('Correo no enviado:', e);
+    }
+
+    showToastAdmin('✅ Estado actualizado y cliente notificado');
+    cargarPedidos();
+}
 
 // ================== GESTIÓN DE RESEÑAS ==================
 async function cargarResenasPendientes() {
@@ -242,7 +302,7 @@ async function aprobarResena(id) {
         return;
     }
 
-    alert('✅ Reseña aprobada y publicada');
+    showToastAdmin('✅ Reseña aprobada y publicada');
     cargarResenasPendientes();
 }
 
@@ -259,11 +319,41 @@ async function rechazarResena(id) {
         return;
     }
 
-    alert('❌ Reseña rechazada');
+    showToastAdmin('❌ Reseña rechazada');
     cargarResenasPendientes();
 }
 
-// Cargar reseñas al inicio
-if (document.getElementById('resenasPendientes')) {
-    cargarResenasPendientes();
+// ================== TOAST PARA ADMIN ==================
+function showToastAdmin(message) {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button class="toast-close" onclick="event.stopPropagation(); this.parentElement.remove();">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
+
+// ================== INICIALIZACIÓN ==================
+window.onload = async function() {
+    const tieneAcceso = await verificarAcceso();
+    if (tieneAcceso) {
+        await cargarProductos();
+        if (document.getElementById('pedidosList')) cargarPedidos();
+        if (document.getElementById('resenasPendientes')) cargarResenasPendientes();
+    }
+};

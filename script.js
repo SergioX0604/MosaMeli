@@ -329,7 +329,6 @@ async function abrirProducto(productoId) {
         }
     }).join('');
     
-    // Cargar reseñas del producto
     await cargarResenas(productoActual.id);
     
     document.getElementById('productModal').style.display = 'flex';
@@ -459,7 +458,6 @@ async function cargarResenas(productoId) {
         return;
     }
 
-    // Calcular promedio
     const total = data.reduce((sum, r) => sum + r.calificacion, 0);
     const promedio = (total / data.length).toFixed(1);
     
@@ -467,7 +465,6 @@ async function cargarResenas(productoId) {
     averageStars.textContent = generarEstrellas(Math.round(promedio));
     reviewsCount.textContent = data.length;
 
-    // Renderizar reseñas
     reviewsList.innerHTML = data.map(resena => `
         <div class="review-item">
             <div class="review-header">
@@ -500,7 +497,6 @@ function formatearFecha(fecha) {
 function abrirModalResena() {
     if (!productoActual) return;
     
-    // Verificar si el usuario está logueado
     sc.auth.getUser().then(({ data: { user } }) => {
         if (!user) {
             closeProductModal();
@@ -508,7 +504,6 @@ function abrirModalResena() {
             return;
         }
         
-        // Resetear el formulario
         ratingSeleccionado = 0;
         document.getElementById('reviewText').value = '';
         document.getElementById('charCount').textContent = '0';
@@ -540,7 +535,6 @@ function setRating(rating) {
     });
 }
 
-// Contador de caracteres
 document.addEventListener('input', (e) => {
     if (e.target.id === 'reviewText') {
         document.getElementById('charCount').textContent = e.target.value.length;
@@ -574,7 +568,6 @@ async function enviarResena() {
             return;
         }
 
-        // Obtener nombre del usuario
         const { data: perfil } = await sc
             .from('perfiles')
             .select('username')
@@ -594,7 +587,6 @@ async function enviarResena() {
 
         if (error) throw error;
 
-        // Mostrar mensaje de éxito
         document.querySelector('.review-modal-content').innerHTML = `
             <div style="text-align: center; padding: 30px;">
                 <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
@@ -603,15 +595,11 @@ async function enviarResena() {
                     Tu opinión es muy valiosa para nosotros. 
                     Será revisada por nuestro equipo antes de publicarse.
                 </p>
-                <p style="color: #7A6A8C; font-size: 0.85rem;">
-                    Te notificaremos cuando esté publicada.
-                </p>
             </div>
         `;
 
         setTimeout(() => {
             cerrarModalResena();
-            // Recargar el modal después de cerrar
             setTimeout(() => {
                 if (productoActual) {
                     abrirProducto(productoActual.id);
@@ -1079,9 +1067,20 @@ function seleccionarMetodo(metodo) {
     const detalle = document.getElementById('detalle-instrucciones');
     const total = totalCarrito().toFixed(2);
 
+    // Aviso de transparencia común
+    const avisoConfianza = `
+        <div class="trust-badge">
+            <div class="trust-icon"><i class="fas fa-shield-alt"></i></div>
+            <div class="trust-text">
+                <strong>Pago 100% seguro a MosaMeli</strong>
+                <p>Tu pago se procesa directamente a nombre de <strong>${metodo === 'transferencia' ? DATOS_PAGO.transferencia.titular : DATOS_PAGO[metodo].titular}</strong>, titular de MosaMeli. No compartimos tus datos con terceros.</p>
+            </div>
+        </div>
+    `;
+
     if (metodo === 'plin') {
         titulo.textContent = '📱 Paga con Plin';
-        detalle.innerHTML = `
+        detalle.innerHTML = avisoConfianza + `
             <p class="qr-instructions">Total a pagar:</p>
             <p class="qr-total">S/ ${total}</p>
             <p class="qr-instructions">1. Abre <strong>Plin</strong></p>
@@ -1093,13 +1092,13 @@ function seleccionarMetodo(metodo) {
             <p class="qr-instructions">4. Confirma el pago</p>
             <div class="aviso-pago">
                 <i class="fas fa-info-circle"></i>
-                Verificaremos tu pago en las próximas 24 horas.
+                Verificaremos tu pago en las próximas 24 horas. Recibirás un correo con tu código de seguimiento.
             </div>
         `;
     } else if (metodo === 'yape') {
         if (DATOS_PAGO.yape.qr) {
             titulo.textContent = '💜 Paga con Yape';
-            detalle.innerHTML = `
+            detalle.innerHTML = avisoConfianza + `
                 <p class="qr-instructions">Total a pagar:</p>
                 <p class="qr-total">S/ ${total}</p>
                 <p class="qr-instructions">1. Abre <strong>Yape</strong></p>
@@ -1116,7 +1115,7 @@ function seleccionarMetodo(metodo) {
             `;
         } else {
             titulo.textContent = '💜 Paga con Yape';
-            detalle.innerHTML = `
+            detalle.innerHTML = avisoConfianza + `
                 <div class="aviso-pago">
                     <i class="fas fa-clock"></i>
                     <strong>Estamos habilitando Yape.</strong>
@@ -1126,7 +1125,7 @@ function seleccionarMetodo(metodo) {
         }
     } else if (metodo === 'transferencia') {
         titulo.textContent = '🏦 Transferencia Interbank';
-        detalle.innerHTML = `
+        detalle.innerHTML = avisoConfianza + `
             <p class="qr-instructions">Total a transferir:</p>
             <p class="qr-total">S/ ${total}</p>
             
@@ -1178,25 +1177,61 @@ async function confirmarPago() {
         return; 
     }
 
-    const { error } = await sc.from('pedidos').insert([
+    // Obtener perfil del cliente
+    const { data: perfil } = await sc.from('perfiles')
+        .select('username')
+        .eq('id', user.id)
+        .single();
+    
+    const clienteNombre = perfil?.username || user.email.split('@')[0];
+    
+    // Generar código de seguimiento único
+    const codigoSeguimiento = 'MOSA-' + 
+        new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + 
+        Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+
+    // Guardar el pedido
+    const { data: pedido, error } = await sc.from('pedidos').insert([
         { 
             usuario_id: user.id, 
             items: carrito, 
             total: totalCarrito(),
             metodo_pago: metodoPagoElegido,
-            estado: 'pendiente_verificacion'
+            estado: 'pedido_recibido',
+            codigo_seguimiento: codigoSeguimiento,
+            cliente_nombre: clienteNombre,
+            cliente_email: user.email
         }
-    ]);
+    ]).select().single();
     
     if (error) { 
         showToast("Error al guardar pedido: " + error.message); 
         return; 
     }
 
+    // Descontar stock
     for (const item of carrito) {
         await sc.from('productos').update({ stock: item.stock - 1 }).eq('id', item.id);
     }
 
+    // Enviar correo de confirmación
+    try {
+        await sc.functions.invoke('enviar-confirmacion', {
+            body: {
+                cliente_email: user.email,
+                cliente_nombre: clienteNombre,
+                pedido_id: pedido.id,
+                codigo_seguimiento: codigoSeguimiento,
+                items: carrito,
+                total: totalCarrito(),
+                metodo_pago: metodoPagoElegido
+            }
+        });
+    } catch (e) {
+        console.error("Error al enviar correo:", e);
+    }
+
+    // Mostrar mensaje de éxito con código de seguimiento
     const detalle = document.getElementById('detalle-instrucciones');
     detalle.innerHTML = `
         <div style="text-align: center; padding: 30px;">
@@ -1205,8 +1240,19 @@ async function confirmarPago() {
             <p style="color: #4A3A5C; line-height: 1.6; margin-bottom: 20px;">
                 Recibirás tu pedido en <strong>2-3 días hábiles</strong>.
             </p>
+            <div style="background: #F5F0FA; border-radius: 12px; padding: 15px; margin: 20px 0;">
+                <p style="color: #7A6A8C; font-size: 0.85rem; margin-bottom: 5px;">
+                    Tu código de seguimiento:
+                </p>
+                <p style="color: #7E57C2; font-size: 1.2rem; font-weight: 700; letter-spacing: 1px;">
+                    ${codigoSeguimiento}
+                </p>
+                <button class="btn-copy" onclick="copiarDato('${codigoSeguimiento}')" style="margin-top: 10px;">
+                    📋 Copiar código
+                </button>
+            </div>
             <p style="color: #7A6A8C; font-size: 0.85rem;">
-                Verificaremos tu pago en las próximas 24 horas.
+                📧 Te enviamos un correo con el enlace de seguimiento.
             </p>
         </div>
     `;
@@ -1222,7 +1268,7 @@ async function confirmarPago() {
         loadProducts();
         document.querySelector('.confirmar-pago-btn').style.display = 'block';
         document.querySelector('.volver-btn').textContent = 'Volver';
-    }, 5000);
+    }, 8000);
 }
 
 function volverOpciones() {

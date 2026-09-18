@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Pedido - MosaMeli</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #FFD1DC 0%, #D1C4E9 50%, #FFF8E1 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .tracking-container {
+            max-width: 700px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 60px rgba(155, 127, 212, 0.3);
+        }
+        .tracking-header { text-align: center; margin-bottom: 30px; }
+        .tracking-header .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tracking-header .logo img { height: 50px; }
+        .tracking-header h1 {
+            color: #7E57C2;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        .tracking-header p { color: #7A6A8C; font-size: 0.9rem; }
+        .tracking-code {
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .search-box input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #EDE4F5;
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .search-box input:focus {
+            border-color: #9B7FD4;
+            box-shadow: 0 0 0 4px rgba(155, 127, 212, 0.1);
+        }
+        .search-box button {
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s;
+        }
+        .search-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(155, 127, 212, 0.4);
+        }
+        .info-pedido {
+            background: #F5F0FA;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #9B7FD4;
+        }
+        .info-pedido p {
+            color: #4A3A5C;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        .info-pedido p:last-child { margin-bottom: 0; }
+        .info-pedido strong { color: #7E57C2; }
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+            margin-top: 30px;
+        }
+        .timeline-item {
+            display: flex;
+            gap: 20px;
+            padding-bottom: 30px;
+            position: relative;
+        }
+        .timeline-item:last-child { padding-bottom: 0; }
+        .timeline-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #EDE4F5;
+            color: #B0A5BD;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            z-index: 2;
+            transition: all 0.3s;
+            border: 3px solid white;
+        }
+        .timeline-item.active .timeline-icon {
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(155, 127, 212, 0.4);
+            animation: pulse-timeline 2s ease-in-out infinite;
+        }
+        @keyframes pulse-timeline {
+            0%, 100% { box-shadow: 0 4px 15px rgba(155, 127, 212, 0.4); }
+            50% { box-shadow: 0 4px 25px rgba(155, 127, 212, 0.8), 0 0 0 8px rgba(155, 127, 212, 0.1); }
+        }
+        .timeline-item.completed .timeline-icon {
+            background: #4CAF50;
+            color: white;
+        }
+        .timeline-content {
+            flex: 1;
+            padding-top: 8px;
+        }
+        .timeline-content h3 {
+            color: #B0A5BD;
+            font-size: 1rem;
+            margin-bottom: 5px;
+            transition: color 0.3s;
+        }
+        .timeline-item.active .timeline-content h3,
+        .timeline-item.completed .timeline-content h3 {
+            color: #4A3A5C;
+            font-weight: 600;
+        }
+        .timeline-content p {
+            color: #7A6A8C;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .timeline-content .fecha {
+            color: #9B7FD4;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 24px;
+            top: 50px;
+            bottom: 0;
+            width: 2px;
+            background: #EDE4F5;
+        }
+        .timeline-item.completed::before { background: #4CAF50; }
+        .timeline-item:last-child::before { display: none; }
+        .error-message {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .error-message i {
+            font-size: 4rem;
+            color: #E57373;
+            margin-bottom: 20px;
+        }
+        .error-message h2 {
+            color: #4A3A5C;
+            margin-bottom: 10px;
+        }
+        .error-message p {
+            color: #7A6A8C;
+            font-size: 0.9rem;
+        }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #F5F0FA;
+            color: #7E57C2;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        .btn-back:hover {
+            background: #9B7FD4;
+            color: white;
+        }
+        .help-section {
+            background: #FFF8E1;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 25px;
+            text-align: center;
+            border: 2px dashed #FFC107;
+        }
+        .help-section p {
+            color: #7A6A8C;
+            font-size: 0.85rem;
+        }
+        .help-section strong { color: #4A3A5C; }
+        @media (max-width: 600px) {
+            .tracking-container { padding: 25px 20px; margin: 15px auto; }
+            .tracking-header h1 { font-size: 1.4rem; }
+            .tracking-header .logo img { height: 40px; }
+            .timeline-content h3 { font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="tracking-container">
+        <div class="tracking-header">
+            <div class="logo">
+                <img src="img/logo-mosameli.png" alt="MosaMeli">
+            </div>
+            <h1>📦 Seguimiento de Pedido</h1>
+            <p>Consulta el estado de tu pedido en tiempo real</p>
+        </div>
+
+        <div class="search-box" id="searchBox">
+            <input type="text" id="codigoInput" placeholder="Ingresa tu código (ej: MOSA-20260916-1234)">
+            <button onclick="buscarPedido()">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </div>
+
+        <div id="pedidoInfo" style="display:none;">
+            <div class="tracking-code" id="infoCodigo"></div>
+            
+            <div class="info-pedido" style="margin-top: 20px;">
+                <p><strong>Cliente:</strong> <span id="infoCliente"></span></p>
+                <p><strong>Total:</strong> S/ <span id="infoTotal"></span></p>
+                <p><strong>Método de pago:</strong> <span id="infoMetodo"></span></p>
+            </div>
+
+            <div class="timeline" id="timeline"></div>
+
+            <div class="help-section">
+                <p><i class="fas fa-question-circle"></i> ¿Tienes dudas sobre tu pedido?</p>
+                <p>Contáctanos por WhatsApp y te ayudaremos. <strong>MosaMeli</strong></p>
+            </div>
+        </div>
+
+        <div id="errorBusqueda" class="error-message">
+            <i class="fas fa-search-minus"></i>
+            <h2>No encontramos tu pedido</h2>
+            <p>Verifica que el código sea correcto e intenta de nuevo.</p>
+            <a href="index.html" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Volver a la tienda
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script>
+        const sc = window.supabaseClient;
+
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const codigo = params.get('codigo');
+            if (codigo) {
+                document.getElementById('codigoInput').value = codigo;
+                buscarPedido();
+            }
+        };
+
+        async function buscarPedido() {
+            const codigo = document.getElementById('codigoInput').value.trim();
+            if (!codigo) {
+                alert('Por favor, ingresa tu código de seguimiento');
+                return;
+            }
+
+            const { data, error } = await sc
+                .from('pedidos')
+                .select('*')
+                .eq('codigo_seguimiento', codigo)
+                .single();
+
+            if (error || !data) {
+                document.getElementById('pedidoInfo').style.display = 'none';
+                document.getElementById('errorBusqueda').style.display = 'block';
+                document.getElementById('searchBox').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('errorBusqueda').style.display = 'none';
+            document.getElementById('pedidoInfo').style.display = 'block';
+            document.getElementById('searchBox').style.display = 'none';
+
+            document.getElementById('infoCodigo').textContent = data.codigo_seguimiento;
+            document.getElementById('infoCliente').textContent = data.cliente_nombre || 'Cliente';
+            document.getElementById('infoTotal').textContent = data.total.toFixed(2);
+            document.getElementById('infoMetodo').textContent = data.metodo_pago || 'No especificado';
+
+            renderTimeline(data.estado, data);
+        }
+
+        function renderTimeline(estadoActual, pedido) {
+            const estados = [
+                { key: 'pedido_recibido', icon: 'fa-shopping-bag', titulo: 'Pedido recibido', desc: 'Tu pedido fue registrado', fecha: pedido.fecha },
+                { key: 'pago_verificado', icon: 'fa-check-circle', titulo: 'Pago verificado', desc: 'Confirmamos tu pago', fecha: pedido.fecha_pago_verificado },
+                { key: 'en_preparacion', icon: 'fa-box', titulo: 'En preparación', desc: 'Estamos empacando tu producto', fecha: pedido.fecha_preparacion },
+                { key: 'en_camino', icon: 'fa-truck', titulo: 'En camino', desc: 'Tu pedido está en ruta', fecha: pedido.fecha_envio },
+                { key: 'entregado', icon: 'fa-home', titulo: 'Entregado', desc: 'Disfruta tu producto', fecha: pedido.fecha_entrega }
+            ];
+
+            const ordenEstados = estados.map(e => e.key);
+            const indexActual = ordenEstados.indexOf(estadoActual);
+
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = estados.map((estado, i) => {
+                let clase = '';
+                if (i < indexActual) clase = 'completed';
+                else if (i === indexActual) clase = 'active';
+
+                const fecha = estado.fecha 
+                    ? new Date(estado.fecha).toLocaleString('es-PE', { 
+                        day: '2-digit', month: 'short', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit' 
+                    }) 
+                    : '';
+
+                return `
+                    <div class="timeline-item ${clase}">
+                        <div class="timeline-icon">
+                            <i class="fas ${estado.icon}"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <h3>${estado.titulo}</h3>
+                            <p>${estado.desc}</p>
+                            ${fecha ? `<p class="fecha"><i class="far fa-clock"></i> ${fecha}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>
