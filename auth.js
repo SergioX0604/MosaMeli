@@ -12,12 +12,14 @@ async function checkLoginStatus() {
     if (!userName || !loginBtn || !logoutBtn) return;
 
     if (user) {
+        // Buscar el username en la tabla perfiles
         const { data: perfil } = await authSupabase
             .from('perfiles')
             .select('username')
             .eq('id', user.id)
             .maybeSingle();
 
+        // Usar el username, si no existe usar la parte del correo antes del @
         let nombreMostrar = perfil?.username || 
                             user.user_metadata?.username || 
                             user.email.split('@')[0];
@@ -30,6 +32,7 @@ async function checkLoginStatus() {
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'inline';
         
+        // Mostrar botón de admin solo si es el admin
         if (adminBtn && user.email === 'espis0611@gmail.com') {
             adminBtn.style.display = 'flex';
         }
@@ -120,57 +123,38 @@ if (isLoginPage) {
             });
         }
 
-        // ================== LOGIN ==================
+        // ================== LOGIN (SOLO CON CORREO) ==================
         if (loginForm) {
             loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
-                let identifier = e.target.elements.email.value.trim();
+                let email = e.target.elements.email.value.trim();
                 let password = e.target.elements.password.value;
 
-                if (!identifier || !password) {
+                if (!email || !password) {
                     mostrarError('Completa todos los campos');
                     return;
                 }
 
-                // Detectar si es correo o username
-                let email = identifier;
+                // Validar formato de correo
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-                if (!emailRegex.test(identifier)) {
-                    // Es un username → buscar su email en perfiles
-                    const { data: perfil, error: errorBusqueda } = await authSupabase
-                        .from('perfiles')
-                        .select('email')
-                        .eq('username', identifier)
-                        .maybeSingle();
-
-                    if (errorBusqueda || !perfil) {
-                        mostrarError('Usuario no encontrado. Verifica tu nombre de usuario.');
-                        return;
-                    }
-                    email = perfil.email;
+                if (!emailRegex.test(email)) {
+                    mostrarError('Ingresa un correo electrónico válido');
+                    return;
                 }
 
-                // Iniciar sesión con el email resuelto
+                // Iniciar sesión con el correo
                 const { error } = await authSupabase.auth.signInWithPassword({ email, password });
 
-                    if (error) {
-                        document.getElementById('login-error').style.display = 'block';
-                    } else {
+                if (error) {
+                    mostrarError('Correo o contraseña incorrectos');
+                } else {
                     document.getElementById('login-success').style.display = 'block';
-                setTimeout(() => {
-            // Verificar si hay una URL de destino guardada
-                    const redirectTo = localStorage.getItem('redirectAfterLogin');
-                    if (redirectTo) {
-                        localStorage.removeItem('redirectAfterLogin');
-                        window.location.href = redirectTo;
-                    } else {
+                    setTimeout(() => {
                         window.location.href = 'index.html';
-                    }
                     }, 500);
-                    }
+                }
             });
         }
 
@@ -178,6 +162,9 @@ if (isLoginPage) {
             const errorEl = document.getElementById('login-error');
             errorEl.textContent = mensaje;
             errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 4000);
         }
     });
 }
@@ -197,11 +184,11 @@ function saveAccessKey() {
     const passwordInput = document.querySelector('#login-form input[name="password"]');
     
     if (!emailInput.value || !passwordInput.value) {
-        alert('Primero escribe tu correo/usuario y contraseña para guardarlos');
+        alert('Primero escribe tu correo y contraseña para guardarlos');
         return;
     }
     localStorage.setItem('mosameli_saved_email', emailInput.value);
-    alert('✅ Guardado. La próxima vez se autocompletará.');
+    alert('✅ Correo guardado. La próxima vez se autocompletará.');
 }
 
 // ================== RECUPERAR CONTRASEÑA (MODAL) ==================
@@ -209,7 +196,6 @@ function mostrarModalRecuperar() {
     const modal = document.getElementById('forgotPasswordModal');
     if (modal) {
         modal.style.display = 'flex';
-        // Autocompletar el correo si ya lo escribió en el login
         const loginEmail = document.querySelector('#login-form input[name="email"]');
         if (loginEmail && loginEmail.value) {
             const input = document.getElementById('recover-email');
@@ -228,37 +214,27 @@ async function enviarRecuperacion() {
     const mensaje = document.getElementById('recover-message');
     const btn = document.getElementById('recover-btn');
     
-    let identifier = emailInput.value.trim();
+    let email = emailInput.value.trim();
 
-    if (!identifier) {
-        mensaje.textContent = 'Por favor, escribe tu correo';
+    if (!email) {
+        mensaje.textContent = 'Por favor, escribe tu correo electrónico';
         mensaje.style.color = '#D32F2F';
         mensaje.style.display = 'block';
         return;
     }
 
-    // Si escribió un username, buscar el email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(identifier)) {
-        const { data: perfil } = await authSupabase
-            .from('perfiles')
-            .select('email')
-            .eq('username', identifier)
-            .maybeSingle();
-
-        if (!perfil) {
-            mensaje.textContent = 'Usuario no encontrado';
-            mensaje.style.color = '#D32F2F';
-            mensaje.style.display = 'block';
-            return;
-        }
-        identifier = perfil.email;
+    if (!emailRegex.test(email)) {
+        mensaje.textContent = 'Ingresa un correo electrónico válido';
+        mensaje.style.color = '#D32F2F';
+        mensaje.style.display = 'block';
+        return;
     }
 
     btn.disabled = true;
     btn.textContent = 'Enviando...';
 
-    const { error } = await authSupabase.auth.resetPasswordForEmail(identifier, {
+    const { error } = await authSupabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/reset-password.html'
     });
 
@@ -269,7 +245,7 @@ async function enviarRecuperacion() {
         btn.disabled = false;
         btn.textContent = 'Enviar enlace';
     } else {
-        mensaje.textContent = '✅ Revisa tu correo. Te enviamos el enlace de recuperación a ' + identifier;
+        mensaje.textContent = '✅ Revisa tu correo. Te enviamos el enlace de recuperación.';
         mensaje.style.color = '#4CAF50';
         mensaje.style.display = 'block';
         btn.textContent = 'Enviado';
@@ -283,7 +259,6 @@ async function enviarRecuperacion() {
     }
 }
 
-// Cerrar modal al hacer clic fuera
 window.addEventListener('click', function(event) {
     const modal = document.getElementById('forgotPasswordModal');
     if (event.target === modal) {

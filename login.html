@@ -4,11 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - MosaMeli</title>
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="img/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -235,12 +230,13 @@
             <h2>Iniciar sesión</h2>
             <form id="login-form" onsubmit="return false;">
                 <div class="form-group">
-                    <label>Correo o usuario</label>
+                    <label>Correo electrónico</label>
                     <div class="input-wrapper">
-                        <i class="far fa-user"></i>
-                        <input type="text" name="email" placeholder="Correo o nombre de usuario" required>
+                        <i class="far fa-envelope"></i>
+                        <input type="email" name="email" placeholder="Escribe tu correo" required>
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label>Contraseña</label>
                     <div class="input-wrapper">
@@ -251,10 +247,13 @@
                         </button>
                     </div>
                 </div>
+
                 <div class="forgot-password">
                     <a href="#" onclick="mostrarModalRecuperar(); return false;">¿Olvidaste tu contraseña?</a>
                 </div>
+
                 <button type="submit" class="btn-primary">Ingresar</button>
+
                 <p id="login-success" class="message">¡Bienvenido! Redirigiendo...</p>
                 <p id="login-error" class="message">Correo o contraseña incorrectos</p>
             </form>
@@ -325,11 +324,11 @@
                 <i class="fas fa-key"></i>
             </div>
             <h2>Recuperar contraseña</h2>
-            <p class="forgot-desc">Escribe tu correo o nombre de usuario y te enviaremos un enlace para restablecer tu contraseña.</p>
+            <p class="forgot-desc">Escribe tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.</p>
             
             <div class="forgot-input-wrapper">
                 <i class="far fa-envelope"></i>
-                <input type="text" id="recover-email" placeholder="Correo o nombre de usuario" required>
+                <input type="email" id="recover-email" placeholder="Tu correo electrónico" required>
             </div>
             
             <p id="recover-message" class="forgot-message"></p>
@@ -344,18 +343,5 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabaseClient.js"></script>
     <script src="auth.js"></script>
-    <script>
-        // Si viene con ?action=register, mostrar directamente la sección de registro
-        document.addEventListener('DOMContentLoaded', function() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('action') === 'register') {
-                setTimeout(() => {
-                    if (typeof toggleAuth === 'function') {
-                        toggleAuth('register');
-                    }
-                }, 200);
-            }
-        });
-    </script>
 </body>
 </html>
