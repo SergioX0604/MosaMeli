@@ -8,6 +8,7 @@ async function checkLoginStatus() {
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const adminBtn = document.getElementById('adminBtn');
+    const misPedidosBtn = document.getElementById('misPedidosBtn');
 
     if (!userName || !loginBtn || !logoutBtn) return;
 
@@ -19,12 +20,10 @@ async function checkLoginStatus() {
             .eq('id', user.id)
             .maybeSingle();
 
-        // Usar el username, si no existe usar la parte del correo antes del @
         let nombreMostrar = perfil?.username || 
                             user.user_metadata?.username || 
                             user.email.split('@')[0];
 
-        // Quitar sufijo _1, _2, etc. si existe
         nombreMostrar = nombreMostrar.replace(/_\d+$/, '');
 
         userName.textContent = nombreMostrar;
@@ -32,10 +31,16 @@ async function checkLoginStatus() {
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'inline';
         
+        // ✅ Mostrar botón "Mis Pedidos"
+        if (misPedidosBtn) misPedidosBtn.style.display = 'flex';
+        
         // Mostrar botón de admin solo si es el admin
         if (adminBtn && user.email === 'espis0611@gmail.com') {
             adminBtn.style.display = 'flex';
         }
+    } else {
+        // Si no hay sesión, ocultar Mis Pedidos
+        if (misPedidosBtn) misPedidosBtn.style.display = 'none';
     }
 }
 

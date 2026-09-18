@@ -7,6 +7,8 @@ Disallow: /admin.js
 Disallow: /login.html
 Disallow: /reset-password.html
 Disallow: /splash.html
+Disallow: /mis-pedidos.html
+Disallow: /mis-pedidos.js
 Disallow: /auth.js
 Disallow: /supabaseClient.js
 

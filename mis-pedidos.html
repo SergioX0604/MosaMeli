@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Pedidos - MosaMeli</title>
+    <meta name="description" content="Consulta el historial de tus pedidos en MosaMeli.">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #FFD1DC 0%, #D1C4E9 50%, #FFF8E1 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .mis-pedidos-container {
+            max-width: 900px;
+            margin: 30px auto;
+        }
+        
+        .mis-pedidos-header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 60px rgba(155, 127, 212, 0.2);
+            text-align: center;
+        }
+        
+        .mis-pedidos-header .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .mis-pedidos-header .logo img {
+            height: 50px;
+        }
+        
+        .mis-pedidos-header h1 {
+            color: #7E57C2;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+        
+        .mis-pedidos-header p {
+            color: #7A6A8C;
+            font-size: 0.9rem;
+        }
+        
+        .btn-volver {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #F5F0FA;
+            color: #7E57C2;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+        
+        .btn-volver:hover {
+            background: #9B7FD4;
+            color: white;
+        }
+        
+        .pedidos-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .pedido-item {
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(155, 127, 212, 0.15);
+            border-left: 5px solid #9B7FD4;
+            transition: all 0.3s;
+        }
+        
+        .pedido-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(155, 127, 212, 0.25);
+        }
+        
+        .pedido-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .pedido-codigo {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .pedido-codigo strong {
+            color: #7E57C2;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .pedido-codigo small {
+            color: #7A6A8C;
+            font-size: 0.8rem;
+        }
+        
+        .pedido-total-box {
+            text-align: right;
+        }
+        
+        .pedido-total-box .total {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #E57373;
+            line-height: 1;
+        }
+        
+        .pedido-total-box small {
+            color: #7A6A8C;
+            font-size: 0.75rem;
+        }
+        
+        .pedido-estado-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .estado-recibido { background: #FFF8E1; color: #F57C00; }
+        .estado-verificado { background: #E8F5E9; color: #2E7D32; }
+        .estado-preparacion { background: #E3F2FD; color: #1565C0; }
+        .estado-camino { background: #F3E5F5; color: #6A1B9A; }
+        .estado-entregado { background: #E8F5E9; color: #1B5E20; }
+        
+        .pedido-items-lista {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .pedido-items-lista span {
+            background: #F5F0FA;
+            color: #7E57C2;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .pedido-footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding-top: 15px;
+            border-top: 1px solid #EDE4F5;
+        }
+        
+        .pedido-metodo-badge {
+            background: #E8F5E9;
+            color: #2E7D32;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .btn-ver-detalle {
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+        }
+        
+        .btn-ver-detalle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(155, 127, 212, 0.5);
+        }
+        
+        .estado-vacio {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 30px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(155, 127, 212, 0.15);
+        }
+        
+        .estado-vacio .icono {
+            font-size: 4rem;
+            color: #D0C4D8;
+            margin-bottom: 20px;
+        }
+        
+        .estado-vacio h2 {
+            color: #4A3A5C;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+        
+        .estado-vacio p {
+            color: #7A6A8C;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .estado-vacio .btn-ir-tienda {
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+            transition: all 0.3s;
+        }
+        
+        .estado-vacio .btn-ir-tienda:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(155, 127, 212, 0.5);
+        }
+        
+        .loading-pedidos {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7A6A8C;
+        }
+        
+        .loading-pedidos i {
+            font-size: 2.5rem;
+            color: #9B7FD4;
+            margin-bottom: 15px;
+        }
+        
+        /* Filtros */
+        .filtros-pedidos {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .filtro-pill {
+            background: white;
+            border: 2px solid #EDE4F5;
+            color: #7A6A8C;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filtro-pill:hover {
+            border-color: #9B7FD4;
+            color: #7E57C2;
+        }
+        
+        .filtro-pill.active {
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            border-color: transparent;
+        }
+        
+        @media (max-width: 600px) {
+            .mis-pedidos-container { margin: 15px auto; }
+            .mis-pedidos-header { padding: 20px; }
+            .mis-pedidos-header h1 { font-size: 1.4rem; }
+            .pedido-item { padding: 15px; }
+            .pedido-total-box .total { font-size: 1.2rem; }
+            .pedido-footer-row { flex-direction: column; align-items: stretch; }
+            .btn-ver-detalle { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="mis-pedidos-container">
+        
+        <div class="mis-pedidos-header">
+            <div class="logo">
+                <img src="img/logo-mosameli.png" alt="MosaMeli">
+            </div>
+            <h1>📦 Mis Pedidos</h1>
+            <p>Consulta el historial y estado de todas tus compras</p>
+            <a href="index.html" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver a la tienda
+            </a>
+        </div>
+
+        <!-- Filtros por estado -->
+        <div class="filtros-pedidos" id="filtrosPedidos" style="display:none;">
+            <button class="filtro-pill active" onclick="filtrarPedidos('todos', this)">Todos</button>
+            <button class="filtro-pill" onclick="filtrarPedidos('pedido_recibido', this)">⏳ Recibidos</button>
+            <button class="filtro-pill" onclick="filtrarPedidos('pago_verificado', this)">✅ Verificados</button>
+            <button class="filtro-pill" onclick="filtrarPedidos('en_camino', this)">🚚 En camino</button>
+            <button class="filtro-pill" onclick="filtrarPedidos('entregado', this)">🏠 Entregados</button>
+        </div>
+
+        <div id="contenedorPedidos">
+            <div class="loading-pedidos">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando tus pedidos...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="mis-pedidos.js"></script>
+</body>
+</html>
