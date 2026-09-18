@@ -334,7 +334,6 @@
             display: flex;
             align-items: center;
         }
-
         .volume-slider-container {
             position: absolute;
             bottom: 55px;
@@ -354,8 +353,6 @@
             box-shadow: 0 8px 24px rgba(0,0,0,0.4);
             z-index: 10;
         }
-
-        /* Puente invisible para conectar el ícono con el slider */
         .volume-slider-container::before {
             content: '';
             position: absolute;
@@ -365,21 +362,16 @@
             height: 25px;
             background: transparent;
         }
-
-        /* Clase activa que controla la visibilidad */
         .volume-slider-container.volume-active {
             opacity: 1 !important;
             pointer-events: auto !important;
             transform: translateX(-50%) translateY(0) !important;
         }
-
-        /* Mostrar al hover si NO hay clase activa */
         .volume-control:hover .volume-slider-container:not(.volume-active) {
             opacity: 1;
             pointer-events: auto;
             transform: translateX(-50%) translateY(0);
         }
-
         .volume-slider {
             width: 8px;
             height: 100px;
@@ -417,6 +409,370 @@
             font-family: 'Poppins', sans-serif;
             font-weight: 600;
             white-space: nowrap;
+        }
+
+        /* ==================== MÉTODOS DE PAGO ==================== */
+        .metodo-pago {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: var(--crema-logo);
+            border: 2px solid var(--borde);
+            border-radius: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .metodo-pago:hover {
+            border-color: var(--violeta-logo);
+            background: var(--rosa-logo-claro);
+            transform: translateX(5px);
+        }
+        .metodo-pago i {
+            font-size: 1.8rem;
+            color: var(--violeta-logo);
+            width: 40px;
+            text-align: center;
+        }
+        .metodo-pago strong { font-size: 0.95rem; display: block; }
+        .metodo-pago small { color: var(--texto-suave); display: block; font-size: 0.75rem; }
+
+        .metodo-pago.plin i { color: #00B8D4; }
+        .metodo-pago.yape i { color: #6E2594; }
+        .metodo-pago.transferencia i { color: #00A651; }
+
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            margin: 15px 0;
+            border: 2px solid var(--borde);
+        }
+        .qr-container img {
+            width: 250px;
+            height: 250px;
+            border-radius: 12px;
+            padding: 10px;
+            background: white;
+            border: 2px solid var(--violeta-logo-claro);
+        }
+        .qr-instructions {
+            font-size: 0.9rem;
+            color: var(--texto-oscuro);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .qr-instructions strong {
+            color: var(--violeta-logo-oscuro);
+            font-size: 1.2rem;
+        }
+        .qr-total {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #7E57C2;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .datos-bancarios {
+            background: #F5F0FA;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid var(--violeta-logo);
+        }
+        .datos-bancarios h4 {
+            color: var(--violeta-logo-oscuro);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dato-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #EDE4F5;
+            font-size: 0.9rem;
+            gap: 10px;
+        }
+        .dato-item:last-child { border-bottom: none; }
+        .dato-item span:first-child {
+            color: var(--texto-suave);
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+        .dato-item span:last-child {
+            color: var(--texto-oscuro);
+            font-weight: 600;
+            text-align: right;
+            word-break: break-all;
+        }
+        .btn-copy {
+            background: var(--violeta-logo-claro);
+            border: none;
+            color: var(--violeta-logo-oscuro);
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        .btn-copy:hover {
+            background: var(--violeta-logo);
+            color: white;
+        }
+
+        .aviso-pago {
+            background: #FFF8E1;
+            border: 2px dashed #FFC107;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 0.85rem;
+            color: #7A6A8C;
+            line-height: 1.5;
+        }
+        .aviso-pago i {
+            color: #FF9800;
+            margin-right: 5px;
+        }
+
+        .confirmar-pago-btn {
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+            transition: all 0.3s;
+        }
+        .confirmar-pago-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(155, 127, 212, 0.5);
+        }
+
+        /* ==================== RESEÑAS DE PRODUCTOS ==================== */
+        .product-reviews {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #EDE4F5;
+        }
+        .product-reviews h3 {
+            color: #7E57C2;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .reviews-summary {
+            background: #F5F0FA;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .reviews-average {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .reviews-average #averageRating {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #7E57C2;
+            line-height: 1;
+        }
+        .reviews-stars {
+            font-size: 1.3rem;
+            color: #FFC107;
+            letter-spacing: 3px;
+        }
+        .reviews-average p {
+            color: #7A6A8C;
+            font-size: 0.85rem;
+        }
+        .reviews-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding-right: 5px;
+        }
+        .reviews-list::-webkit-scrollbar { width: 6px; }
+        .reviews-list::-webkit-scrollbar-track { background: #F5F0FA; border-radius: 3px; }
+        .reviews-list::-webkit-scrollbar-thumb { background: #9B7FD4; border-radius: 3px; }
+        .review-item {
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 3px solid #9B7FD4;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        .review-item .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            align-items: center;
+            gap: 10px;
+        }
+        .review-item .review-author {
+            font-weight: 600;
+            color: #4A3A5C;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .review-item .review-author i {
+            color: #9B7FD4;
+            font-size: 0.8rem;
+        }
+        .review-item .review-stars {
+            color: #FFC107;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+        }
+        .review-item .review-text {
+            color: #7A6A8C;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .review-item .review-date {
+            color: #B0A5BD;
+            font-size: 0.7rem;
+            margin-top: 6px;
+        }
+        .no-reviews {
+            text-align: center;
+            padding: 20px;
+            color: #B0A5BD;
+            font-size: 0.85rem;
+        }
+        .btn-write-review {
+            width: 100%;
+            background: #F8BBD0;
+            color: #7E57C2;
+            border: 2px solid #F5A6B8;
+            padding: 12px;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-write-review:hover {
+            background: #F5A6B8;
+            color: white;
+        }
+
+        /* ==================== MODAL DE RESEÑA ==================== */
+        .review-modal-content {
+            max-width: 450px;
+            width: 90%;
+        }
+        .review-modal-content h2 {
+            color: #7E57C2;
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .review-modal-content .subtitle {
+            color: #7A6A8C;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+        .rating-input {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #F5F0FA;
+            border-radius: 12px;
+        }
+        .rating-input label {
+            display: block;
+            margin-bottom: 10px;
+            color: #4A3A5C;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .stars-input {
+            font-size: 2.5rem;
+            color: #D0C4D8;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+        .stars-input i {
+            transition: all 0.2s;
+        }
+        .stars-input i:hover {
+            transform: scale(1.2);
+        }
+        .stars-input i.active {
+            color: #FFC107;
+        }
+        .review-modal-content textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #EDE4F5;
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 100px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .review-modal-content textarea:focus {
+            border-color: #9B7FD4;
+            box-shadow: 0 0 0 3px rgba(155, 127, 212, 0.1);
+        }
+        .btn-submit-review {
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+            transition: all 0.3s;
+        }
+        .btn-submit-review:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(155, 127, 212, 0.5);
+        }
+        .btn-submit-review:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* ==================== MODAL DE PANTALLA COMPLETA ==================== */
@@ -496,7 +852,7 @@
             cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
         }
         .btn-detail-buy:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(155, 127, 212, 0.5); }
-        .product-shipping-info { border-top: 1px solid #EDE4F5; padding-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .product-shipping-info { border-top: 1px solid #EDE4F5; padding-top: 15px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .shipping-item { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #4A3A5C; }
         .shipping-item i { color: #9B7FD4; width: 20px; text-align: center; }
 
@@ -518,6 +874,7 @@
             .volume-slider-container { bottom: 45px; padding: 12px 8px; }
             .volume-slider { height: 80px; }
             .volume-percent { font-size: 0.65rem; }
+            .qr-container img { width: 200px; height: 200px; }
         }
         @media (max-width: 500px) {
             .register-required-content { padding: 25px 20px; }
@@ -626,23 +983,32 @@
             <span class="close" onclick="closeCheckout()">&times;</span>
             <h2><i class="fas fa-credit-card"></i> Método de Pago</h2>
             <div id="opciones-pago">
-                <div class="metodo-pago" onclick="seleccionarMetodo('qr')">
-                    <i class="fas fa-qrcode"></i>
-                    <div><strong>Yape, Plin o App Bancaria</strong><small>Escanea el QR</small></div>
+                <div class="metodo-pago plin" onclick="seleccionarMetodo('plin')">
+                    <i class="fas fa-mobile-alt"></i>
+                    <div>
+                        <strong>Plin</strong>
+                        <small>Escanea el QR y paga al instante</small>
+                    </div>
                 </div>
-                <div class="metodo-pago" onclick="seleccionarMetodo('tarjeta')">
-                    <i class="fas fa-credit-card"></i>
-                    <div><strong>Tarjeta Débito/Crédito</strong><small>VISA / Mastercard</small></div>
+                <div class="metodo-pago yape" onclick="seleccionarMetodo('yape')">
+                    <i class="fas fa-mobile-alt"></i>
+                    <div>
+                        <strong>Yape</strong>
+                        <small>Escanea el QR y paga al instante</small>
+                    </div>
                 </div>
-                <div class="metodo-pago" onclick="seleccionarMetodo('transferencia')">
+                <div class="metodo-pago transferencia" onclick="seleccionarMetodo('transferencia')">
                     <i class="fas fa-university"></i>
-                    <div><strong>Transferencia Bancaria</strong><small>BCP / BBVA</small></div>
+                    <div>
+                        <strong>Transferencia Interbank</strong>
+                        <small>Depósito o transferencia bancaria</small>
+                    </div>
                 </div>
             </div>
             <div id="instrucciones-pago" style="display:none;">
                 <h3 id="titulo-instrucciones"></h3>
                 <div id="detalle-instrucciones"></div>
-                <button class="confirmar-pago-btn" onclick="confirmarPago()">Confirmar Pago</button>
+                <button class="confirmar-pago-btn" onclick="confirmarPago()">Ya realicé el pago ✅</button>
                 <button class="volver-btn" onclick="volverOpciones()">Volver</button>
             </div>
         </div>
@@ -767,8 +1133,64 @@
                         <div class="shipping-item"><i class="fas fa-shield-alt"></i><span id="productWarranty">Garantía de 30 días</span></div>
                         <div class="shipping-item"><i class="fas fa-undo"></i><span>Devolución sin costo</span></div>
                     </div>
+
+                    <!-- ==================== SECCIÓN DE RESEÑAS ==================== -->
+                    <div class="product-reviews">
+                        <h3><i class="fas fa-comments"></i> Cuéntanos qué te pareció</h3>
+                        
+                        <div class="reviews-summary">
+                            <div class="reviews-average">
+                                <span id="averageRating">0.0</span>
+                                <div class="reviews-stars" id="averageStars">☆☆☆☆☆</div>
+                                <p><span id="reviewsCount">0</span> reseñas</p>
+                            </div>
+                        </div>
+                        
+                        <div class="reviews-list" id="reviewsList">
+                            <p class="no-reviews">Aún no hay reseñas. ¡Sé el primero en opinar!</p>
+                        </div>
+                        
+                        <button class="btn-write-review" onclick="abrirModalResena()">
+                            <i class="fas fa-pen"></i> Escribir mi reseña
+                        </button>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal para escribir reseña -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content review-modal-content">
+            <span class="close" onclick="cerrarModalResena()">&times;</span>
+            <h2><i class="fas fa-star"></i> Cuéntanos qué te pareció</h2>
+            <p class="subtitle">Tu opinión nos ayuda a mejorar y ayuda a otros clientes</p>
+            
+            <div class="rating-input">
+                <label>¿Cuántas estrellas le das?</label>
+                <div class="stars-input" id="starsInput">
+                    <i class="far fa-star" onclick="setRating(1)" data-rating="1"></i>
+                    <i class="far fa-star" onclick="setRating(2)" data-rating="2"></i>
+                    <i class="far fa-star" onclick="setRating(3)" data-rating="3"></i>
+                    <i class="far fa-star" onclick="setRating(4)" data-rating="4"></i>
+                    <i class="far fa-star" onclick="setRating(5)" data-rating="5"></i>
+                </div>
+            </div>
+            
+            <textarea id="reviewText" placeholder="¿Qué te pareció el producto? Tu opinión es muy valiosa..." maxlength="500"></textarea>
+            <p style="text-align: right; font-size: 0.75rem; color: #B0A5BD; margin-top: 5px;">
+                <span id="charCount">0</span>/500 caracteres
+            </p>
+            
+            <div class="aviso-pago" style="margin-top: 15px;">
+                <i class="fas fa-info-circle"></i>
+                Tu reseña será revisada por nuestro equipo antes de publicarse. 
+                ¡Gracias por tu paciencia!
+            </div>
+            
+            <button class="btn-submit-review" id="btnSubmitReview" onclick="enviarResena()">
+                <i class="fas fa-paper-plane"></i> Enviar reseña
+            </button>
         </div>
     </div>
 

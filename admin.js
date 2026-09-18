@@ -187,3 +187,83 @@ window.onload = async function() {
         await cargarProductos();
     }
 };
+
+// ================== GESTIÓN DE RESEÑAS ==================
+async function cargarResenasPendientes() {
+    const { data, error } = await sc
+        .from('resenas')
+        .select('*, productos(nombre)')
+        .eq('aprobada', false)
+        .order('fecha', { ascending: false });
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    const container = document.getElementById('resenasPendientes');
+    if (!container) return;
+
+    if (data.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding:30px; color:#7A6A8C;">✅ No hay reseñas pendientes</p>';
+        return;
+    }
+
+    container.innerHTML = data.map(resena => `
+        <div class="resena-card">
+            <div class="resena-header">
+                <div>
+                    <strong>${resena.usuario_nombre}</strong>
+                    <span class="resena-producto">${resena.productos?.nombre || 'Producto'}</span>
+                </div>
+                <div class="resena-stars">${'★'.repeat(resena.calificacion)}${'☆'.repeat(5 - resena.calificacion)}</div>
+            </div>
+            <p class="resena-texto">"${resena.comentario || 'Sin comentario'}"</p>
+            <div class="resena-actions">
+                <button class="btn-approve" onclick="aprobarResena(${resena.id})">
+                    ✅ Aprobar
+                </button>
+                <button class="btn-reject" onclick="rechazarResena(${resena.id})">
+                    ❌ Rechazar
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function aprobarResena(id) {
+    const { error } = await sc
+        .from('resenas')
+        .update({ aprobada: true })
+        .eq('id', id);
+
+    if (error) {
+        alert('Error al aprobar: ' + error.message);
+        return;
+    }
+
+    alert('✅ Reseña aprobada y publicada');
+    cargarResenasPendientes();
+}
+
+async function rechazarResena(id) {
+    if (!confirm('¿Seguro que quieres rechazar esta reseña?')) return;
+
+    const { error } = await sc
+        .from('resenas')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        alert('Error al rechazar: ' + error.message);
+        return;
+    }
+
+    alert('❌ Reseña rechazada');
+    cargarResenasPendientes();
+}
+
+// Cargar reseñas al inicio
+if (document.getElementById('resenasPendientes')) {
+    cargarResenasPendientes();
+}

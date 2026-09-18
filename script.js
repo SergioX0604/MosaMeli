@@ -22,6 +22,28 @@ let velocidadActual = 1;
 let isDraggingVolume = false;
 let volumeEventsInitialized = false;
 
+// Variables de reseñas
+let ratingSeleccionado = 0;
+
+// ================== DATOS DE PAGO ==================
+const DATOS_PAGO = {
+    plin: {
+        qr: 'https://res.cloudinary.com/uj9d2ddz/image/upload/q_auto,f_auto,w_400/v1789582950/PLIN.jpg',
+        titular: 'Melissa Judith Morillas Salinas'
+    },
+    yape: {
+        qr: null,
+        titular: 'Sergio Antonio Sebastián Espinal Morillas'
+    },
+    transferencia: {
+        banco: 'Interbank',
+        tipoCuenta: 'Cuenta de Ahorros',
+        numeroCuenta: '200 3042372035',
+        cci: '00320001304237203533',
+        titular: 'Melissa Judith Morillas Salinas'
+    }
+};
+
 // ================== CARGAR PRODUCTOS ==================
 async function loadProducts() {
     const grid = document.getElementById('productGrid');
@@ -239,7 +261,7 @@ function totalCarrito() { return carrito.reduce((sum, item) => sum + item.precio
 function closeCart() { document.getElementById('cartModal').style.display = 'none'; }
 
 // ================== MODAL DE DETALLE DE PRODUCTO ==================
-function abrirProducto(productoId) {
+async function abrirProducto(productoId) {
     productoActual = productos.find(p => p.id === productoId);
     if (!productoActual) return;
     
@@ -307,6 +329,9 @@ function abrirProducto(productoId) {
         }
     }).join('');
     
+    // Cargar reseñas del producto
+    await cargarResenas(productoActual.id);
+    
     document.getElementById('productModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
     
@@ -323,7 +348,6 @@ function mostrarMedia(index) {
     const video = document.getElementById('productVideo');
     const container = document.getElementById('imageZoomContainer');
     
-    // Cerrar el slider de volumen al cambiar de medio
     const volContainer = document.querySelector('.volume-slider-container');
     if (volContainer) volContainer.classList.remove('volume-active');
     
@@ -408,6 +432,201 @@ function closeProductModal() {
     productoActual = null;
 }
 
+// ================== SISTEMA DE RESEÑAS ==================
+async function cargarResenas(productoId) {
+    const { data, error } = await sc
+        .from('resenas')
+        .select('*')
+        .eq('producto_id', productoId)
+        .eq('aprobada', true)
+        .order('fecha', { ascending: false });
+
+    if (error) {
+        console.error('Error al cargar reseñas:', error);
+        return;
+    }
+
+    const reviewsList = document.getElementById('reviewsList');
+    const averageRating = document.getElementById('averageRating');
+    const averageStars = document.getElementById('averageStars');
+    const reviewsCount = document.getElementById('reviewsCount');
+
+    if (!data || data.length === 0) {
+        reviewsList.innerHTML = '<p class="no-reviews">Aún no hay reseñas. ¡Sé el primero en opinar!</p>';
+        averageRating.textContent = '0.0';
+        averageStars.textContent = '☆☆☆☆☆';
+        reviewsCount.textContent = '0';
+        return;
+    }
+
+    // Calcular promedio
+    const total = data.reduce((sum, r) => sum + r.calificacion, 0);
+    const promedio = (total / data.length).toFixed(1);
+    
+    averageRating.textContent = promedio;
+    averageStars.textContent = generarEstrellas(Math.round(promedio));
+    reviewsCount.textContent = data.length;
+
+    // Renderizar reseñas
+    reviewsList.innerHTML = data.map(resena => `
+        <div class="review-item">
+            <div class="review-header">
+                <span class="review-author">
+                    <i class="fas fa-user-circle"></i> ${resena.usuario_nombre}
+                </span>
+                <span class="review-stars">${generarEstrellas(resena.calificacion)}</span>
+            </div>
+            <p class="review-text">${resena.comentario || 'Sin comentario'}</p>
+            <p class="review-date">${formatearFecha(resena.fecha)}</p>
+        </div>
+    `).join('');
+}
+
+function generarEstrellas(cantidad) {
+    let estrellas = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= cantidad) estrellas += '★';
+        else estrellas += '☆';
+    }
+    return estrellas;
+}
+
+function formatearFecha(fecha) {
+    const d = new Date(fecha);
+    const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
+    return d.toLocaleDateString('es-PE', opciones);
+}
+
+function abrirModalResena() {
+    if (!productoActual) return;
+    
+    // Verificar si el usuario está logueado
+    sc.auth.getUser().then(({ data: { user } }) => {
+        if (!user) {
+            closeProductModal();
+            mostrarModalRegistroObligatorio();
+            return;
+        }
+        
+        // Resetear el formulario
+        ratingSeleccionado = 0;
+        document.getElementById('reviewText').value = '';
+        document.getElementById('charCount').textContent = '0';
+        document.querySelectorAll('#starsInput i').forEach(star => {
+            star.classList.remove('fas', 'active');
+            star.classList.add('far');
+        });
+        
+        document.getElementById('reviewModal').style.display = 'flex';
+    });
+}
+
+function cerrarModalResena() {
+    document.getElementById('reviewModal').style.display = 'none';
+}
+
+function setRating(rating) {
+    ratingSeleccionado = rating;
+    const stars = document.querySelectorAll('#starsInput i');
+    
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.classList.remove('far');
+            star.classList.add('fas', 'active');
+        } else {
+            star.classList.remove('fas', 'active');
+            star.classList.add('far');
+        }
+    });
+}
+
+// Contador de caracteres
+document.addEventListener('input', (e) => {
+    if (e.target.id === 'reviewText') {
+        document.getElementById('charCount').textContent = e.target.value.length;
+    }
+});
+
+async function enviarResena() {
+    if (!productoActual) return;
+    
+    if (ratingSeleccionado === 0) {
+        showToast("⚠️ Selecciona una calificación con estrellas");
+        return;
+    }
+    
+    const comentario = document.getElementById('reviewText').value.trim();
+    
+    if (comentario.length < 10) {
+        showToast("⚠️ Escribe al menos 10 caracteres en tu reseña");
+        return;
+    }
+
+    const btn = document.getElementById('btnSubmitReview');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+    try {
+        const { data: { user } } = await sc.auth.getUser();
+        if (!user) {
+            closeModalResena();
+            mostrarModalRegistroObligatorio();
+            return;
+        }
+
+        // Obtener nombre del usuario
+        const { data: perfil } = await sc
+            .from('perfiles')
+            .select('username')
+            .eq('id', user.id)
+            .single();
+
+        const usuarioNombre = perfil?.username || user.email.split('@')[0];
+
+        const { error } = await sc.from('resenas').insert([{
+            producto_id: productoActual.id,
+            usuario_id: user.id,
+            usuario_nombre: usuarioNombre,
+            calificacion: ratingSeleccionado,
+            comentario: comentario,
+            aprobada: false
+        }]);
+
+        if (error) throw error;
+
+        // Mostrar mensaje de éxito
+        document.querySelector('.review-modal-content').innerHTML = `
+            <div style="text-align: center; padding: 30px;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
+                <h2 style="color: #7E57C2; margin-bottom: 15px;">¡Gracias por tu reseña!</h2>
+                <p style="color: #4A3A5C; line-height: 1.6; margin-bottom: 20px;">
+                    Tu opinión es muy valiosa para nosotros. 
+                    Será revisada por nuestro equipo antes de publicarse.
+                </p>
+                <p style="color: #7A6A8C; font-size: 0.85rem;">
+                    Te notificaremos cuando esté publicada.
+                </p>
+            </div>
+        `;
+
+        setTimeout(() => {
+            cerrarModalResena();
+            // Recargar el modal después de cerrar
+            setTimeout(() => {
+                if (productoActual) {
+                    abrirProducto(productoActual.id);
+                }
+            }, 300);
+        }, 3000);
+
+    } catch (error) {
+        console.error('Error:', error);
+        showToast("❌ Error al enviar reseña: " + error.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar reseña';
+    }
+}
+
 // ================== CONTROLES DE VIDEO ==================
 function initVideoControls() {
     const video = document.getElementById('productVideo');
@@ -418,14 +637,12 @@ function initVideoControls() {
     
     if (!video || !wrapper) return;
     
-    // Remover listeners previos para evitar duplicados
     video.removeEventListener('timeupdate', handleTimeUpdate);
     video.removeEventListener('play', handleVideoPlay);
     video.removeEventListener('pause', handleVideoPause);
     video.removeEventListener('loadedmetadata', handleVideoLoaded);
     video.removeEventListener('click', togglePlayPause);
     
-    // Agregar listeners
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('play', handleVideoPlay);
     video.addEventListener('pause', handleVideoPause);
@@ -454,7 +671,6 @@ function initVideoControls() {
         videoTime.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
     }
     
-    // Auto-ocultar controles
     let hideTimeout;
     wrapper.addEventListener('mousemove', () => {
         wrapper.classList.add('controls-visible');
@@ -472,13 +688,11 @@ function initVideoControls() {
         }
     });
     
-    // Inicializar volumen al 100%
     video.volume = 1;
     video.muted = false;
     actualizarSliderVolumen(1);
     actualizarIconoVolumen(1);
     
-    // Cerrar el slider de volumen al cambiar de video
     const volContainer = document.querySelector('.volume-slider-container');
     if (volContainer) volContainer.classList.remove('volume-active');
 }
@@ -561,7 +775,6 @@ function initVolumeControl() {
     
     if (!slider || !container || !volumeControl) return;
     
-    // Arrastrar con el mouse
     slider.addEventListener('mousedown', (e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -589,7 +802,6 @@ function initVolumeControl() {
         }
     });
     
-    // Mantener abierto al pasar el mouse
     container.addEventListener('mouseenter', () => {
         container.classList.add('volume-active');
     });
@@ -618,7 +830,6 @@ function initVolumeControl() {
         }
     });
     
-    // Touch para móvil
     slider.addEventListener('touchstart', (e) => {
         e.preventDefault();
         isDraggingVolume = true;
@@ -664,7 +875,6 @@ function toggleMute() {
         actualizarSliderVolumen(video.volume);
     }
     
-    // Mostrar el slider al hacer clic en el ícono
     if (container) container.classList.add('volume-active');
 }
 
@@ -832,6 +1042,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeFullscreenImage();
         closeProductModal();
+        cerrarModalResena();
     }
 });
 
@@ -860,11 +1071,6 @@ function irARegistro() { window.location.href = 'login.html?action=register'; }
 function irALogin() { window.location.href = 'login.html'; }
 
 function seleccionarMetodo(metodo) {
-    if (metodo === 'qr' && totalCarrito() < 6) {
-        showToast("El monto mínimo para pagar con QR es S/ 6.00");
-        return;
-    }
-
     metodoPagoElegido = metodo;
     document.getElementById('opciones-pago').style.display = 'none';
     document.getElementById('instrucciones-pago').style.display = 'block';
@@ -872,101 +1078,151 @@ function seleccionarMetodo(metodo) {
     const titulo = document.getElementById('titulo-instrucciones');
     const detalle = document.getElementById('detalle-instrucciones');
     const total = totalCarrito().toFixed(2);
-    const totalHTML = `<p style="font-size:1.2rem; font-weight:bold; color:#8E24AA; margin-bottom:15px; text-align:center;">Total a pagar: S/ ${total}</p>`;
 
-    if (metodo === 'qr') {
-        titulo.textContent = 'Escanea el QR';
-        detalle.innerHTML = totalHTML + `<p style="text-align:center; color:#7A6A8C;">Generando QR de pago...</p>`;
-        generarQRReal();
-    } else if (metodo === 'tarjeta') {
-        titulo.textContent = 'Datos de Tarjeta';
-        detalle.innerHTML = totalHTML + `
-            <input type="text" id="cardNumber" placeholder="Número de tarjeta (16 dígitos)" style="padding:10px; width:100%; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="cardExpiry" placeholder="MM/AA" style="padding:10px; flex:1; border-radius:8px; border:1px solid #ddd;">
-                <input type="text" id="cardCVV" placeholder="CVV" style="padding:10px; flex:1; border-radius:8px; border:1px solid #ddd;">
+    if (metodo === 'plin') {
+        titulo.textContent = '📱 Paga con Plin';
+        detalle.innerHTML = `
+            <p class="qr-instructions">Total a pagar:</p>
+            <p class="qr-total">S/ ${total}</p>
+            <p class="qr-instructions">1. Abre <strong>Plin</strong></p>
+            <p class="qr-instructions">2. Escanea este código QR:</p>
+            <div class="qr-container">
+                <img src="${DATOS_PAGO.plin.qr}" alt="QR de Plin">
+            </div>
+            <p class="qr-instructions">3. Ingresa el monto: <strong>S/ ${total}</strong></p>
+            <p class="qr-instructions">4. Confirma el pago</p>
+            <div class="aviso-pago">
+                <i class="fas fa-info-circle"></i>
+                Verificaremos tu pago en las próximas 24 horas.
             </div>
         `;
-    } else {
-        titulo.textContent = 'Transferencia';
-        detalle.innerHTML = totalHTML + `<p>Banco: <b>BCP</b></p><p>CCI: <b>002-191-2345678-0-12</b></p>`;
-    }
-}
-
-async function generarQRReal() {
-    const detalle = document.getElementById('detalle-instrucciones');
-    const total = totalCarrito();
-    
-    const { data: { user } } = await sc.auth.getUser();
-    const email = user?.email || 'cliente@mosameli.com';
-
-    try {
-        const { data, error } = await sc.functions.invoke('crear-orden-culqi', {
-            body: {
-                amount: total,
-                email: email,
-                description: `Compra en MosaMeli - ${carrito.length} productos`,
-                pedido_id: `MOSA-${Date.now()}`
-            }
-        });
-
-        if (error) throw error;
-
-        if (data.success && data.qr_code) {
+    } else if (metodo === 'yape') {
+        if (DATOS_PAGO.yape.qr) {
+            titulo.textContent = '💜 Paga con Yape';
             detalle.innerHTML = `
-                <p style="font-size:1.2rem; font-weight:bold; color:#8E24AA; margin-bottom:15px; text-align:center;">Total: S/ ${total.toFixed(2)}</p>
-                <p style="text-align:center; margin-bottom:10px;">1. Abre Yape, Plin o tu app bancaria</p>
-                <p style="text-align:center; margin-bottom:10px;">2. Escanea este código QR:</p>
-                <img src="${data.qr_code}" alt="QR de pago" style="width:250px; height:250px; display:block; margin:0 auto; border:2px solid #9B7FD4; border-radius:12px; padding:5px; background:white;">
-                <p style="text-align:center; margin-top:10px; font-size:0.85rem; color:#7A6A8C;">3. Confirma el monto en tu app</p>
-                <p style="text-align:center; margin-top:10px; font-size:0.8rem; color:#7A6A8C;">Orden: ${data.order_number}</p>
-                <p style="text-align:center; margin-top:5px; font-size:0.75rem; color:#B0A5BD;">Válido por 1 hora</p>
+                <p class="qr-instructions">Total a pagar:</p>
+                <p class="qr-total">S/ ${total}</p>
+                <p class="qr-instructions">1. Abre <strong>Yape</strong></p>
+                <p class="qr-instructions">2. Escanea este código QR:</p>
+                <div class="qr-container">
+                    <img src="${DATOS_PAGO.yape.qr}" alt="QR de Yape">
+                </div>
+                <p class="qr-instructions">3. Ingresa el monto: <strong>S/ ${total}</strong></p>
+                <p class="qr-instructions">4. Confirma el pago</p>
+                <div class="aviso-pago">
+                    <i class="fas fa-info-circle"></i>
+                    Verificaremos tu pago en las próximas 24 horas.
+                </div>
             `;
         } else {
-            detalle.innerHTML = `<p style="text-align:center; color:#D32F2F;">Error al generar el QR. Intenta de nuevo.</p>`;
+            titulo.textContent = '💜 Paga con Yape';
+            detalle.innerHTML = `
+                <div class="aviso-pago">
+                    <i class="fas fa-clock"></i>
+                    <strong>Estamos habilitando Yape.</strong>
+                    Por el momento, usa <strong>Plin</strong> o <strong>Transferencia</strong>.
+                </div>
+            `;
         }
-    } catch (error) {
-        console.error("Error:", error);
-        detalle.innerHTML = `<p style="text-align:center; color:#D32F2F;">Error: ${error.message}</p>`;
+    } else if (metodo === 'transferencia') {
+        titulo.textContent = '🏦 Transferencia Interbank';
+        detalle.innerHTML = `
+            <p class="qr-instructions">Total a transferir:</p>
+            <p class="qr-total">S/ ${total}</p>
+            
+            <div class="datos-bancarios">
+                <h4><i class="fas fa-university"></i> Datos de la cuenta</h4>
+                <div class="dato-item">
+                    <span>Banco</span>
+                    <span>${DATOS_PAGO.transferencia.banco}</span>
+                </div>
+                <div class="dato-item">
+                    <span>Tipo de cuenta</span>
+                    <span>${DATOS_PAGO.transferencia.tipoCuenta}</span>
+                </div>
+                <div class="dato-item">
+                    <span>Número de cuenta</span>
+                    <span>${DATOS_PAGO.transferencia.numeroCuenta}</span>
+                </div>
+                <div class="dato-item">
+                    <span>CCI</span>
+                    <span>${DATOS_PAGO.transferencia.cci}
+                        <button class="btn-copy" onclick="copiarDato('${DATOS_PAGO.transferencia.cci}')">Copiar</button>
+                    </span>
+                </div>
+                <div class="dato-item">
+                    <span>Titular</span>
+                    <span>${DATOS_PAGO.transferencia.titular}</span>
+                </div>
+            </div>
+            
+            <div class="aviso-pago">
+                <i class="fas fa-info-circle"></i>
+                Verificaremos tu transferencia en las próximas 24 horas.
+            </div>
+        `;
     }
 }
 
-function validateCardForm() {
-    const num = document.getElementById('cardNumber');
-    const exp = document.getElementById('cardExpiry');
-    const cvv = document.getElementById('cardCVV');
-    let isValid = true;
-
-    if (!/^\d{16}$/.test(num.value)) { num.classList.add('error'); isValid = false; } else { num.classList.remove('error'); }
-    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(exp.value)) { exp.classList.add('error'); isValid = false; } else { exp.classList.remove('error'); }
-    if (!/^\d{3,4}$/.test(cvv.value)) { cvv.classList.add('error'); isValid = false; } else { cvv.classList.remove('error'); }
-
-    if (!isValid) { showToast("Por favor, revisa los datos de tu tarjeta"); }
-    return isValid;
+function copiarDato(texto) {
+    navigator.clipboard.writeText(texto).then(() => {
+        showToast("✅ Copiado al portapapeles");
+    });
 }
 
 async function confirmarPago() {
-    if (metodoPagoElegido === 'tarjeta') { if (!validateCardForm()) return; }
-    
     const { data: { user } } = await sc.auth.getUser();
-    if (!user) { closeCheckout(); mostrarModalRegistroObligatorio(); return; }
+    if (!user) { 
+        closeCheckout(); 
+        mostrarModalRegistroObligatorio(); 
+        return; 
+    }
 
     const { error } = await sc.from('pedidos').insert([
-        { usuario_id: user.id, items: carrito, total: totalCarrito() }
+        { 
+            usuario_id: user.id, 
+            items: carrito, 
+            total: totalCarrito(),
+            metodo_pago: metodoPagoElegido,
+            estado: 'pendiente_verificacion'
+        }
     ]);
-    if (error) { showToast("Error al guardar pedido"); return; }
+    
+    if (error) { 
+        showToast("Error al guardar pedido: " + error.message); 
+        return; 
+    }
 
     for (const item of carrito) {
         await sc.from('productos').update({ stock: item.stock - 1 }).eq('id', item.id);
     }
 
-    showToast("¡Pago procesado con éxito! 🎉");
+    const detalle = document.getElementById('detalle-instrucciones');
+    detalle.innerHTML = `
+        <div style="text-align: center; padding: 30px;">
+            <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
+            <h3 style="color: #7E57C2; margin-bottom: 15px;">¡Pedido confirmado!</h3>
+            <p style="color: #4A3A5C; line-height: 1.6; margin-bottom: 20px;">
+                Recibirás tu pedido en <strong>2-3 días hábiles</strong>.
+            </p>
+            <p style="color: #7A6A8C; font-size: 0.85rem;">
+                Verificaremos tu pago en las próximas 24 horas.
+            </p>
+        </div>
+    `;
+    
+    document.querySelector('.confirmar-pago-btn').style.display = 'none';
+    document.querySelector('.volver-btn').textContent = 'Cerrar';
+
     carrito = [];
     saveCart();
-    closeCheckout();
-    document.getElementById('cartModal').style.display = 'none';
-    document.getElementById('checkoutModal').style.display = 'none';
-    loadProducts();
+    
+    setTimeout(() => {
+        document.getElementById('checkoutModal').style.display = 'none';
+        loadProducts();
+        document.querySelector('.confirmar-pago-btn').style.display = 'block';
+        document.querySelector('.volver-btn').textContent = 'Volver';
+    }, 5000);
 }
 
 function volverOpciones() {
@@ -974,7 +1230,11 @@ function volverOpciones() {
     document.getElementById('instrucciones-pago').style.display = 'none';
 }
 
-function closeCheckout() { document.getElementById('checkoutModal').style.display = 'none'; }
+function closeCheckout() { 
+    document.getElementById('checkoutModal').style.display = 'none';
+    document.querySelector('.confirmar-pago-btn').style.display = 'block';
+    document.querySelector('.volver-btn').textContent = 'Volver';
+}
 
 // ================== TOAST ==================
 function showToast(message) {
@@ -1010,7 +1270,6 @@ window.onload = async function() {
     await loadProducts();
     loadCart();
     initFilterEvents();
-    // Inicializar el control de volumen UNA SOLA VEZ
     setTimeout(() => initVolumeControl(), 500);
 };
 
@@ -1020,9 +1279,12 @@ window.onclick = function(event) {
     const registerModal = document.getElementById('registerRequiredModal');
     const productModal = document.getElementById('productModal');
     const fullscreenModal = document.getElementById('imageFullscreenModal');
+    const reviewModal = document.getElementById('reviewModal');
+    
     if (event.target === cartModal) closeCart();
     if (event.target === checkoutModal) closeCheckout();
     if (event.target === registerModal) closeRegisterRequired();
     if (event.target === productModal) closeProductModal();
     if (event.target === fullscreenModal) closeFullscreenImage();
+    if (event.target === reviewModal) cerrarModalResena();
 };
