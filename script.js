@@ -1532,13 +1532,20 @@ let direccionTextoActual = '';
 function abrirMapa() {
     document.getElementById('mapModal').style.display = 'flex';
     
-    // Resetear el botón de confirmar (por si estaba oculto)
+    // Resetear el botón de confirmar
     const btnConfirmar = document.getElementById('btnConfirmarUbicacion');
     if (btnConfirmar) btnConfirmar.style.display = 'flex';
     
     setTimeout(() => {
         initMapa();
         cargarDireccionesGuardadas();
+        
+        // 🆕 Mostrar mensaje de ayuda
+        setTimeout(() => mostrarMensajeAyuda(), 500);
+        
+        // 🆕 Configurar ocultar mensaje al interactuar
+        setTimeout(() => configurarOcultarMensajeAlInteractuar(), 600);
+        
         setTimeout(() => intentarGeolocalizacion(), 800);
     }, 100);
 }
@@ -1617,13 +1624,8 @@ function initMapa() {
     if (esMovil) {
         // 📱 MÓVIL: pin fijo al centro, arrastrar mapa
         mapaDelivery.on('move', function() {
-            // Ocultar resultado anterior mientras se mueve
             document.getElementById('deliveryResult').style.display = 'none';
             document.getElementById('badgeZona').style.display = 'none';
-        });
-        
-        mapaDelivery.on('moveend', function() {
-            // Nada automático, el usuario debe tocar "Confirmar"
         });
     } else {
         // 💻 DESKTOP: comportamiento actual (clic para colocar)
@@ -1882,15 +1884,37 @@ function usarMiUbicacion() {
         return;
     }
     
+    const btn = document.getElementById('btnMiUbicacion');
+    if (btn) btn.classList.add('cargando');
+    
     showToast("📍 Obteniendo tu ubicación...");
     
     navigator.geolocation.getCurrentPosition(
         (pos) => {
             const { latitude, longitude } = pos.coords;
-            mapaDelivery.setView([latitude, longitude], 16);
-            colocarMarcador(latitude, longitude, true);
+            
+            if (btn) btn.classList.remove('cargando');
+            
+            // Ocultar mensaje de ayuda
+            ocultarMensajeAyuda();
+            
+            // Centrar mapa
+            if (mapaDelivery) {
+                mapaDelivery.setView([latitude, longitude], 16);
+                
+                if (esDispositivoMovil()) {
+                    // En móvil: procesar después de centrar
+                    setTimeout(() => procesarUbicacionMovil(latitude, longitude), 500);
+                } else {
+                    // En desktop: colocar marcador
+                    setTimeout(() => colocarMarcador(latitude, longitude, true), 300);
+                }
+            }
+            
+            showToast("✅ Ubicación detectada");
         },
         (err) => {
+            if (btn) btn.classList.remove('cargando');
             showToast("❌ No pudimos obtener tu ubicación. Marca en el mapa.");
             console.error(err);
         },
@@ -2373,6 +2397,51 @@ function calcularFaltanteEnvioGratis() {
     return gratisDesde - subtotal;
 }
 
+// ================== 🆕 MENSAJE DE AYUDA EN EL MAPA ==================
+function mostrarMensajeAyuda() {
+    const mensaje = document.getElementById('mensajeAyudaMapa');
+    if (!mensaje) return;
+    
+    // Verificar si es la primera vez que abre el mapa
+    const yaVioAyuda = localStorage.getItem('mosameli_mapa_ayuda_vista');
+    
+    if (!yaVioAyuda && esDispositivoMovil()) {
+        // Mostrar el mensaje
+        mensaje.style.display = 'flex';
+        mensaje.classList.remove('oculto');
+        
+        // Ocultarlo después de 4 segundos
+        setTimeout(() => {
+            ocultarMensajeAyuda();
+            // Guardar que ya lo vio
+            localStorage.setItem('mosameli_mapa_ayuda_vista', 'true');
+        }, 4000);
+    }
+}
+
+function ocultarMensajeAyuda() {
+    const mensaje = document.getElementById('mensajeAyudaMapa');
+    if (!mensaje) return;
+    
+    mensaje.classList.add('oculto');
+    setTimeout(() => {
+        mensaje.style.display = 'none';
+    }, 400);
+}
+
+// Ocultar mensaje cuando el usuario interactúa con el mapa
+function configurarOcultarMensajeAlInteractuar() {
+    if (!mapaDelivery) return;
+    
+    mapaDelivery.on('movestart', () => {
+        ocultarMensajeAyuda();
+    });
+    
+    mapaDelivery.on('click', () => {
+        ocultarMensajeAyuda();
+    });
+}
+
 // ================== INICIALIZACIÓN ==================
 window.addEventListener('load', async function() {
     checkLoginStatus();
@@ -2407,3 +2476,9 @@ document.addEventListener('click', (e) => {
         sugerencias.style.display = 'none';
     }
 });
+// ================== 🆕 RESET DEL MENSAJE DE AYUDA (para pruebas) ==================
+// Ejecuta resetAyudaMapa() en la consola si quieres ver el mensaje otra vez
+function resetAyudaMapa() {
+    localStorage.removeItem('mosameli_mapa_ayuda_vista');
+    console.log('✅ Ayuda del mapa reseteada. Recarga la página y abre el mapa.');
+}
