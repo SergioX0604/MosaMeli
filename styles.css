@@ -1069,3 +1069,31 @@ body {
         font-size: 1rem;
     }
 }
+@media (max-width: 768px) {
+    /* El pin rebota suavemente para llamar la atención */
+    .pin-central {
+        animation: pin-bounce 1.5s ease-in-out infinite;
+    }
+    
+    /* El mapa ocupa más espacio en móvil */
+    .map-modal-content {
+        padding: 15px;
+        max-height: 95vh;
+    }
+    
+    /* El buscador se ve mejor en móvil */
+    .buscador-direccion {
+        flex-wrap: wrap;
+    }
+    
+    .buscador-direccion input {
+        flex: 1 1 100%;
+        margin-bottom: 8px;
+    }
+    
+    .buscador-direccion button {
+        flex: 1;
+        width: auto;
+        height: 42px;
+    }
+}

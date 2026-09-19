@@ -1531,17 +1531,27 @@ let direccionTextoActual = '';
 
 function abrirMapa() {
     document.getElementById('mapModal').style.display = 'flex';
+    
+    // Resetear el botón de confirmar (por si estaba oculto)
+    const btnConfirmar = document.getElementById('btnConfirmarUbicacion');
+    if (btnConfirmar) btnConfirmar.style.display = 'flex';
+    
     setTimeout(() => {
         initMapa();
-        // 🆕 Cargar direcciones guardadas
         cargarDireccionesGuardadas();
-        // Geolocalización automática
         setTimeout(() => intentarGeolocalizacion(), 800);
     }, 100);
 }
 
 function cerrarMapa() {
     document.getElementById('mapModal').style.display = 'none';
+}
+
+// Detectar si es móvil
+function esDispositivoMovil() {
+    return window.innerWidth <= 768 || 
+        ('ontouchstart' in window) || 
+        (navigator.maxTouchPoints > 0);
 }
 
 function initMapa() {
@@ -1551,14 +1561,15 @@ function initMapa() {
     }
     
     const origen = CONFIG_DELIVERY.origen;
+    const esMovil = esDispositivoMovil();
     
     // Crear el mapa
     mapaDelivery = L.map('map', {
-        zoomControl: true,
+        zoomControl: !esMovil,           // En móvil sin botones +/- (más limpio)
         attributionControl: true
     }).setView([origen.lat, origen.lng], 13);
     
-    // 🆕 #18 - Tiles de CartoDB (más limpios y profesionales)
+    // Tiles de CartoDB
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '© OpenStreetMap © CARTO',
         maxZoom: 19,
@@ -1600,8 +1611,166 @@ function initMapa() {
         circulosZonas.push(circulo);
     });
     
-    // Forzar redimensionar
     setTimeout(() => mapaDelivery.invalidateSize(), 300);
+    
+    // ================== COMPORTAMIENTO SEGÚN DISPOSITIVO ==================
+    if (esMovil) {
+        // 📱 MÓVIL: pin fijo al centro, arrastrar mapa
+        mapaDelivery.on('move', function() {
+            // Ocultar resultado anterior mientras se mueve
+            document.getElementById('deliveryResult').style.display = 'none';
+            document.getElementById('badgeZona').style.display = 'none';
+        });
+        
+        mapaDelivery.on('moveend', function() {
+            // Nada automático, el usuario debe tocar "Confirmar"
+        });
+    } else {
+        // 💻 DESKTOP: comportamiento actual (clic para colocar)
+        mapaDelivery.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            direccionTextoActual = '';
+            document.getElementById('direccionSeleccionada').style.display = 'none';
+            colocarMarcador(lat, lng, false);
+        });
+    }
+}
+
+// ================== 🆕 CONFIRMAR UBICACIÓN EN MÓVIL ==================
+function confirmarUbicacionCentral() {
+    if (!mapaDelivery) return;
+    
+    // Obtener el centro del mapa
+    const centro = mapaDelivery.getCenter();
+    const lat = centro.lat;
+    const lng = centro.lng;
+    
+    // Ocultar el botón momentáneamente
+    document.getElementById('btnConfirmarUbicacion').style.display = 'none';
+    
+    // Procesar la ubicación
+    direccionTextoActual = '';
+    document.getElementById('direccionSeleccionada').style.display = 'none';
+    
+    // Procesar ubicación (sin crear marcador, solo calcular)
+    procesarUbicacionMovil(lat, lng);
+}
+
+// ================== PROCESAR UBICACIÓN EN MÓVIL (sin marcador visible) ==================
+async function procesarUbicacionMovil(lat, lng) {
+    const origen = CONFIG_DELIVERY.origen;
+    
+    // Mostrar spinner
+    document.getElementById('calculandoRuta').style.display = 'flex';
+    document.getElementById('badgeZona').style.display = 'none';
+    document.getElementById('deliveryResult').style.display = 'none';
+    
+    // Calcular distancia en línea recta
+    const distanciaRecta = calcularDistancia(origen.lat, origen.lng, lat, lng);
+    
+    // Intentar obtener ruta real
+    let distanciaReal = distanciaRecta;
+    let tiempoEstimado = null;
+    
+    try {
+        const ruta = await obtenerRutaReal(origen.lat, origen.lng, lat, lng);
+        if (ruta) {
+            distanciaReal = ruta.distancia;
+            tiempoEstimado = ruta.tiempo;
+        }
+    } catch (e) {
+        console.log('No se pudo obtener ruta real');
+    }
+    
+    document.getElementById('calculandoRuta').style.display = 'none';
+    
+    // Guardar variables
+    distanciaDelivery = distanciaReal;
+    direccionClienteSeleccionada = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    
+    // Calcular costo
+    const { costo, zonaNombre, color } = calcularCostoDelivery(distanciaReal);
+    const subtotal = totalCarrito();
+    const esGratis = subtotal >= CONFIG_DELIVERY.gratisDesde;
+    const { recargo } = calcularRecargo();
+    
+    const costoFinalBase = esGratis ? 0 : costo;
+    costoDeliverySeleccionado = costoFinalBase + recargo;
+    
+    // Mostrar badge
+    const badge = document.getElementById('badgeZona');
+    const textoZona = document.getElementById('textoZona');
+    const precioZona = document.getElementById('precioZona');
+    
+    if (distanciaReal > 10) {
+        textoZona.textContent = 'Fuera de cobertura';
+        precioZona.textContent = '❌';
+        badge.querySelector('.badge-zona-inner').style.background = 'linear-gradient(135deg, #E57373 0%, #D32F2F 100%)';
+        badge.style.display = 'flex';
+        costoDeliverySeleccionado = 0;
+        direccionClienteSeleccionada = '';
+    } else {
+        textoZona.textContent = zonaNombre;
+        if (esGratis && recargo === 0) {
+            precioZona.textContent = '¡GRATIS!';
+        } else if (esGratis && recargo > 0) {
+            precioZona.textContent = `S/ ${recargo.toFixed(2)} (recargo)`;
+        } else if (recargo > 0) {
+            precioZona.textContent = `S/ ${costoFinalBase.toFixed(2)} + S/ ${recargo.toFixed(2)}`;
+        } else {
+            precioZona.textContent = `S/ ${costoFinalBase.toFixed(2)}`;
+        }
+        badge.querySelector('.badge-zona-inner').style.background = color 
+            ? `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)` 
+            : 'linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%)';
+        badge.style.display = 'flex';
+    }
+    
+    // Mostrar resultado
+    const resultDiv = document.getElementById('deliveryResult');
+    const costDiv = document.getElementById('deliveryCost');
+    const tiempoDiv = document.getElementById('deliveryTiempo');
+    
+    if (distanciaReal > 10) {
+        costDiv.innerHTML = `<span style="color: #D32F2F;">Fuera de cobertura</span>`;
+        tiempoDiv.innerHTML = `<i class="fas fa-phone"></i> Contáctanos por WhatsApp al 937 309 837`;
+    } else if (esGratis && recargo === 0) {
+        costDiv.innerHTML = `<span style="color: #4CAF50;">¡ENVÍO GRATIS!</span>`;
+        tiempoDiv.innerHTML = `<i class="fas fa-clock"></i> ${tiempoEstimado || estimarTiempo(distanciaReal)}`;
+    } else {
+        let texto = `S/ ${costoDeliverySeleccionado.toFixed(2)}`;
+        if (recargo > 0 && !esGratis) {
+            texto += ` <small style="font-size: 0.75rem;">(incluye recargo nocturno S/ ${recargo.toFixed(2)})</small>`;
+        } else if (recargo > 0 && esGratis) {
+            texto = `S/ ${recargo.toFixed(2)} <small style="font-size: 0.75rem;">(recargo nocturno, envío gratis)</small>`;
+        }
+        costDiv.innerHTML = texto;
+        tiempoDiv.innerHTML = `<i class="fas fa-clock"></i> ${tiempoEstimado || estimarTiempo(distanciaReal)}`;
+    }
+    
+    resultDiv.style.display = 'block';
+    
+    // Mostrar la dirección como texto (usando reverse geocoding gratuito)
+    try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=es`;
+        const res = await fetch(url, { headers: { 'User-Agent': 'MosaMeli/1.0' } });
+        const data = await res.json();
+        
+        if (data && data.display_name) {
+            document.getElementById('textoDireccionSeleccionada').textContent = data.display_name;
+            document.getElementById('direccionSeleccionada').style.display = 'flex';
+        } else {
+            document.getElementById('textoDireccionSeleccionada').textContent = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+            document.getElementById('direccionSeleccionada').style.display = 'flex';
+        }
+    } catch (e) {
+        document.getElementById('textoDireccionSeleccionada').textContent = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+        document.getElementById('direccionSeleccionada').style.display = 'flex';
+    }
+    
+    // Volver a mostrar el botón de confirmar
+    document.getElementById('btnConfirmarUbicacion').style.display = 'flex';
 }
 
 // ================== GEOLOCALIZACIÓN AUTOMÁTICA (#1) ==================
@@ -2065,8 +2234,34 @@ async function usarDireccionGuardada(lat, lng, texto) {
     document.getElementById('buscarDireccion').value = '';
     document.getElementById('sugerenciasDireccion').style.display = 'none';
     
-    mapaDelivery.setView([lat, lng], 16);
-    colocarMarcador(lat, lng, false);
+    if (esDispositivoMovil()) {
+        // En móvil: mover mapa al centro y procesar
+        mapaDelivery.setView([lat, lng], 16);
+        setTimeout(() => {
+            procesarUbicacionMovil(lat, lng);
+        }, 400);
+    } else {
+        // En desktop: comportamiento normal
+        mapaDelivery.setView([lat, lng], 16);
+        colocarMarcador(lat, lng, false);
+    }
+}
+
+function seleccionarSugerencia(lat, lng, direccion) {
+    document.getElementById('sugerenciasDireccion').style.display = 'none';
+    document.getElementById('buscarDireccion').value = '';
+    
+    direccionTextoActual = direccion;
+    
+    if (esDispositivoMovil()) {
+        mapaDelivery.setView([lat, lng], 16);
+        setTimeout(() => {
+            procesarUbicacionMovil(parseFloat(lat), parseFloat(lng));
+        }, 400);
+    } else {
+        mapaDelivery.setView([lat, lng], 16);
+        colocarMarcador(parseFloat(lat), parseFloat(lng), false);
+    }
 }
 
 async function eliminarDireccionGuardada(index) {

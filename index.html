@@ -1285,6 +1285,110 @@
                 font-size: 0.8rem;
             }
         }
+                /* ==================== MAPA CON PIN CENTRAL (MÓVIL) ==================== */
+        .map-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .pin-central {
+            display: none; /* Oculto en desktop */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -100%);
+            font-size: 2.5rem;
+            color: #F44336;
+            z-index: 500;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+            animation: pin-bounce 1.5s ease-in-out infinite;
+        }
+
+        .pin-central::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: rgba(244, 67, 54, 0.3);
+            border-radius: 50%;
+            animation: pin-shadow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pin-bounce {
+            0%, 100% { transform: translate(-50%, -100%); }
+            50% { transform: translate(-50%, -115%); }
+        }
+
+        @keyframes pin-shadow {
+            0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.4; }
+            50% { transform: translateX(-50%) scale(0.6); opacity: 0.2; }
+        }
+
+        /* Botón flotante "Confirmar ubicación" */
+        .btn-confirmar-ubicacion {
+            display: none; /* Oculto en desktop */
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 30px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(76, 175, 80, 0.5);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .btn-confirmar-ubicacion:hover,
+        .btn-confirmar-ubicacion:active {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 10px 28px rgba(76, 175, 80, 0.7);
+        }
+
+        .btn-confirmar-ubicacion i {
+            font-size: 1.1rem;
+        }
+
+        /* ==================== SOLO EN MÓVIL ==================== */
+        @media (max-width: 768px) {
+            /* Mostrar pin central y botón */
+            .pin-central {
+                display: block;
+            }
+            
+            .btn-confirmar-ubicacion {
+                display: flex;
+            }
+            
+            /* Ajustar el mapa para dar espacio al botón */
+            #map {
+                height: 350px;
+            }
+            
+            /* El mapa se mueve con un dedo */
+            #map {
+                touch-action: pan-x pan-y;
+            }
+            
+            /* Ocultar el marcador arrastrable en móvil (ya no se necesita) */
+            .custom-icon-cliente {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1454,8 +1558,21 @@
                 <span id="textoDireccionSeleccionada"></span>
             </div>
 
-            <!-- Mapa -->
+            <!-- Mapa (con contenedor para el pin central) -->
+        <div class="map-container">
             <div id="map"></div>
+            
+            <!-- 🎯 Pin central para modo móvil -->
+            <div id="pinCentral" class="pin-central">
+                <i class="fas fa-map-marker-alt"></i>
+            </div>
+        </div>
+
+        <!-- 🆕 Botón flotante "Confirmar ubicación" (solo móvil) -->
+        <button id="btnConfirmarUbicacion" class="btn-confirmar-ubicacion" onclick="confirmarUbicacionCentral()">
+            <i class="fas fa-check-circle"></i>
+            <span>Confirmar ubicación</span>
+        </button>
 
             <!-- Spinner de cálculo (#20) -->
             <div id="calculandoRuta" class="calculando-ruta" style="display:none;">
