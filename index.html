@@ -1357,22 +1357,32 @@
             .user-area {
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 6px;
                 width: 100%;
                 justify-content: center;
                 flex-wrap: wrap;
                 order: 2;
             }
-            .user-area span#userName { max-width: 100px; font-size: 0.78rem; padding: 6px 12px; }
-            .user-area .icon-btn, #misPedidosBtn {
-                width: 38px !important;
-                height: 38px !important;
-                font-size: 1rem !important;
+            .user-area span#userName { 
+                max-width: 80px; 
+                font-size: 0.72rem; 
+                padding: 5px 10px; 
             }
-            .admin-btn { padding: 8px 14px; font-size: 0.75rem; border-radius: 20px; order: 2; }
+            .user-area .icon-btn, #misPedidosBtn {
+                width: 34px !important;
+                height: 34px !important;
+                font-size: 0.85rem !important;
+            }
+            .admin-btn { 
+                padding: 6px 12px; 
+                font-size: 0.7rem; 
+                border-radius: 20px; 
+                order: 2;
+                margin-top: -4px;
+            }
             .cart-btn {
-                width: 38px !important;
-                height: 38px !important;
+                width: 34px !important;
+                height: 34px !important;
                 order: 2;
             }
             .cart-btn span { font-size: 0.6rem; padding: 1px 4px; top: -3px; right: -3px; }
@@ -1410,21 +1420,23 @@
             .current-price { font-size: 1.05rem; }
             .shipping-info { font-size: 0.62rem; padding: 3px 6px; margin-bottom: 8px; }
             .btn-buy-now {
-                font-size: 0.72rem;
-                padding: 9px 4px;
+                font-size: 0.68rem;
+                padding: 9px 2px;
                 border-radius: 15px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                text-align: center;
             }
             .btn-add-cart {
-                font-size: 0.68rem;
-                padding: 8px 4px;
+                font-size: 0.62rem;
+                padding: 8px 2px;
                 border-radius: 15px;
                 margin-top: 5px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                text-align: center;
             }
             .btn-add-cart i { font-size: 0.7rem; margin-right: 2px; }
 
@@ -1584,14 +1596,17 @@
         /* ==================== WHATSAPP MÓVIL ==================== */
         @media (max-width: 768px) {
             .whatsapp-float {
-                width: 48px;
-                height: 48px;
-                font-size: 1.4rem;
-                bottom: 12px;
-                right: 12px;
-                opacity: 0.85;
+                width: 44px;
+                height: 44px;
+                font-size: 1.3rem;
+                bottom: 10px;
+                right: 10px;
+                opacity: 0.7;
             }
-            .whatsapp-float:hover { opacity: 1; }
+            .whatsapp-float:hover,
+            .whatsapp-float:active { 
+                opacity: 1; 
+            }
         }
     </style>
 </head>
