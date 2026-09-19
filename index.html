@@ -1270,21 +1270,168 @@
             margin-top: 2px;
         }
 
-        /* ==================== RESPONSIVE ==================== */
-        @media (max-width: 600px) {
-            .buscador-direccion input {
-                font-size: 0.85rem;
-                padding: 10px 12px;
-            }
-            .buscador-direccion button {
-                width: 40px;
-                height: 40px;
-            }
-            .badge-zona-inner {
-                padding: 10px 18px;
-                font-size: 0.8rem;
-            }
+    /* ==================== HEADER RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+        .main-header {
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
+        
+        /* Primera fila: logo a la izquierda */
+        .main-header .logo {
+            align-self: flex-start;
+        }
+        
+        .main-header .logo img {
+            height: 32px;
+        }
+        
+        /* Segunda fila: buscador a ancho completo */
+        .header-actions {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .search-bar {
+            width: 100%;
+            max-width: 100%;
+            padding: 6px 8px 6px 16px;
+        }
+        
+        .search-bar input {
+            font-size: 0.85rem;
+            padding: 8px 4px;
+        }
+        
+        .search-bar button {
+            width: 34px;
+            height: 34px;
+        }
+        
+        /* Tercera fila: botones de usuario */
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        
+        .user-area span#userName {
+            max-width: 100px;
+            font-size: 0.8rem;
+            padding: 6px 12px;
+        }
+        
+        .user-area .icon-btn,
+        #misPedidosBtn {
+            width: 36px !important;
+            height: 36px !important;
+            font-size: 0.95rem !important;
+        }
+        
+        /* Botón de admin */
+        .admin-btn {
+            padding: 8px 14px;
+            font-size: 0.75rem;
+            border-radius: 20px;
+        }
+        
+        /* Carrito */
+        .cart-btn {
+            width: 36px !important;
+            height: 36px !important;
+        }
+        
+        .cart-btn span {
+            font-size: 0.6rem;
+            padding: 1px 4px;
+        }
+        
+        /* Categorías más compactas */
+        .category-nav {
+            padding: 10px 12px;
+            gap: 6px;
+        }
+        
+        .cat-pill {
+            padding: 7px 12px;
+            font-size: 0.78rem;
+            gap: 5px;
+        }
+        
+        .cat-pill i {
+            font-size: 0.85rem;
+        }
+        
+        /* Botón filtros */
+        .mobile-filter-btn {
+            margin: 12px 12px 0 12px;
+            width: calc(100% - 24px);
+            padding: 10px;
+            font-size: 0.85rem;
+        }
+        
+        /* Título y contador */
+        #categoryTitle {
+            font-size: 1.2rem;
+            margin-top: 15px;
+        }
+        
+        #productCount {
+            font-size: 0.8rem;
+        }
+        
+        /* Grid más compacto */
+        .product-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .product-card {
+            border-radius: 12px;
+        }
+        
+        .product-image {
+            height: 140px;
+        }
+        
+        .product-info {
+            padding: 10px;
+        }
+        
+        .product-info h3 {
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .current-price {
+            font-size: 1.05rem;
+        }
+        
+        .shipping-info {
+            font-size: 0.65rem;
+            padding: 3px 7px;
+        }
+        
+        .btn-buy-now,
+        .btn-add-cart {
+            font-size: 0.75rem;
+            padding: 9px;
+            border-radius: 15px;
+        }
+        
+        .btn-add-cart {
+            font-size: 0.7rem;
+            padding: 8px;
+            margin-top: 5px;
+        }
+    }
                 /* ==================== MAPA CON PIN CENTRAL (MÓVIL) ==================== */
         .map-container {
             position: relative;
@@ -1496,53 +1643,421 @@
             to { transform: rotate(360deg); }
         }
 
-        /* ==================== SOLO EN MÓVIL ==================== */
-        @media (max-width: 768px) {
-            .pin-central {
-                display: block;
-            }
-            
-            .btn-confirmar-ubicacion {
-                display: flex;
-            }
-            
-            .btn-mi-ubicacion {
-                display: flex;
-            }
-            
-            .mensaje-ayuda-mapa {
-                display: flex;
-            }
-            
-            #map {
-                height: 350px;
-                touch-action: pan-x pan-y;
-            }
-            
-            .custom-icon-cliente {
-                display: none !important;
-            }
-            
-            /* El botón de confirmar ajustado para no chocar con "Mi ubicación" */
-            .btn-confirmar-ubicacion {
-                left: calc(50% - 30px);
-            }
-            
-            .mensaje-ayuda-mapa {
-                font-size: 0.8rem;
-                padding: 10px 16px;
-                top: 15px;
-            }
+    /* ==================== SOLO EN MÓVIL ==================== */
+    @media (max-width: 768px) {
+        /* Modal del mapa */
+        .map-modal-content {
+            padding: 15px 12px;
+            max-height: 92vh;
+            overflow-y: auto;
+            border-radius: 20px;
         }
+        
+        .map-modal-content h2 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+        
+        .map-subtitle {
+            font-size: 0.75rem;
+            margin-bottom: 12px;
+        }
+        
+        /* Buscador: apilar en columna */
+        .buscador-direccion {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .buscador-direccion input {
+            width: 100%;
+            font-size: 0.85rem;
+            padding: 11px 14px;
+        }
+        
+        .buscador-direccion button {
+            width: 100%;
+            height: 42px;
+            font-size: 0.9rem;
+            border-radius: 10px;
+        }
+        
+        .buscador-direccion .btn-ubicacion {
+            height: 42px;
+        }
+        
+        /* Mapa */
+        #map {
+            height: 300px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        
+        /* Pin central */
+        .pin-central {
+            display: block;
+            font-size: 2.2rem;
+        }
+        
+        /* Botón mi ubicación - más pequeño y sin chocar */
+        .btn-mi-ubicacion {
+            display: flex;
+            width: 44px;
+            height: 44px;
+            font-size: 1.1rem;
+            bottom: 12px;
+            right: 12px;
+        }
+        
+        /* Mensaje de ayuda */
+        .mensaje-ayuda-mapa {
+            font-size: 0.75rem;
+            padding: 8px 14px;
+            top: 10px;
+            max-width: 85%;
+        }
+        
+        /* Dirección seleccionada */
+        .direccion-seleccionada {
+            font-size: 0.75rem;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+        }
+        
+        /* Spinner */
+        .calculando-ruta {
+            padding: 12px;
+            font-size: 0.8rem;
+            margin: 10px 0;
+        }
+        
+        /* Badge de zona */
+        .badge-zona {
+            margin: 10px 0;
+        }
+        
+        .badge-zona-inner {
+            padding: 10px 16px;
+            font-size: 0.8rem;
+            gap: 8px;
+            border-radius: 25px;
+        }
+        
+        .badge-zona-inner i {
+            font-size: 0.9rem;
+        }
+        
+        .badge-precio {
+            font-size: 0.85rem;
+            padding: 3px 10px;
+        }
+        
+        /* Leyenda: más compacta */
+        .delivery-legend {
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .delivery-legend h4 {
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+        
+        .legend-item {
+            font-size: 0.75rem;
+            padding: 4px 0;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+        }
+        
+        /* Resultado final */
+        .delivery-result {
+            padding: 15px 12px;
+        }
+        
+        .delivery-result p:first-child {
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+        }
+        
+        .delivery-cost {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .delivery-tiempo {
+            font-size: 0.75rem !important;
+            margin-bottom: 10px !important;
+        }
+        
+        /* Notas de delivery */
+        .notas-delivery-container {
+            padding: 12px;
+            margin: 10px 0;
+        }
+        
+        .notas-delivery-container label {
+            font-size: 0.75rem;
+            margin-bottom: 8px;
+        }
+        
+        .notas-delivery-container textarea {
+            font-size: 0.8rem;
+            padding: 8px 10px;
+            min-height: 50px;
+        }
+        
+        /* Botón confirmar ubicación - CORREGIDO */
+        .btn-confirmar-ubicacion {
+            position: static;
+            transform: none;
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0 0 0;
+            font-size: 0.9rem;
+            border-radius: 25px;
+            display: none;
+            justify-content: center;
+        }
+        
+        .btn-confirmar-ubicacion:hover,
+        .btn-confirmar-ubicacion:active {
+            transform: scale(0.98);
+        }
+        
+        /* Cuando está visible, mostrarlo */
+        .btn-confirmar-ubicacion[style*="display: flex"],
+        .btn-confirmar-ubicacion[style*="display:flex"] {
+            display: flex !important;
+        }
+    }
 
-        /* En desktop, mostrar "Mi ubicación" también pero más discreto */
-        @media (min-width: 769px) {
-            .btn-mi-ubicacion {
-                display: flex;
-                bottom: 80px;
-                right: 20px;
-            }
+    /* ==================== EXTRA PEQUEÑO ==================== */
+    @media (max-width: 480px) {
+        .map-modal-content {
+            padding: 12px 10px;
         }
+        
+        #map {
+            height: 260px;
+        }
+        
+        .badge-zona-inner {
+            padding: 8px 12px;
+            font-size: 0.75rem;
+        }
+        
+        .badge-precio {
+            font-size: 0.8rem;
+        }
+    }
+        /* ==================== MODAL DE PRODUCTO EN MÓVIL ==================== */
+    @media (max-width: 768px) {
+        .product-detail-content {
+            width: 98%;
+            max-height: 95vh;
+            border-radius: 16px;
+        }
+        
+        .close-product {
+            top: 10px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            font-size: 22px;
+        }
+        
+        .product-detail-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .product-gallery {
+            padding: 15px 15px 10px;
+        }
+        
+        .product-main-image {
+            height: 260px;
+            border-radius: 12px;
+        }
+        
+        .gallery-nav {
+            width: 34px;
+            height: 34px;
+            font-size: 0.9rem;
+        }
+        
+        .gallery-nav.prev { left: 10px; }
+        .gallery-nav.next { right: 10px; }
+        
+        .product-thumbnails {
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .thumbnail {
+            width: 55px;
+            height: 55px;
+        }
+        
+        .thumbnail.video-thumb .play-icon {
+            width: 20px;
+            height: 20px;
+            font-size: 0.6rem;
+        }
+        
+        .product-detail-info {
+            padding: 15px;
+            max-height: none;
+        }
+        
+        .product-detail-info h2 {
+            font-size: 1.15rem;
+            margin-bottom: 4px;
+        }
+        
+        .product-brand {
+            font-size: 0.75rem;
+            margin-bottom: 10px;
+        }
+        
+        .detail-current-price {
+            font-size: 1.5rem;
+        }
+        
+        .product-description {
+            font-size: 0.8rem;
+            padding: 12px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .product-features {
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .feature-item {
+            padding: 8px;
+            font-size: 0.7rem;
+        }
+        
+        .feature-item strong {
+            font-size: 0.68rem;
+        }
+        
+        .product-quantity {
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+        
+        .product-quantity label {
+            font-size: 0.85rem;
+        }
+        
+        .quantity-selector {
+            padding: 3px;
+        }
+        
+        .quantity-selector button {
+            width: 30px;
+            height: 30px;
+            font-size: 1rem;
+        }
+        
+        .quantity-selector input {
+            width: 42px;
+            font-size: 0.9rem;
+        }
+        
+        .product-detail-actions {
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .btn-detail-add,
+        .btn-detail-buy {
+            padding: 13px;
+            font-size: 0.85rem;
+        }
+        
+        .product-shipping-info {
+            padding-top: 12px;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .shipping-item {
+            font-size: 0.78rem;
+            gap: 8px;
+        }
+        
+        /* Reseñas */
+        .product-reviews {
+            margin-top: 15px;
+            padding-top: 15px;
+        }
+        
+        .product-reviews h3 {
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+        
+        .reviews-summary {
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .reviews-average #averageRating {
+            font-size: 1.6rem;
+        }
+        
+        .reviews-stars {
+            font-size: 1.1rem;
+        }
+        
+        .reviews-average p {
+            font-size: 0.78rem;
+        }
+        
+        .reviews-list {
+            max-height: 200px;
+            margin-bottom: 12px;
+        }
+        
+        .review-item {
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .review-item .review-author {
+            font-size: 0.78rem;
+        }
+        
+        .review-item .review-stars {
+            font-size: 0.75rem;
+        }
+        
+        .review-item .review-text {
+            font-size: 0.78rem;
+        }
+        
+        .review-item .review-date {
+            font-size: 0.65rem;
+        }
+        
+        .btn-write-review {
+            padding: 11px;
+            font-size: 0.85rem;
+        }
+    }
     </style>
 </head>
 <body>
