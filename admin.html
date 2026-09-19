@@ -80,6 +80,249 @@
         .toast { background: #7E57C2; color: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); border-left: 5px solid #FFD700; animation: slideInRight 0.3s ease-out; font-weight: 500; position: relative; padding-right: 45px; }
         .toast-close { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; font-size: 0.8rem; }
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+                /* ==================== REPORTES (#17) ==================== */
+        .reportes-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .reportes-section h2 {
+            color: #7E57C2;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .reportes-section h3 {
+            color: #7E57C2;
+            margin: 20px 0 12px;
+            font-size: 1rem;
+        }
+
+        .reportes-filtros {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-fecha {
+            background: white;
+            border: 2px solid #EDE4F5;
+            color: #7A6A8C;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filtro-fecha:hover {
+            border-color: #9B7FD4;
+            color: #7E57C2;
+        }
+
+        .filtro-fecha.active {
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .reportes-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .reporte-card {
+            background: #F5F0FA;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .reporte-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(155, 127, 212, 0.15);
+            border-color: #EDE4F5;
+        }
+
+        .reporte-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .reporte-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .reporte-label {
+            color: #7A6A8C;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .reporte-valor {
+            color: #4A3A5C;
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .reporte-zonas, .reporte-estados {
+            background: #F5F0FA;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .zona-reporte-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #EDE4F5;
+            font-size: 0.9rem;
+        }
+
+        .zona-reporte-item:last-child {
+            border-bottom: none;
+        }
+
+        .zona-reporte-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .zona-reporte-nombre {
+            flex: 1;
+            color: #4A3A5C;
+            font-weight: 500;
+        }
+
+        .zona-reporte-cantidad {
+            background: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            color: #7E57C2;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .zona-reporte-monto {
+            color: #4CAF50;
+            font-weight: 700;
+            font-size: 0.85rem;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        /* Costo real editable */
+        .costo-real-editable {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #FFF8E1;
+            border: 2px dashed #FFC107;
+            border-radius: 12px;
+            padding: 6px 12px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+
+        .costo-real-editable input {
+            width: 80px;
+            padding: 4px 8px;
+            border: 1px solid #EDE4F5;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.8rem;
+            text-align: right;
+        }
+
+        .costo-real-editable button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .costo-real-editable button:hover {
+            background: #388E3C;
+        }
+
+        /* Margen visual */
+        .margen-positivo {
+            color: #4CAF50 !important;
+        }
+
+        .margen-negativo {
+            color: #E57373 !important;
+        }
+
+        /* Notas de delivery en pedido */
+        .notas-pedido {
+            background: #FFF8E1;
+            border-left: 3px solid #FFC107;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin: 8px 0;
+            font-size: 0.8rem;
+            color: #F57C00;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .notas-pedido i {
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 600px) {
+            .reportes-cards {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            .reporte-valor {
+                font-size: 1.1rem;
+            }
+            .reporte-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -131,6 +374,94 @@
         <h2>⭐ Reseñas Pendientes de Aprobación</h2>
         <div id="resenasPendientes"></div>
     </div>
+
+    <!-- 🆕 #17 - Panel de Reportes -->
+<div class="reportes-section">
+    <h2>📊 Reporte de Entregas</h2>
+    
+    <!-- Filtros de fecha -->
+    <div class="reportes-filtros">
+        <button class="filtro-fecha active" onclick="cambiarPeriodo('hoy', this)">Hoy</button>
+        <button class="filtro-fecha" onclick="cambiarPeriodo('semana', this)">Última semana</button>
+        <button class="filtro-fecha" onclick="cambiarPeriodo('mes', this)">Último mes</button>
+        <button class="filtro-fecha" onclick="cambiarPeriodo('todo', this)">Todo</button>
+    </div>
+    
+    <!-- Tarjetas de resumen -->
+    <div class="reportes-cards" id="reportesCards">
+        <div class="reporte-card">
+            <div class="reporte-icon" style="background: #E8F5E9; color: #4CAF50;">
+                <i class="fas fa-shopping-bag"></i>
+            </div>
+            <div class="reporte-info">
+                <span class="reporte-label">Pedidos</span>
+                <span class="reporte-valor" id="totalPedidos">0</span>
+            </div>
+        </div>
+        
+        <div class="reporte-card">
+            <div class="reporte-icon" style="background: #FFF8E1; color: #FF9800;">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="reporte-info">
+                <span class="reporte-label">Ingresos</span>
+                <span class="reporte-valor" id="totalIngresos">S/ 0.00</span>
+            </div>
+        </div>
+        
+        <div class="reporte-card">
+            <div class="reporte-icon" style="background: #E3F2FD; color: #2196F3;">
+                <i class="fas fa-truck"></i>
+            </div>
+            <div class="reporte-info">
+                <span class="reporte-label">Delivery cobrado</span>
+                <span class="reporte-valor" id="totalDeliveryCobrado">S/ 0.00</span>
+            </div>
+        </div>
+        
+        <div class="reporte-card">
+            <div class="reporte-icon" style="background: #FFEBEE; color: #F44336;">
+                <i class="fas fa-gas-pump"></i>
+            </div>
+            <div class="reporte-info">
+                <span class="reporte-label">Costo real</span>
+                <span class="reporte-valor" id="totalCostoReal">S/ 0.00</span>
+            </div>
+        </div>
+        
+        <div class="reporte-card">
+            <div class="reporte-icon" style="background: #F3E5F5; color: #9C27B0;">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="reporte-info">
+                <span class="reporte-label">Margen delivery</span>
+                <span class="reporte-valor" id="margenDelivery">S/ 0.00</span>
+            </div>
+        </div>
+        
+        <div class="reporte-card">
+            <div class="reporte-icon" style="background: #FCE4EC; color: #E91E63;">
+                <i class="fas fa-percentage"></i>
+            </div>
+            <div class="reporte-info">
+                <span class="reporte-label">Ticket promedio</span>
+                <span class="reporte-valor" id="ticketPromedio">S/ 0.00</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reporte por zona -->
+    <div class="reporte-zonas">
+        <h3>📍 Pedidos por zona</h3>
+        <div id="reporteZonas"></div>
+    </div>
+    
+    <!-- Reporte por estado -->
+    <div class="reporte-estados">
+        <h3>📦 Pedidos por estado</h3>
+        <div id="reporteEstados"></div>
+    </div>
+</div>
 
     <!-- Modal de edición -->
     <div id="editModal" class="edit-modal">

@@ -4,18 +4,24 @@ const sc = window.supabaseClient;
 // ⚠️ CAMBIA ESTO POR TU CORREO DE ADMINISTRADOR
 const ADMIN_EMAIL = 'espis0611@gmail.com';
 
+// Configuración de zonas (para reportes)
+const CONFIG_DELIVERY_ZONAS = [
+    { radio: 2,  costo: 5.00,  color: '#4CAF50', nombre: 'Zona 1 - Chaclacayo Centro' },
+    { radio: 4,  costo: 7.00,  color: '#FFC107', nombre: 'Zona 2 - Chaclacayo Cercano' },
+    { radio: 7,  costo: 10.00, color: '#FF9800', nombre: 'Zona 3 - Chaclacayo Alto' },
+    { radio: 10, costo: 15.00, color: '#F44336', nombre: 'Zona 4 - Chosica / Ricardo Palma' }
+];
+
 // ================== VERIFICACIÓN DE ACCESO ==================
 async function verificarAcceso() {
     const { data: { user } } = await sc.auth.getUser();
     
-    // Sin sesión → redirigir a login
     if (!user) {
         localStorage.setItem('redirectAfterLogin', 'admin.html');
         window.location.href = 'login.html';
         return false;
     }
     
-    // ✅ VERIFICAR QUE SEA EL ADMIN
     if (user.email !== ADMIN_EMAIL) {
         alert('⛔ Acceso denegado. Solo administradores pueden entrar aquí.');
         window.location.href = 'index.html';
@@ -206,7 +212,52 @@ async function cargarPedidos() {
         const estadoActual = pedido.estado || 'pedido_recibido';
         const total = Number(pedido.total) || 0;
         const costoDelivery = Number(pedido.costo_delivery) || 0;
+        const costoReal = Number(pedido.costo_real_delivery) || 0;
         const distancia = Number(pedido.distancia_delivery) || 0;
+        const margen = costoDelivery - costoReal;
+        
+        const bloqueCostos = costoDelivery > 0 ? `
+            <div class="costos-delivery" style="background: #F5F0FA; border-radius: 10px; padding: 12px; margin: 10px 0; font-size: 0.85rem;">
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                    <span style="color: #7A6A8C;">💰 Cobrado al cliente:</span>
+                    <strong style="color: #4CAF50;">S/ ${costoDelivery.toFixed(2)}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                    <span style="color: #7A6A8C;">⛽ Costo real:</span>
+                    <strong style="color: #E57373;">S/ ${costoReal.toFixed(2)}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0; border-top: 1px solid #EDE4F5; margin-top: 4px; padding-top: 6px;">
+                    <span style="color: #7A6A8C; font-weight: 600;">📊 Margen:</span>
+                    <strong class="${margen >= 0 ? 'margen-positivo' : 'margen-negativo'}">
+                        S/ ${margen.toFixed(2)}
+                    </strong>
+                </div>
+                
+                <div class="costo-real-editable">
+                    <i class="fas fa-edit"></i>
+                    <span>Costo real: S/</span>
+                    <input type="number" 
+                           step="0.01" 
+                           min="0" 
+                           value="${costoReal.toFixed(2)}" 
+                           id="costo-real-${pedido.id}"
+                           placeholder="0.00">
+                    <button onclick="guardarCostoReal(${pedido.id})">
+                        Guardar
+                    </button>
+                </div>
+            </div>
+        ` : '';
+        
+        const bloqueNotas = pedido.notas_delivery ? `
+            <div class="notas-pedido">
+                <i class="fas fa-pencil-alt"></i>
+                <div>
+                    <strong>Notas del cliente:</strong><br>
+                    ${pedido.notas_delivery}
+                </div>
+            </div>
+        ` : '';
         
         return `
             <div class="pedido-card">
@@ -220,6 +271,8 @@ async function cargarPedidos() {
                         ${costoDelivery ? `<br><small style="font-size: 0.75rem; color: #7A6A8C;">(delivery: S/ ${costoDelivery.toFixed(2)} - ${distancia ? distancia.toFixed(1) + ' km' : ''})</small>` : ''}
                     </div>
                 </div>
+                
+                ${bloqueNotas}
                 
                 <div class="pedido-estado">
                     <label>Estado:</label>
@@ -236,6 +289,8 @@ async function cargarPedidos() {
                     ${(pedido.items || []).map(item => `<span>${item.nombre}</span>`).join('')}
                 </div>
                 
+                ${bloqueCostos}
+                
                 <div class="pedido-footer">
                     <span class="pedido-metodo">💰 ${pedido.metodo_pago || 'No especificado'}</span>
                     <a href="seguimiento.html?codigo=${pedido.codigo_seguimiento}" target="_blank" class="btn-ver-pedido">
@@ -245,11 +300,13 @@ async function cargarPedidos() {
             </div>
         `;
     }).join('');
+    
+    if (document.getElementById('reportesCards')) {
+        cargarReportes();
+    }
 }
 
 async function cambiarEstado(pedidoId, nuevoEstado) {
-    console.log('🔄 Intentando cambiar estado:', pedidoId, '→', nuevoEstado);
-    
     const actualizaciones = { estado: nuevoEstado };
     const ahora = new Date().toISOString();
     
@@ -258,7 +315,7 @@ async function cambiarEstado(pedidoId, nuevoEstado) {
     if (nuevoEstado === 'en_camino') actualizaciones.fecha_envio = ahora;
     if (nuevoEstado === 'entregado') actualizaciones.fecha_entrega = ahora;
 
-    const { data, error } = await sc
+    const { error } = await sc
         .from('pedidos')
         .update(actualizaciones)
         .eq('id', pedidoId)
@@ -270,9 +327,7 @@ async function cambiarEstado(pedidoId, nuevoEstado) {
         return;
     }
 
-    console.log('✅ Estado actualizado en Supabase:', data);
     showToastAdmin('✅ Estado actualizado correctamente');
-    
     await cargarPedidos();
     
     // Enviar correo sin bloquear
@@ -293,12 +348,36 @@ async function cambiarEstado(pedidoId, nuevoEstado) {
                     pedido_id: pedido.id
                 }
             });
-            
             showToastAdmin('📧 Correo enviado al cliente');
         }
     } catch (emailError) {
         console.warn('⚠️ Correo no enviado:', emailError);
     }
+}
+
+// ================== GUARDAR COSTO REAL (#16) ==================
+async function guardarCostoReal(pedidoId) {
+    const input = document.getElementById(`costo-real-${pedidoId}`);
+    if (!input) return;
+    
+    const valor = parseFloat(input.value);
+    if (isNaN(valor) || valor < 0) {
+        alert('Ingresa un valor válido');
+        return;
+    }
+    
+    const { error } = await sc
+        .from('pedidos')
+        .update({ costo_real_delivery: valor })
+        .eq('id', pedidoId);
+    
+    if (error) {
+        alert('Error al guardar: ' + error.message);
+        return;
+    }
+    
+    showToastAdmin('✅ Costo real actualizado');
+    cargarPedidos();
 }
 
 // ================== GESTIÓN DE RESEÑAS ==================
@@ -376,6 +455,151 @@ async function rechazarResena(id) {
     cargarResenasPendientes();
 }
 
+// ================== REPORTES (#17) ==================
+let periodoActual = 'mes';
+
+function cambiarPeriodo(periodo, boton) {
+    periodoActual = periodo;
+    
+    document.querySelectorAll('.filtro-fecha').forEach(btn => btn.classList.remove('active'));
+    if (boton) boton.classList.add('active');
+    
+    cargarReportes();
+}
+
+async function cargarReportes() {
+    const { data, error } = await sc
+        .from('pedidos')
+        .select('*')
+        .order('fecha', { ascending: false });
+
+    if (error || !data) return;
+    
+    const ahora = new Date();
+    let fechaLimite = null;
+    
+    if (periodoActual === 'hoy') {
+        fechaLimite = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+    } else if (periodoActual === 'semana') {
+        fechaLimite = new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (periodoActual === 'mes') {
+        fechaLimite = new Date(ahora.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+    
+    const pedidosFiltrados = fechaLimite 
+        ? data.filter(p => new Date(p.fecha) >= fechaLimite)
+        : data;
+    
+    const totalPedidos = pedidosFiltrados.length;
+    const totalIngresos = pedidosFiltrados.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
+    const totalDeliveryCobrado = pedidosFiltrados.reduce((sum, p) => sum + (Number(p.costo_delivery) || 0), 0);
+    const totalCostoReal = pedidosFiltrados.reduce((sum, p) => sum + (Number(p.costo_real_delivery) || 0), 0);
+    const margenDelivery = totalDeliveryCobrado - totalCostoReal;
+    const ticketPromedio = totalPedidos > 0 ? totalIngresos / totalPedidos : 0;
+    
+    const elTotalPedidos = document.getElementById('totalPedidos');
+    if (elTotalPedidos) elTotalPedidos.textContent = totalPedidos;
+    
+    const elTotalIngresos = document.getElementById('totalIngresos');
+    if (elTotalIngresos) elTotalIngresos.textContent = `S/ ${totalIngresos.toFixed(2)}`;
+    
+    const elTotalDeliveryCobrado = document.getElementById('totalDeliveryCobrado');
+    if (elTotalDeliveryCobrado) elTotalDeliveryCobrado.textContent = `S/ ${totalDeliveryCobrado.toFixed(2)}`;
+    
+    const elTotalCostoReal = document.getElementById('totalCostoReal');
+    if (elTotalCostoReal) elTotalCostoReal.textContent = `S/ ${totalCostoReal.toFixed(2)}`;
+    
+    const margenEl = document.getElementById('margenDelivery');
+    if (margenEl) {
+        margenEl.textContent = `S/ ${margenDelivery.toFixed(2)}`;
+        margenEl.className = `reporte-valor ${margenDelivery >= 0 ? 'margen-positivo' : 'margen-negativo'}`;
+    }
+    
+    const elTicketPromedio = document.getElementById('ticketPromedio');
+    if (elTicketPromedio) elTicketPromedio.textContent = `S/ ${ticketPromedio.toFixed(2)}`;
+    
+    renderizarReporteZonas(pedidosFiltrados);
+    renderizarReporteEstados(pedidosFiltrados);
+}
+
+function renderizarReporteZonas(pedidos) {
+    const container = document.getElementById('reporteZonas');
+    if (!container) return;
+    
+    const zonas = {};
+    
+    pedidos.forEach(p => {
+        const dist = Number(p.distancia_delivery) || 0;
+        let zonaKey = 'Sin zona';
+        
+        for (const z of CONFIG_DELIVERY_ZONAS) {
+            if (dist <= z.radio) {
+                zonaKey = z.nombre;
+                break;
+            }
+        }
+        
+        if (dist > 10) zonaKey = 'Fuera de cobertura';
+        
+        if (!zonas[zonaKey]) {
+            zonas[zonaKey] = { cantidad: 0, montoDelivery: 0 };
+        }
+        
+        zonas[zonaKey].cantidad++;
+        zonas[zonaKey].montoDelivery += Number(p.costo_delivery) || 0;
+    });
+    
+    const zonasArray = Object.entries(zonas).sort((a, b) => b[1].cantidad - a[1].cantidad);
+    
+    if (zonasArray.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#7A6A8C; padding:15px;">Sin datos</p>';
+        return;
+    }
+    
+    container.innerHTML = zonasArray.map(([nombre, datos]) => {
+        const zonaConfig = CONFIG_DELIVERY_ZONAS.find(z => z.nombre === nombre);
+        const color = zonaConfig ? zonaConfig.color : '#B0A5BD';
+        
+        return `
+            <div class="zona-reporte-item">
+                <div class="zona-reporte-color" style="background: ${color};"></div>
+                <div class="zona-reporte-nombre">${nombre}</div>
+                <div class="zona-reporte-cantidad">${datos.cantidad} pedido${datos.cantidad !== 1 ? 's' : ''}</div>
+                <div class="zona-reporte-monto">S/ ${datos.montoDelivery.toFixed(2)}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderizarReporteEstados(pedidos) {
+    const container = document.getElementById('reporteEstados');
+    if (!container) return;
+    
+    const estados = {
+        'pedido_recibido': { emoji: '⏳', nombre: 'Recibidos', color: '#FF9800' },
+        'pago_verificado': { emoji: '✅', nombre: 'Verificados', color: '#4CAF50' },
+        'en_preparacion': { emoji: '📦', nombre: 'En preparación', color: '#2196F3' },
+        'en_camino': { emoji: '🚚', nombre: 'En camino', color: '#9C27B0' },
+        'entregado': { emoji: '🏠', nombre: 'Entregados', color: '#1B5E20' }
+    };
+    
+    const conteo = {};
+    Object.keys(estados).forEach(k => conteo[k] = 0);
+    
+    pedidos.forEach(p => {
+        const estado = p.estado || 'pedido_recibido';
+        if (conteo[estado] !== undefined) conteo[estado]++;
+    });
+    
+    container.innerHTML = Object.entries(estados).map(([key, info]) => `
+        <div class="zona-reporte-item">
+            <div class="zona-reporte-color" style="background: ${info.color};"></div>
+            <div class="zona-reporte-nombre">${info.emoji} ${info.nombre}</div>
+            <div class="zona-reporte-cantidad">${conteo[key]}</div>
+        </div>
+    `).join('');
+}
+
 // ================== TOAST PARA ADMIN ==================
 function showToastAdmin(message) {
     let container = document.getElementById('toast-container');
@@ -403,25 +627,11 @@ function showToastAdmin(message) {
 
 // ================== INICIALIZACIÓN ==================
 window.addEventListener('load', async function() {
-    checkLoginStatus();
-    await loadProducts();
-    loadCart();
-    initFilterEvents();
-    setTimeout(() => initVolumeControl(), 500);
-});
-
-window.addEventListener('click', function(event) {
-    const cartModal = document.getElementById('cartModal');
-    const checkoutModal = document.getElementById('checkoutModal');
-    const registerModal = document.getElementById('registerRequiredModal');
-    const productModal = document.getElementById('productModal');
-    const fullscreenModal = document.getElementById('imageFullscreenModal');
-    const reviewModal = document.getElementById('reviewModal');
-    
-    if (event.target === cartModal) closeCart();
-    if (event.target === checkoutModal) closeCheckout();
-    if (event.target === registerModal) closeRegisterRequired();
-    if (event.target === productModal) closeProductModal();
-    if (event.target === fullscreenModal) closeFullscreenImage();
-    if (event.target === reviewModal) cerrarModalResena();
+    const tieneAcceso = await verificarAcceso();
+    if (tieneAcceso) {
+        await cargarProductos();
+        if (document.getElementById('pedidosList')) cargarPedidos();
+        if (document.getElementById('resenasPendientes')) cargarResenasPendientes();
+        if (document.getElementById('reportesCards')) cargarReportes();
+    }
 });

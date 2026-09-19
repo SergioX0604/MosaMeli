@@ -37,6 +37,9 @@ let circulosZonas = [];
 let costoDeliverySeleccionado = 0;
 let distanciaDelivery = 0;
 let direccionClienteSeleccionada = '';
+let notasDeliveryActual = '';
+let direccionesGuardadasUsuario = [];
+let direccionPrincipalUsuario = null;
 
 // Variables del modal de producto
 let productoActual = null;
@@ -289,6 +292,7 @@ function viewCart() {
     
     const subtotal = totalCarrito();
     const total = subtotal + costoDeliverySeleccionado;
+    const faltante = calcularFaltanteEnvioGratis();
     
     itemsDiv.innerHTML = carrito.map((item, index) => `
         <div class="cart-item">
@@ -297,6 +301,61 @@ function viewCart() {
             <button onclick="removeFromCart(${index})"><i class="fas fa-trash-alt"></i></button>
         </div>
     `).join('');
+    
+    // Aviso de envío gratis (#6)
+    let avisoGratis = '';
+    if (faltante !== null && faltante > 0) {
+        avisoGratis = `
+            <div style="background: linear-gradient(135deg, #FFF8E1 0%, #FFF3C4 100%); 
+                        border-left: 4px solid #FFC107; border-radius: 10px; 
+                        padding: 12px 15px; margin-top: 12px; 
+                        display: flex; align-items: center; gap: 10px;
+                        font-size: 0.85rem; color: #F57C00;">
+                <i class="fas fa-truck" style="font-size: 1.3rem;"></i>
+                <span>Te faltan <strong>S/ ${faltante.toFixed(2)}</strong> para obtener <strong>envío GRATIS</strong> 🎉</span>
+            </div>
+        `;
+    } else if (faltante === null) {
+        avisoGratis = `
+            <div style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); 
+                        border-left: 4px solid #4CAF50; border-radius: 10px; 
+                        padding: 12px 15px; margin-top: 12px; 
+                        display: flex; align-items: center; gap: 10px;
+                        font-size: 0.85rem; color: #2E7D32;">
+                <i class="fas fa-check-circle" style="font-size: 1.3rem;"></i>
+                <span>¡Felicidades! Tienes <strong>envío GRATIS</strong> 🎉</span>
+            </div>
+        `;
+    }
+    
+    // 🆕 #13 - Aviso de validación de zona
+    let avisoZona = '';
+    const validacion = validarZonaAntesDeCheckout();
+    if (!validacion.valido) {
+        const onclickAccion = validacion.accion ? `onclick="${validacion.accion}" style="cursor:pointer;"` : '';
+        avisoZona = `
+            <div class="aviso-zona ${validacion.tipo}" ${onclickAccion}>
+                <i class="fas fa-${validacion.tipo === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${validacion.mensaje}</span>
+            </div>
+        `;
+    }
+    
+    // 🆕 Mostrar notas si existen
+    let mostrarNotas = '';
+    if (notasDeliveryActual) {
+        mostrarNotas = `
+            <div style="background: #F5F0FA; border-radius: 10px; padding: 10px 15px; 
+                        margin-top: 10px; font-size: 0.8rem; color: #7A6A8C;
+                        display: flex; align-items: flex-start; gap: 8px;">
+                <i class="fas fa-pencil-alt" style="color: #9B7FD4; margin-top: 2px;"></i>
+                <div>
+                    <strong style="color: #7E57C2;">Notas para el repartidor:</strong><br>
+                    ${notasDeliveryActual}
+                </div>
+            </div>
+        `;
+    }
     
     itemsDiv.innerHTML += `
         <div class="cart-summary">
@@ -313,6 +372,9 @@ function viewCart() {
                 <span>S/ ${total.toFixed(2)}</span>
             </div>
         </div>
+        ${avisoGratis}
+        ${avisoZona}
+        ${mostrarNotas}
         <button class="btn-ver-mapa" onclick="abrirMapa()">
             <i class="fas fa-map-marked-alt"></i> Ver mapa de delivery
         </button>
@@ -1330,7 +1392,8 @@ async function confirmarPago() {
             cliente_email: user.email,
             costo_delivery: costoDeliverySeleccionado,
             distancia_delivery: distanciaDelivery,
-            direccion_cliente: direccionClienteSeleccionada
+            direccion_cliente: direccionClienteSeleccionada,
+            notas_delivery: notasDeliveryActual || null
         }
     ]).select().single();
     
@@ -1405,6 +1468,7 @@ async function confirmarPago() {
     distanciaDelivery = 0;
     direccionClienteSeleccionada = '';
     metodoPagoElegido = null;
+    notasDeliveryActual = '';
     
     setTimeout(() => {
         document.getElementById('checkoutModal').style.display = 'none';
@@ -1462,10 +1526,17 @@ function cerrarToast(toast) {
 }
 
 // ================== SISTEMA DE MAPA DE DELIVERY ==================
+let routingControl = null;
+let direccionTextoActual = '';
+
 function abrirMapa() {
     document.getElementById('mapModal').style.display = 'flex';
     setTimeout(() => {
         initMapa();
+        // 🆕 Cargar direcciones guardadas
+        cargarDireccionesGuardadas();
+        // Geolocalización automática
+        setTimeout(() => intentarGeolocalizacion(), 800);
     }, 100);
 }
 
@@ -1481,32 +1552,34 @@ function initMapa() {
     
     const origen = CONFIG_DELIVERY.origen;
     
-    // Crear el mapa centrado en el origen
-    mapaDelivery = L.map('map').setView([origen.lat, origen.lng], 13);
+    // Crear el mapa
+    mapaDelivery = L.map('map', {
+        zoomControl: true,
+        attributionControl: true
+    }).setView([origen.lat, origen.lng], 13);
     
-    // Agregar capa de OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap',
-        maxZoom: 18
+    // 🆕 #18 - Tiles de CartoDB (más limpios y profesionales)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap © CARTO',
+        maxZoom: 19,
+        subdomains: 'abcd'
     }).addTo(mapaDelivery);
     
     // Círculo centro (privacidad)
-    const circuloCentro = L.circle([origen.lat, origen.lng], {
+    L.circle([origen.lat, origen.lng], {
         radius: 500,
         color: '#7E57C2',
         fillColor: '#9B7FD4',
         fillOpacity: 0.3,
         weight: 3
-    }).addTo(mapaDelivery);
-    
-    circuloCentro.bindPopup(`
+    }).addTo(mapaDelivery).bindPopup(`
         <div style="text-align: center;">
             <strong style="color: #7E57C2;">Zona de cobertura MosaMeli</strong><br>
             <small style="color: #666;">Chaclacayo, Lima</small>
         </div>
     `);
     
-    // Dibujar zonas (de mayor a menor)
+    // Zonas
     CONFIG_DELIVERY.zonas.slice().reverse().forEach(zona => {
         const circulo = L.circle([origen.lat, origen.lng], {
             radius: zona.radio * 1000,
@@ -1527,72 +1600,331 @@ function initMapa() {
         circulosZonas.push(circulo);
     });
     
-    // ✅ Forzar recalcular tamaño después de renderizar
-    setTimeout(() => {
-        mapaDelivery.invalidateSize();
-    }, 300);
-    
-    // Evento: clic para seleccionar ubicación
-    mapaDelivery.on('click', function(e) {
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-        
-        if (marcadorCliente) {
-            mapaDelivery.removeLayer(marcadorCliente);
-        }
-        
-        const iconoCliente = L.divIcon({
-            className: 'custom-icon-cliente',
-            html: '<div style="background: #F44336; width: 28px; height: 28px; border-radius: 50%; border: 4px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">📍</div>',
-            iconSize: [28, 28],
-            iconAnchor: [14, 14]
-        });
-        
-        marcadorCliente = L.marker([lat, lng], { icon: iconoCliente }).addTo(mapaDelivery);
-        
-        const distancia = calcularDistancia(origen.lat, origen.lng, lat, lng);
-        distanciaDelivery = distancia;
-        
-        const { costo, zonaNombre } = calcularCostoDelivery(distancia);
-        
-        const subtotal = totalCarrito();
-        const esGratis = subtotal >= CONFIG_DELIVERY.gratisDesde;
-        costoDeliverySeleccionado = esGratis ? 0 : costo;
-        
-        direccionClienteSeleccionada = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-        
-        const resultDiv = document.getElementById('deliveryResult');
-        const costDiv = document.getElementById('deliveryCost');
-        
-        if (distancia > 10) {
-            costDiv.innerHTML = `
-                <span style="color: #D32F2F;">Fuera de cobertura</span>
-                <small style="display: block; font-size: 0.75rem; color: #7A6A8C; margin-top: 5px;">
-                    Contáctanos por WhatsApp al 937 309 837
-                </small>
-            `;
-            costoDeliverySeleccionado = 0;
-            direccionClienteSeleccionada = '';
-        } else if (esGratis) {
-            costDiv.innerHTML = `
-                <span style="color: #4CAF50;">¡GRATIS!</span>
-                <small style="display: block; font-size: 0.75rem; color: #2E7D32; margin-top: 5px;">
-                    ${zonaNombre} (${distancia.toFixed(1)} km) - Envío gratis
-                </small>
-            `;
-        } else {
-            costDiv.innerHTML = `
-                S/ ${costo.toFixed(2)}
-                <small style="display: block; font-size: 0.75rem; color: #7A6A8C; margin-top: 5px;">
-                    ${zonaNombre} (${distancia.toFixed(1)} km)
-                </small>
-            `;
-        }
-        
-        resultDiv.style.display = 'block';
-    });
+    // Forzar redimensionar
+    setTimeout(() => mapaDelivery.invalidateSize(), 300);
 }
 
+// ================== GEOLOCALIZACIÓN AUTOMÁTICA (#1) ==================
+function intentarGeolocalizacion() {
+    if (!navigator.geolocation) return;
+    
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            const { latitude, longitude } = pos.coords;
+            
+            // Solo centrar si está dentro de un rango razonable (20 km del origen)
+            const distancia = calcularDistancia(
+                CONFIG_DELIVERY.origen.lat, 
+                CONFIG_DELIVERY.origen.lng, 
+                latitude, 
+                longitude
+            );
+            
+            if (distancia <= 20 && mapaDelivery) {
+                mapaDelivery.setView([latitude, longitude], 15);
+                // Colocar marcador automáticamente
+                setTimeout(() => {
+                    if (!marcadorCliente) {
+                        colocarMarcador(latitude, longitude, true);
+                    }
+                }, 500);
+            }
+        },
+        (err) => console.log('Geolocalización no disponible:', err.message),
+        { timeout: 5000, enableHighAccuracy: false }
+    );
+}
+
+// ================== BUSCAR POR DIRECCIÓN (#2) ==================
+let timeoutBusqueda = null;
+
+document.addEventListener('input', (e) => {
+    if (e.target.id === 'buscarDireccion') {
+        clearTimeout(timeoutBusqueda);
+        const query = e.target.value.trim();
+        
+        if (query.length < 4) {
+            document.getElementById('sugerenciasDireccion').style.display = 'none';
+            return;
+        }
+        
+        timeoutBusqueda = setTimeout(() => buscarSugerencias(query), 500);
+    }
+});
+
+async function buscarSugerencias(query) {
+    try {
+        // Sesgar la búsqueda a Chaclacayo (viewbox)
+        const origen = CONFIG_DELIVERY.origen;
+        const viewbox = `${origen.lng - 0.1},${origen.lat - 0.1},${origen.lng + 0.1},${origen.lat + 0.1}`;
+        
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&viewbox=${viewbox}&bounded=0&limit=5&addressdetails=1&accept-language=es`;
+        
+        const res = await fetch(url, {
+            headers: { 'User-Agent': 'MosaMeli/1.0' }
+        });
+        const data = await res.json();
+        
+        const contenedor = document.getElementById('sugerenciasDireccion');
+        
+        if (!data || data.length === 0) {
+            contenedor.innerHTML = `
+                <div class="sugerencia-item" style="color: #7A6A8C; cursor: default;">
+                    <i class="fas fa-info-circle"></i>
+                    <span>No encontramos esa dirección. Prueba con otra o haz clic en el mapa.</span>
+                </div>
+            `;
+            contenedor.style.display = 'block';
+            return;
+        }
+        
+        contenedor.innerHTML = data.map(item => `
+            <div class="sugerencia-item" onclick='seleccionarSugerencia(${item.lat}, ${item.lon}, ${JSON.stringify(item.display_name)})'>
+                <i class="fas fa-map-marker-alt"></i>
+                <span>${item.display_name}</span>
+            </div>
+        `).join('');
+        
+        contenedor.style.display = 'block';
+    } catch (err) {
+        console.error('Error buscando dirección:', err);
+    }
+}
+
+function seleccionarSugerencia(lat, lng, direccion) {
+    document.getElementById('sugerenciasDireccion').style.display = 'none';
+    document.getElementById('buscarDireccion').value = '';
+    
+    direccionTextoActual = direccion;
+    
+    mapaDelivery.setView([lat, lng], 16);
+    colocarMarcador(parseFloat(lat), parseFloat(lng), false);
+}
+
+async function buscarDireccion() {
+    const query = document.getElementById('buscarDireccion').value.trim();
+    if (!query) return;
+    await buscarSugerencias(query);
+}
+
+function usarMiUbicacion() {
+    if (!navigator.geolocation) {
+        showToast("⚠️ Tu navegador no soporta geolocalización");
+        return;
+    }
+    
+    showToast("📍 Obteniendo tu ubicación...");
+    
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            const { latitude, longitude } = pos.coords;
+            mapaDelivery.setView([latitude, longitude], 16);
+            colocarMarcador(latitude, longitude, true);
+        },
+        (err) => {
+            showToast("❌ No pudimos obtener tu ubicación. Marca en el mapa.");
+            console.error(err);
+        },
+        { timeout: 10000, enableHighAccuracy: true }
+    );
+}
+
+// ================== COLOCAR MARCADOR ARRASTRABLE (#4) ==================
+function colocarMarcador(lat, lng, esAutomatico = false) {
+    const origen = CONFIG_DELIVERY.origen;
+    
+    if (marcadorCliente) {
+        mapaDelivery.removeLayer(marcadorCliente);
+    }
+    
+    const iconoCliente = L.divIcon({
+        className: 'custom-icon-cliente',
+        html: '<div style="background: #F44336; width: 32px; height: 32px; border-radius: 50%; border: 4px solid white; box-shadow: 0 2px 12px rgba(244,67,54,0.5); display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;">📍</div>',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+    });
+    
+    marcadorCliente = L.marker([lat, lng], { 
+        icon: iconoCliente,
+        draggable: true
+    }).addTo(mapaDelivery);
+    
+    marcadorCliente.on('dragend', function(e) {
+        const nuevaPos = e.target.getLatLng();
+        procesarUbicacion(nuevaPos.lat, nuevaPos.lng, false);
+    });
+    
+    procesarUbicacion(lat, lng, esAutomatico);
+    
+    // 🆕 Guardar dirección automáticamente
+    if (direccionTextoActual) {
+        guardarDireccionActual(lat, lng, direccionTextoActual);
+    }
+}
+
+// ================== PROCESAR UBICACIÓN (con ruta real #5 y spinner #20) ==================
+async function procesarUbicacion(lat, lng, esAutomatico) {
+    const origen = CONFIG_DELIVERY.origen;
+    
+    // 🆕 #20 - Mostrar spinner
+    document.getElementById('calculandoRuta').style.display = 'flex';
+    document.getElementById('badgeZona').style.display = 'none';
+    document.getElementById('deliveryResult').style.display = 'none';
+    
+    // Calcular distancia en línea recta
+    const distanciaRecta = calcularDistancia(origen.lat, origen.lng, lat, lng);
+    
+    // 🆕 #5 - Intentar obtener ruta real
+    let distanciaReal = distanciaRecta;
+    let tiempoEstimado = null;
+    
+    try {
+        const ruta = await obtenerRutaReal(origen.lat, origen.lng, lat, lng);
+        if (ruta) {
+            distanciaReal = ruta.distancia;
+            tiempoEstimado = ruta.tiempo;
+        }
+    } catch (e) {
+        console.log('No se pudo obtener ruta real, usando línea recta');
+    }
+    
+    // Ocultar spinner
+    document.getElementById('calculandoRuta').style.display = 'none';
+    
+    // Guardar variables globales
+    distanciaDelivery = distanciaReal;
+    direccionClienteSeleccionada = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    
+    // Calcular costo según zona
+    const { costo, zonaNombre, color } = calcularCostoDelivery(distanciaReal);
+    
+    // Verificar si aplica envío gratis
+    const subtotal = totalCarrito();
+    const esGratis = subtotal >= CONFIG_DELIVERY.gratisDesde;
+    
+    // 🆕 #7 - Recargo nocturno
+    const { recargo, aplicaRecargo } = calcularRecargo();
+    
+    const costoFinalBase = esGratis ? 0 : costo;
+    costoDeliverySeleccionado = costoFinalBase + recargo;
+    
+    // 🆕 #19 - Mostrar badge de zona
+    const badge = document.getElementById('badgeZona');
+    const textoZona = document.getElementById('textoZona');
+    const precioZona = document.getElementById('precioZona');
+    
+    if (distanciaReal > 10) {
+        // Fuera de cobertura
+        textoZona.textContent = 'Fuera de cobertura';
+        precioZona.textContent = '❌';
+        badge.querySelector('.badge-zona-inner').style.background = 'linear-gradient(135deg, #E57373 0%, #D32F2F 100%)';
+        badge.style.display = 'flex';
+        costoDeliverySeleccionado = 0;
+        direccionClienteSeleccionada = '';
+    } else {
+        textoZona.textContent = zonaNombre;
+        if (esGratis && recargo === 0) {
+            precioZona.textContent = '¡GRATIS!';
+        } else if (esGratis && recargo > 0) {
+            precioZona.textContent = `S/ ${recargo.toFixed(2)} (recargo)`;
+        } else if (recargo > 0) {
+            precioZona.textContent = `S/ ${costoFinalBase.toFixed(2)} + S/ ${recargo.toFixed(2)}`;
+        } else {
+            precioZona.textContent = `S/ ${costoFinalBase.toFixed(2)}`;
+        }
+        badge.querySelector('.badge-zona-inner').style.background = color 
+            ? `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)` 
+            : 'linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%)';
+        badge.style.display = 'flex';
+    }
+    
+    // Mostrar resultado final
+    const resultDiv = document.getElementById('deliveryResult');
+    const costDiv = document.getElementById('deliveryCost');
+    const tiempoDiv = document.getElementById('deliveryTiempo');
+    
+    if (distanciaReal > 10) {
+        costDiv.innerHTML = `<span style="color: #D32F2F;">Fuera de cobertura</span>`;
+        tiempoDiv.innerHTML = `<i class="fas fa-phone"></i> Contáctanos por WhatsApp al 937 309 837`;
+    } else if (esGratis && recargo === 0) {
+        costDiv.innerHTML = `<span style="color: #4CAF50;">¡ENVÍO GRATIS!</span>`;
+        tiempoDiv.innerHTML = `<i class="fas fa-clock"></i> ${tiempoEstimado || estimarTiempo(distanciaReal)}`;
+    } else {
+        let texto = `S/ ${costoDeliverySeleccionado.toFixed(2)}`;
+        if (recargo > 0 && !esGratis) {
+            texto += ` <small style="font-size: 0.75rem;">(incluye recargo nocturno S/ ${recargo.toFixed(2)})</small>`;
+        } else if (recargo > 0 && esGratis) {
+            texto = `S/ ${recargo.toFixed(2)} <small style="font-size: 0.75rem;">(recargo nocturno, envío gratis)</small>`;
+        }
+        costDiv.innerHTML = texto;
+        tiempoDiv.innerHTML = `<i class="fas fa-clock"></i> ${tiempoEstimado || estimarTiempo(distanciaReal)}`;
+    }
+    
+    resultDiv.style.display = 'block';
+    
+    // Actualizar el texto de dirección
+    if (direccionTextoActual) {
+        document.getElementById('textoDireccionSeleccionada').textContent = direccionTextoActual;
+        document.getElementById('direccionSeleccionada').style.display = 'flex';
+    } else if (esAutomatico) {
+        document.getElementById('textoDireccionSeleccionada').textContent = 'Tu ubicación actual';
+        document.getElementById('direccionSeleccionada').style.display = 'flex';
+    }
+}
+
+// ================== RUTA REAL CON OSRM (#5) ==================
+async function obtenerRutaReal(lat1, lng1, lat2, lng2) {
+    try {
+        // OSRM público (gratis)
+        const url = `https://router.project-osrm.org/route/v1/driving/${lng1},${lat1};${lng2},${lat2}?overview=full&geometries=geojson`;
+        
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
+            return null;
+        }
+        
+        const ruta = data.routes[0];
+        const distanciaKm = ruta.distance / 1000;
+        const tiempoMin = Math.round(ruta.duration / 60);
+        
+        // Dibujar ruta en el mapa
+        if (routingControl) {
+            mapaDelivery.removeLayer(routingControl);
+        }
+        
+        const coordenadas = ruta.geometry.coordinates.map(c => [c[1], c[0]]);
+        
+        routingControl = L.polyline(coordenadas, {
+            color: '#9B7FD4',
+            weight: 5,
+            opacity: 0.8,
+            smoothFactor: 1
+        }).addTo(mapaDelivery);
+        
+        // Ajustar vista para mostrar toda la ruta
+        mapaDelivery.fitBounds(routingControl.getBounds(), { padding: [30, 30] });
+        
+        return {
+            distancia: distanciaKm,
+            tiempo: tiempoMin < 60 
+                ? `${tiempoMin} min` 
+                : `${Math.floor(tiempoMin / 60)}h ${tiempoMin % 60}min`
+        };
+    } catch (err) {
+        console.error('Error obteniendo ruta:', err);
+        return null;
+    }
+}
+
+// ================== ESTIMAR TIEMPO (fallback) ==================
+function estimarTiempo(distancia) {
+    const minutos = Math.round(15 + (distancia * 5));
+    return `~${minutos} min`;
+}
+
+// ================== CÁLCULO DE COSTOS ==================
 function calcularDistancia(lat1, lng1, lat2, lng2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1610,33 +1942,252 @@ function calcularDistancia(lat1, lng1, lat2, lng2) {
 function calcularCostoDelivery(distancia) {
     for (const zona of CONFIG_DELIVERY.zonas) {
         if (distancia <= zona.radio) {
-            return { costo: zona.costo, zonaNombre: zona.nombre };
+            return { 
+                costo: zona.costo, 
+                zonaNombre: zona.nombre,
+                color: zona.color
+            };
         }
     }
-    return { costo: 0, zonaNombre: 'Fuera de cobertura' };
+    return { costo: 0, zonaNombre: 'Fuera de cobertura', color: '#E57373' };
 }
 
+// 🆕 #7 - Recargo nocturno
+function calcularRecargo() {
+    const ahora = new Date();
+    const hora = ahora.getHours();
+    const dia = ahora.getDay(); // 0 = domingo
+    
+    // Recargo nocturno: después de las 8pm o antes de las 7am
+    const esNocturno = hora >= 20 || hora < 7;
+    // Recargo dominical
+    const esDomingo = dia === 0;
+    
+    let recargo = 0;
+    if (esNocturno) recargo += 3.00;
+    if (esDomingo) recargo += 2.00;
+    
+    return { 
+        recargo, 
+        aplicaRecargo: recargo > 0,
+        esNocturno,
+        esDomingo
+    };
+}
+
+// ================== APLICAR DELIVERY ==================
 function aplicarDelivery() {
+    if (!direccionClienteSeleccionada) {
+        showToast("⚠️ Primero selecciona tu ubicación en el mapa");
+        return;
+    }
+    
+    // 🆕 Guardar notas de delivery
+    const notasInput = document.getElementById('notasDelivery');
+    notasDeliveryActual = notasInput ? notasInput.value.trim() : '';
+    
     cerrarMapa();
-    mostrarResumenCarrito();
+    viewCart();
     showToast(`✅ Delivery aplicado: S/ ${costoDeliverySeleccionado.toFixed(2)}`);
 }
 
 function mostrarResumenCarrito() {
-    // Actualizar el carrito con el delivery
     viewCart();
 }
 
+// ================== 🆕 #10 y #11 - DIRECCIONES GUARDADAS ==================
+async function cargarDireccionesGuardadas() {
+    const { data: { user } } = await sc.auth.getUser();
+    if (!user) return;
+    
+    const { data: perfil } = await sc
+        .from('perfiles')
+        .select('direccion_principal, direcciones_guardadas')
+        .eq('id', user.id)
+        .single();
+    
+    if (perfil) {
+        direccionPrincipalUsuario = perfil.direccion_principal || null;
+        direccionesGuardadasUsuario = perfil.direcciones_guardadas || [];
+        renderizarDireccionesGuardadas();
+    }
+}
+
+function renderizarDireccionesGuardadas() {
+    const contenedor = document.getElementById('direccionesGuardadas');
+    if (!contenedor) return;
+    
+    const todasLasDirecciones = [];
+    
+    // Agregar la principal primero (si existe)
+    if (direccionPrincipalUsuario) {
+        todasLasDirecciones.push({
+            texto: direccionPrincipalUsuario.texto,
+            lat: direccionPrincipalUsuario.lat,
+            lng: direccionPrincipalUsuario.lng,
+            esPrincipal: true
+        });
+    }
+    
+    // Agregar las guardadas
+    direccionesGuardadasUsuario.forEach(dir => {
+        // Evitar duplicados
+        const yaExiste = todasLasDirecciones.some(d => 
+            d.lat === dir.lat && d.lng === dir.lng
+        );
+        if (!yaExiste) todasLasDirecciones.push(dir);
+    });
+    
+    if (todasLasDirecciones.length === 0) {
+        contenedor.style.display = 'none';
+        return;
+    }
+    
+    contenedor.style.display = 'block';
+    contenedor.innerHTML = `
+        <h4><i class="fas fa-bookmark"></i> Tus direcciones guardadas</h4>
+        ${todasLasDirecciones.map((dir, i) => `
+            <div class="direccion-guardada-item" onclick="usarDireccionGuardada(${dir.lat}, ${dir.lng}, ${JSON.stringify(dir.texto)})">
+                <i class="fas fa-${dir.esPrincipal ? 'star' : 'map-marker-alt'}"></i>
+                <span class="texto-direccion">${dir.texto}</span>
+                ${!dir.esPrincipal ? `
+                    <button class="btn-eliminar-dir" onclick="event.stopPropagation(); eliminarDireccionGuardada(${i})" title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : ''}
+            </div>
+        `).join('')}
+    `;
+}
+
+async function usarDireccionGuardada(lat, lng, texto) {
+    direccionTextoActual = texto;
+    document.getElementById('buscarDireccion').value = '';
+    document.getElementById('sugerenciasDireccion').style.display = 'none';
+    
+    mapaDelivery.setView([lat, lng], 16);
+    colocarMarcador(lat, lng, false);
+}
+
+async function eliminarDireccionGuardada(index) {
+    if (!confirm('¿Eliminar esta dirección guardada?')) return;
+    
+    direccionesGuardadasUsuario.splice(index, 1);
+    
+    const { data: { user } } = await sc.auth.getUser();
+    if (!user) return;
+    
+    await sc.from('perfiles')
+        .update({ direcciones_guardadas: direccionesGuardadasUsuario })
+        .eq('id', user.id);
+    
+    renderizarDireccionesGuardadas();
+    showToast('🗑️ Dirección eliminada');
+}
+
+async function guardarDireccionActual(lat, lng, texto) {
+    const { data: { user } } = await sc.auth.getUser();
+    if (!user) return;
+    
+    // Si es la primera dirección, guardarla como principal
+    if (!direccionPrincipalUsuario) {
+        direccionPrincipalUsuario = { lat, lng, texto };
+        await sc.from('perfiles')
+            .update({ 
+                direccion_principal: { lat, lng, texto },
+                direcciones_guardadas: []
+            })
+            .eq('id', user.id);
+        return;
+    }
+    
+    // Verificar si ya existe
+    const yaExiste = 
+        (direccionPrincipalUsuario.lat === lat && direccionPrincipalUsuario.lng === lng) ||
+        direccionesGuardadasUsuario.some(d => d.lat === lat && d.lng === lng);
+    
+    if (yaExiste) return;
+    
+    // Agregar al historial (máximo 5)
+    direccionesGuardadasUsuario.unshift({ lat, lng, texto });
+    if (direccionesGuardadasUsuario.length > 5) {
+        direccionesGuardadasUsuario = direccionesGuardadasUsuario.slice(0, 5);
+    }
+    
+    await sc.from('perfiles')
+        .update({ direcciones_guardadas: direccionesGuardadasUsuario })
+        .eq('id', user.id);
+    
+    renderizarDireccionesGuardadas();
+}
+
+// ================== 🆕 #14 - NOTAS DE DELIVERY ==================
+document.addEventListener('input', (e) => {
+    if (e.target.id === 'notasDelivery') {
+        const contador = document.getElementById('contadorNotas');
+        if (contador) contador.textContent = e.target.value.length;
+    }
+});
+
+// ================== 🆕 #13 - VALIDAR ZONA ANTES DEL CHECKOUT ==================
+function validarZonaAntesDeCheckout() {
+    const subtotal = totalCarrito();
+    
+    // Si el pedido califica para envío gratis, no necesita dirección
+    if (subtotal >= CONFIG_DELIVERY.gratisDesde && distanciaDelivery <= 10) {
+        // Si tiene envío gratis pero no ha seleccionado zona, aún así verificar
+        if (direccionClienteSeleccionada && distanciaDelivery > 10) {
+            return {
+                valido: false,
+                mensaje: '❌ Tu dirección está fuera de nuestra zona de cobertura (máx. 10 km). Contáctanos por WhatsApp al 937 309 837.',
+                tipo: 'error'
+            };
+        }
+        return { valido: true };
+    }
+    
+    // Si no hay dirección seleccionada
+    if (!direccionClienteSeleccionada) {
+        return {
+            valido: false,
+            mensaje: '📍 Aún no has seleccionado tu ubicación de delivery. Haz clic aquí para elegirla en el mapa.',
+            tipo: 'warning',
+            accion: 'abrirMapa()'
+        };
+    }
+    
+    // Si está fuera de cobertura
+    if (distanciaDelivery > 10) {
+        return {
+            valido: false,
+            mensaje: '❌ Tu dirección está fuera de nuestra zona de cobertura (máx. 10 km). Contáctanos por WhatsApp al 937 309 837.',
+            tipo: 'error'
+        };
+    }
+    
+    return { valido: true };
+}
+
+// ================== 🆕 #6 - AVISO DE ENVÍO GRATIS ==================
+function calcularFaltanteEnvioGratis() {
+    const subtotal = totalCarrito();
+    const gratisDesde = CONFIG_DELIVERY.gratisDesde;
+    
+    if (subtotal >= gratisDesde) return null;
+    
+    return gratisDesde - subtotal;
+}
+
 // ================== INICIALIZACIÓN ==================
-window.onload = async function() {
+window.addEventListener('load', async function() {
     checkLoginStatus();
     await loadProducts();
     loadCart();
     initFilterEvents();
     setTimeout(() => initVolumeControl(), 500);
-};
+});
 
-window.onclick = function(event) {
+window.addEventListener('click', function(event) {
     const cartModal = document.getElementById('cartModal');
     const checkoutModal = document.getElementById('checkoutModal');
     const registerModal = document.getElementById('registerRequiredModal');
@@ -1650,4 +2201,14 @@ window.onclick = function(event) {
     if (event.target === productModal) closeProductModal();
     if (event.target === fullscreenModal) closeFullscreenImage();
     if (event.target === reviewModal) cerrarModalResena();
-};
+});
+
+// ================== CERRAR SUGERENCIAS AL HACER CLIC FUERA ==================
+document.addEventListener('click', (e) => {
+    const sugerencias = document.getElementById('sugerenciasDireccion');
+    const buscador = document.querySelector('.buscador-direccion');
+    
+    if (sugerencias && buscador && !buscador.contains(e.target)) {
+        sugerencias.style.display = 'none';
+    }
+});

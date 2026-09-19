@@ -280,91 +280,173 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabaseClient.js"></script>
-    <script>
-        const sc = window.supabaseClient;
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="supabaseClient.js"></script>
+        <script>
+            const sc = window.supabaseClient;
 
-        window.onload = function() {
-            const params = new URLSearchParams(window.location.search);
-            const codigo = params.get('codigo');
-            if (codigo) {
-                document.getElementById('codigoInput').value = codigo;
-                buscarPedido();
-            }
-        };
+            window.onload = async function() {
+                const params = new URLSearchParams(window.location.search);
+                const codigo = params.get('codigo');
+                
+                if (codigo) {
+                    // Modo búsqueda por código específico
+                    document.getElementById('codigoInput').value = codigo;
+                    buscarPedido();
+                } else {
+                    // Modo "mis pedidos" (si está logueado)
+                    const { data: { user } } = await sc.auth.getUser();
+                    if (user) {
+                        cargarMisPedidos(user);
+                    }
+                }
+            };
 
-        async function buscarPedido() {
-            const codigo = document.getElementById('codigoInput').value.trim();
-            if (!codigo) {
-                alert('Por favor, ingresa tu código de seguimiento');
-                return;
-            }
+            // ================== MODO MIS PEDIDOS ==================
+            async function cargarMisPedidos(user) {
+                const { data, error } = await sc
+                    .from('pedidos')
+                    .select('*')
+                    .eq('usuario_id', user.id)
+                    .order('fecha', { ascending: false });
 
-            const { data, error } = await sc
-                .from('pedidos')
-                .select('*')
-                .eq('codigo_seguimiento', codigo)
-                .single();
+                if (error || !data || data.length === 0) return; // Se queda la caja de búsqueda normal
 
-            if (error || !data) {
-                document.getElementById('pedidoInfo').style.display = 'none';
-                document.getElementById('errorBusqueda').style.display = 'block';
+                // Ocultar la caja de búsqueda y mostrar los pedidos
                 document.getElementById('searchBox').style.display = 'none';
-                return;
+                
+                const contenedor = document.getElementById('pedidoInfo');
+                contenedor.style.display = 'block';
+                contenedor.innerHTML = `
+                    <h2 style="color: #7E57C2; text-align: center; margin-bottom: 20px;">
+                        📦 Mis Pedidos (${data.length})
+                    </h2>
+                    ${data.map(pedido => `
+                        <div class="pedido-item" 
+                            onclick="window.location.href='seguimiento.html?codigo=${pedido.codigo_seguimiento}'"
+                            style="background: white; border-radius: 15px; padding: 18px; margin-bottom: 12px; 
+                                    cursor: pointer; border-left: 4px solid #9B7FD4; 
+                                    box-shadow: 0 2px 8px rgba(155,127,212,0.1);
+                                    transition: all 0.3s;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; 
+                                        gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                                <div>
+                                    <strong style="color: #7E57C2; font-size: 1rem;">
+                                        #${pedido.codigo_seguimiento || 'Sin código'}
+                                    </strong>
+                                    <p style="color: #7A6A8C; font-size: 0.8rem; margin-top: 4px;">
+                                        ${new Date(pedido.fecha).toLocaleDateString('es-PE', {
+                                            day: '2-digit', month: 'short', year: 'numeric'
+                                        })}
+                                    </p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 1.1rem; font-weight: 700; color: #E57373;">
+                                        S/ ${Number(pedido.total).toFixed(2)}
+                                    </div>
+                                    <small style="color: #7A6A8C; font-size: 0.75rem;">
+                                        ${(pedido.items || []).length} producto(s)
+                                    </small>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; 
+                                        gap: 10px; flex-wrap: wrap;">
+                                <span style="background: #F5F0FA; color: #7E57C2; padding: 5px 12px; 
+                                            border-radius: 15px; font-size: 0.75rem; font-weight: 600;">
+                                    ${estadoTexto(pedido.estado || 'pedido_recibido')}
+                                </span>
+                                <span style="color: #9B7FD4; font-size: 0.85rem; font-weight: 600;">
+                                    Ver detalle <i class="fas fa-arrow-right"></i>
+                                </span>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
             }
 
-            document.getElementById('errorBusqueda').style.display = 'none';
-            document.getElementById('pedidoInfo').style.display = 'block';
-            document.getElementById('searchBox').style.display = 'none';
+            function estadoTexto(estado) {
+                const textos = {
+                    'pedido_recibido': '⏳ Pedido recibido',
+                    'pago_verificado': '✅ Pago verificado',
+                    'en_preparacion': '📦 En preparación',
+                    'en_camino': '🚚 En camino',
+                    'entregado': '🏠 Entregado'
+                };
+                return textos[estado] || '⏳ Pedido recibido';
+            }
 
-            document.getElementById('infoCodigo').textContent = data.codigo_seguimiento;
-            document.getElementById('infoCliente').textContent = data.cliente_nombre || 'Cliente';
-            document.getElementById('infoTotal').textContent = data.total.toFixed(2);
-            document.getElementById('infoMetodo').textContent = data.metodo_pago || 'No especificado';
+            // ================== BÚSQUEDA POR CÓDIGO (ya lo tenías) ==================
+            async function buscarPedido() {
+                const codigo = document.getElementById('codigoInput').value.trim();
+                if (!codigo) {
+                    alert('Por favor, ingresa tu código de seguimiento');
+                    return;
+                }
 
-            renderTimeline(data.estado, data);
-        }
+                const { data, error } = await sc
+                    .from('pedidos')
+                    .select('*')
+                    .eq('codigo_seguimiento', codigo)
+                    .single();
 
-        function renderTimeline(estadoActual, pedido) {
-            const estados = [
-                { key: 'pedido_recibido', icon: 'fa-shopping-bag', titulo: 'Pedido recibido', desc: 'Tu pedido fue registrado', fecha: pedido.fecha },
-                { key: 'pago_verificado', icon: 'fa-check-circle', titulo: 'Pago verificado', desc: 'Confirmamos tu pago', fecha: pedido.fecha_pago_verificado },
-                { key: 'en_preparacion', icon: 'fa-box', titulo: 'En preparación', desc: 'Estamos empacando tu producto', fecha: pedido.fecha_preparacion },
-                { key: 'en_camino', icon: 'fa-truck', titulo: 'En camino', desc: 'Tu pedido está en ruta', fecha: pedido.fecha_envio },
-                { key: 'entregado', icon: 'fa-home', titulo: 'Entregado', desc: 'Disfruta tu producto', fecha: pedido.fecha_entrega }
-            ];
+                if (error || !data) {
+                    document.getElementById('pedidoInfo').style.display = 'none';
+                    document.getElementById('errorBusqueda').style.display = 'block';
+                    document.getElementById('searchBox').style.display = 'none';
+                    return;
+                }
 
-            const ordenEstados = estados.map(e => e.key);
-            const indexActual = ordenEstados.indexOf(estadoActual);
+                document.getElementById('errorBusqueda').style.display = 'none';
+                document.getElementById('pedidoInfo').style.display = 'block';
+                document.getElementById('searchBox').style.display = 'none';
 
-            const timeline = document.getElementById('timeline');
-            timeline.innerHTML = estados.map((estado, i) => {
-                let clase = '';
-                if (i < indexActual) clase = 'completed';
-                else if (i === indexActual) clase = 'active';
+                document.getElementById('infoCodigo').textContent = data.codigo_seguimiento;
+                document.getElementById('infoCliente').textContent = data.cliente_nombre || 'Cliente';
+                document.getElementById('infoTotal').textContent = data.total.toFixed(2);
+                document.getElementById('infoMetodo').textContent = data.metodo_pago || 'No especificado';
 
-                const fecha = estado.fecha 
-                    ? new Date(estado.fecha).toLocaleString('es-PE', { 
-                        day: '2-digit', month: 'short', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit' 
-                    }) 
-                    : '';
+                renderTimeline(data.estado, data);
+            }
 
-                return `
-                    <div class="timeline-item ${clase}">
-                        <div class="timeline-icon">
-                            <i class="fas ${estado.icon}"></i>
+            function renderTimeline(estadoActual, pedido) {
+                const estados = [
+                    { key: 'pedido_recibido', icon: 'fa-shopping-bag', titulo: 'Pedido recibido', desc: 'Tu pedido fue registrado', fecha: pedido.fecha },
+                    { key: 'pago_verificado', icon: 'fa-check-circle', titulo: 'Pago verificado', desc: 'Confirmamos tu pago', fecha: pedido.fecha_pago_verificado },
+                    { key: 'en_preparacion', icon: 'fa-box', titulo: 'En preparación', desc: 'Estamos empacando tu producto', fecha: pedido.fecha_preparacion },
+                    { key: 'en_camino', icon: 'fa-truck', titulo: 'En camino', desc: 'Tu pedido está en ruta', fecha: pedido.fecha_envio },
+                    { key: 'entregado', icon: 'fa-home', titulo: 'Entregado', desc: 'Disfruta tu producto', fecha: pedido.fecha_entrega }
+                ];
+
+                const ordenEstados = estados.map(e => e.key);
+                const indexActual = ordenEstados.indexOf(estadoActual);
+
+                const timeline = document.getElementById('timeline');
+                timeline.innerHTML = estados.map((estado, i) => {
+                    let clase = '';
+                    if (i < indexActual) clase = 'completed';
+                    else if (i === indexActual) clase = 'active';
+
+                    const fecha = estado.fecha 
+                        ? new Date(estado.fecha).toLocaleString('es-PE', { 
+                            day: '2-digit', month: 'short', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit' 
+                        }) 
+                        : '';
+
+                    return `
+                        <div class="timeline-item ${clase}">
+                            <div class="timeline-icon">
+                                <i class="fas ${estado.icon}"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h3>${estado.titulo}</h3>
+                                <p>${estado.desc}</p>
+                                ${fecha ? `<p class="fecha"><i class="far fa-clock"></i> ${fecha}</p>` : ''}
+                            </div>
                         </div>
-                        <div class="timeline-content">
-                            <h3>${estado.titulo}</h3>
-                            <p>${estado.desc}</p>
-                            ${fecha ? `<p class="fecha"><i class="far fa-clock"></i> ${fecha}</p>` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-    </script>
+                    `;
+                }).join('');
+            }
+        </script>
 </body>
 </html>

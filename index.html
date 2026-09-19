@@ -14,9 +14,11 @@
     <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
 
-    <!-- Leaflet (mapas gratis) -->
+    <!-- Leaflet (mapas gratis) + Routing Machine -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 
     <meta property="og:title" content="MosaMeli - Tu mundo en un click">
     <meta property="og:description" content="Descubre productos increíbles para tu hogar, familia y mascotas. Envío gratis a todo el Perú.">
@@ -886,40 +888,401 @@
             .register-required-icon i { font-size: 1.6rem; }
             .register-required-content h2 { font-size: 1.3rem; }
         }
-        /* ==================== AVISO DE CONFIANZA EN PAGOS ==================== */
-.trust-badge {
-    display: flex;
-    gap: 15px;
-    background: #E8F5E9;
-    border: 2px solid #4CAF50;
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 20px;
-    align-items: flex-start;
-}
-.trust-icon {
-    background: #4CAF50;
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-.trust-text strong {
-    color: #2E7D32;
-    display: block;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
-}
-.trust-text p {
-    color: #555;
-    font-size: 0.8rem;
-    line-height: 1.5;
-}
+                    /* ==================== AVISO DE CONFIANZA EN PAGOS ==================== */
+                .trust-badge {
+                    display: flex;
+                    gap: 15px;
+                    background: #E8F5E9;
+                    border: 2px solid #4CAF50;
+                    border-radius: 12px;
+                    padding: 15px;
+                    margin-bottom: 20px;
+                    align-items: flex-start;
+                }
+                .trust-icon {
+                    background: #4CAF50;
+                    color: white;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                    flex-shrink: 0;
+                }
+                .trust-text strong {
+                    color: #2E7D32;
+                    display: block;
+                    margin-bottom: 5px;
+                    font-size: 0.9rem;
+                }
+                .trust-text p {
+                    color: #555;
+                    font-size: 0.8rem;
+                    line-height: 1.5;
+                }
+                
+                /* ==================== BUSCADOR DE DIRECCIÓN ==================== */
+            .buscador-direccion {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 12px;
+                position: relative;
+            }
+
+            .buscador-direccion input {
+                flex: 1;
+                padding: 12px 15px;
+                border: 2px solid #EDE4F5;
+                border-radius: 12px;
+                font-family: 'Poppins', sans-serif;
+                font-size: 0.9rem;
+                outline: none;
+                transition: all 0.3s;
+            }
+
+            .buscador-direccion input:focus {
+                border-color: #9B7FD4;
+                box-shadow: 0 0 0 4px rgba(155, 127, 212, 0.1);
+            }
+
+            .buscador-direccion button {
+                background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+                color: white;
+                border: none;
+                width: 44px;
+                height: 44px;
+                border-radius: 12px;
+                cursor: pointer;
+                font-size: 1rem;
+                transition: all 0.3s;
+                flex-shrink: 0;
+            }
+
+            .buscador-direccion button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 18px rgba(155, 127, 212, 0.4);
+            }
+
+            .buscador-direccion .btn-ubicacion {
+                background: #4CAF50;
+            }
+
+            .buscador-direccion .btn-ubicacion:hover {
+                box-shadow: 0 6px 18px rgba(76, 175, 80, 0.4);
+            }
+
+            /* Sugerencias de direcciones */
+            .sugerencias-direccion {
+                position: absolute;
+                top: 55px;
+                left: 0;
+                right: 0;
+                background: white;
+                border: 2px solid #EDE4F5;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(155, 127, 212, 0.15);
+                max-height: 220px;
+                overflow-y: auto;
+                z-index: 1000;
+            }
+
+            .sugerencia-item {
+                padding: 12px 15px;
+                cursor: pointer;
+                border-bottom: 1px solid #F5F0FA;
+                font-size: 0.85rem;
+                color: #4A3A5C;
+                transition: all 0.2s;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .sugerencia-item:hover {
+                background: #F5F0FA;
+                color: #7E57C2;
+            }
+
+            .sugerencia-item i {
+                color: #9B7FD4;
+                margin-top: 3px;
+                flex-shrink: 0;
+            }
+
+            .sugerencia-item:last-child {
+                border-bottom: none;
+            }
+
+            /* Dirección seleccionada */
+            .direccion-seleccionada {
+                background: #E8F5E9;
+                border-left: 4px solid #4CAF50;
+                border-radius: 10px;
+                padding: 10px 15px;
+                margin-bottom: 12px;
+                font-size: 0.85rem;
+                color: #2E7D32;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .direccion-seleccionada i {
+                margin-top: 3px;
+                flex-shrink: 0;
+            }
+
+            /* ==================== SPINNER DE CÁLCULO ==================== */
+            .calculando-ruta {
+                background: linear-gradient(135deg, #F5F0FA 0%, #FFF8E1 100%);
+                border-radius: 12px;
+                padding: 15px;
+                margin: 12px 0;
+                text-align: center;
+                color: #7E57C2;
+                font-size: 0.9rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                border: 2px dashed #9B7FD4;
+            }
+
+            .calculando-ruta i {
+                font-size: 1.3rem;
+            }
+
+            /* ==================== BADGE DE ZONA ==================== */
+            .badge-zona {
+                margin: 15px 0;
+                display: flex;
+                justify-content: center;
+            }
+
+            .badge-zona-inner {
+                background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 30px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-weight: 600;
+                font-size: 0.9rem;
+                box-shadow: 0 8px 24px rgba(155, 127, 212, 0.4);
+                animation: badge-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+
+            .badge-zona-inner i {
+                font-size: 1.1rem;
+            }
+
+            .badge-precio {
+                background: rgba(255, 255, 255, 0.25);
+                padding: 4px 12px;
+                border-radius: 15px;
+                font-weight: 700;
+                font-size: 1rem;
+                margin-left: 4px;
+            }
+
+            @keyframes badge-pop {
+                0% { transform: scale(0.5); opacity: 0; }
+                70% { transform: scale(1.05); }
+                100% { transform: scale(1); opacity: 1; }
+            }
+
+            /* ==================== TIEMPO ESTIMADO ==================== */
+            .delivery-tiempo {
+                color: #2E7D32 !important;
+                font-size: 0.85rem !important;
+                margin-top: 8px !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-weight: 500;
+            }
+
+            /* ==================== MARCADOR ARRASTRABLE ==================== */
+            .custom-icon-cliente {
+                cursor: grab !important;
+            }
+
+            .custom-icon-cliente:active {
+                cursor: grabbing !important;
+            }
+
+            /* ==================== RESPONSIVE ==================== */
+            @media (max-width: 600px) {
+                .buscador-direccion input {
+                    font-size: 0.85rem;
+                    padding: 10px 12px;
+                }
+                .buscador-direccion button {
+                    width: 40px;
+                    height: 40px;
+                }
+                .badge-zona-inner {
+                    padding: 10px 18px;
+                    font-size: 0.8rem;
+                }
+            }
+                    /* ==================== NOTAS DE DELIVERY (#14) ==================== */
+        .notas-delivery-container {
+            text-align: left;
+            margin: 15px 0;
+            background: #F5F0FA;
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 4px solid #9B7FD4;
+        }
+
+        .notas-delivery-container label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #7E57C2;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .notas-delivery-container textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #EDE4F5;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            resize: vertical;
+            outline: none;
+            transition: all 0.3s;
+            min-height: 60px;
+            color: #4A3A5C;
+        }
+
+        .notas-delivery-container textarea:focus {
+            border-color: #9B7FD4;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(155, 127, 212, 0.1);
+        }
+
+        .notas-delivery-container small {
+            display: block;
+            text-align: right;
+            color: #B0A5BD;
+            font-size: 0.7rem;
+            margin-top: 5px;
+        }
+
+        /* ==================== SECCIÓN DE DIRECCIONES GUARDADAS (#10, #11) ==================== */
+        .direcciones-guardadas {
+            margin: 12px 0;
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            border: 2px solid #EDE4F5;
+        }
+
+        .direcciones-guardadas h4 {
+            color: #7E57C2;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .direccion-guardada-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #F5F0FA;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            color: #4A3A5C;
+        }
+
+        .direccion-guardada-item:hover {
+            background: #EDE4F5;
+            transform: translateX(4px);
+        }
+
+        .direccion-guardada-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .direccion-guardada-item i {
+            color: #9B7FD4;
+            flex-shrink: 0;
+        }
+
+        .direccion-guardada-item .texto-direccion {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .direccion-guardada-item .btn-eliminar-dir {
+            background: none;
+            border: none;
+            color: #E57373;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .direccion-guardada-item .btn-eliminar-dir:hover {
+            color: #D32F2F;
+            transform: scale(1.2);
+        }
+
+        /* ==================== AVISO DE ZONA ANTES DEL CHECKOUT (#13) ==================== */
+        .aviso-zona {
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin: 12px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .aviso-zona.ok {
+            background: #E8F5E9;
+            border-left: 4px solid #4CAF50;
+            color: #2E7D32;
+        }
+
+        .aviso-zona.warning {
+            background: #FFF8E1;
+            border-left: 4px solid #FFC107;
+            color: #F57C00;
+        }
+
+        .aviso-zona.error {
+            background: #FFEBEE;
+            border-left: 4px solid #E57373;
+            color: #C62828;
+        }
+
+        .aviso-zona i {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }    
     </style>
 </head>
 <body>
@@ -942,7 +1305,7 @@
             <div class="user-area">
                 <span id="userName" style="display:none;"></span>
                 <button id="misPedidosBtn" class="icon-btn" style="display:none;" 
-                        onclick="window.location.href='mis-pedidos.html'" 
+                        onclick="window.location.href='seguimiento.html'" 
                         title="Mis Pedidos">
                     <i class="fas fa-box"></i>
                 </button>
@@ -1057,15 +1420,56 @@
         </div>
     </div>
 
-    <!-- Modal del Mapa de Delivery -->
+<!-- Modal del Mapa de Delivery -->
 <div id="mapModal" class="modal">
     <div class="modal-content map-modal-content">
         <span class="close" onclick="cerrarMapa()">&times;</span>
         <h2>🗺️ Costos de Delivery</h2>
-        <p class="map-subtitle">Haz clic en el mapa para calcular tu delivery</p>
-        
+        <p class="map-subtitle">Busca tu dirección o haz clic en el mapa</p>
+
+        <!-- 🔍 Buscador de direcciones (#2) -->
+        <div class="buscador-direccion">
+            <input type="text" id="buscarDireccion" 
+                placeholder="Escribe tu dirección (ej: Av. Los Álamos 123)"
+                autocomplete="off">
+            <button onclick="buscarDireccion()" title="Buscar">
+                <i class="fas fa-search"></i>
+            </button>
+            <button onclick="usarMiUbicacion()" title="Usar mi ubicación actual" class="btn-ubicacion">
+                <i class="fas fa-crosshairs"></i>
+            </button>
+        </div>
+
+        <!-- Sugerencias de direcciones -->
+        <div id="sugerenciasDireccion" class="sugerencias-direccion" style="display:none;"></div>
+        <!-- 🆕 #10 y #11 - Direcciones guardadas -->
+        <div id="direccionesGuardadas" class="direcciones-guardadas" style="display:none;"></div>
+
+        <!-- 📍 Mostrar la dirección seleccionada -->
+        <div id="direccionSeleccionada" class="direccion-seleccionada" style="display:none;">
+            <i class="fas fa-map-marker-alt"></i>
+            <span id="textoDireccionSeleccionada"></span>
+        </div>
+
+        <!-- 🗺️ Mapa -->
         <div id="map"></div>
-        
+
+        <!-- 🌀 Spinner de cálculo (#20) -->
+        <div id="calculandoRuta" class="calculando-ruta" style="display:none;">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Calculando ruta...</span>
+        </div>
+
+        <!-- 🏷️ Badge de zona (#19) -->
+        <div id="badgeZona" class="badge-zona" style="display:none;">
+            <div class="badge-zona-inner">
+                <i class="fas fa-map-marked-alt"></i>
+                <span id="textoZona"></span>
+                <span class="badge-precio" id="precioZona"></span>
+            </div>
+        </div>
+
+        <!-- Leyenda -->
         <div class="delivery-legend">
             <h4>Zonas de cobertura MosaMeli (Chaclacayo)</h4>
             <div class="legend-item">
@@ -1085,17 +1489,30 @@
                 <span>Zona 4 (7-10 km): <strong>S/ 15.00</strong></span>
             </div>
         </div>
-        
+        <!-- Resultado y botón de confirmar -->
         <div id="deliveryResult" class="delivery-result" style="display:none;">
-            <p>📍 Tu ubicación aproximada</p>
+            <p>📍 <strong>Tu ubicación aproximada</strong></p>
             <p class="delivery-cost" id="deliveryCost"></p>
+            <p class="delivery-tiempo" id="deliveryTiempo"></p>
+            
+            <!-- 🆕 #14 - Notas de delivery -->
+            <div class="notas-delivery-container">
+                <label for="notasDelivery">
+                    <i class="fas fa-pencil-alt"></i> 
+                    Notas para el repartidor (opcional)
+                </label>
+                <textarea 
+                    id="notasDelivery" 
+                    placeholder="Ej: Portón verde, departamento 302, tocar timbre 2 veces..."
+                    maxlength="200"
+                    rows="2"></textarea>
+                <small><span id="contadorNotas">0</span>/200 caracteres</small>
+            </div>
+            
             <button class="btn-confirmar-delivery" onclick="aplicarDelivery()">
                 ✅ Usar este delivery
             </button>
         </div>
-    </div>
-</div>
-
     <!-- Modal de registro obligatorio -->
     <div id="registerRequiredModal" class="modal">
         <div class="modal-content register-required-content">
