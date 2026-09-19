@@ -31,11 +31,7 @@ async function checkLoginStatus() {
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'inline';
 
-        // Mostrar botón "Mis Pedidos" si hay sesión
-        const misPedidosBtn = document.getElementById('misPedidosBtn');
-        if (misPedidosBtn) misPedidosBtn.style.display = 'flex';
-        
-        // ✅ Mostrar botón "Mis Pedidos"
+        // Mostrar botón "Mis Pedidos"
         if (misPedidosBtn) misPedidosBtn.style.display = 'flex';
         
         // Mostrar botón de admin solo si es el admin
