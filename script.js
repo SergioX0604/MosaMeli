@@ -1417,12 +1417,12 @@ async function confirmarPago() {
                 pedido_id: pedido.id,
                 codigo_seguimiento: codigoSeguimiento,
                 items: carrito,
-                total: totalFinal,           // ✅ Usa totalFinal (incluye delivery)
-                subtotal: subtotal,
-                costo_delivery: costoDeliverySeleccionado,
+                total: totalFinal,
+                subtotal: subtotal,                          // ✅
+                costo_delivery: costoDeliverySeleccionado,   // ✅
                 metodo_pago: metodoPagoElegido,
-                direccion: direccionClienteSeleccionada,
-                tiene_regalo: totalFinal >= CONFIG_DELIVERY.regaloDesde
+                direccion: direccionClienteSeleccionada,     // ✅
+                tiene_regalo: totalFinal >= CONFIG_DELIVERY.regaloDesde  // ✅
             }
         });
     } catch (e) {
