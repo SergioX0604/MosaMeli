@@ -1452,10 +1452,18 @@
             /* --- Mapa --- */
             .map-modal-content {
                 padding: 15px 12px;
-                max-height: 90vh;
+                max-height: 92vh;
                 overflow-y: auto;
+                overflow-x: hidden;
                 border-radius: 20px;
                 -webkit-overflow-scrolling: touch;
+                touch-action: pan-y;
+                display: block;
+            }
+
+            /* Asegurar que el contenido del modal se pueda scrollear */
+            .map-modal-content > * {
+                flex-shrink: 0;
             }
 
             /* Reducir altura del mapa para dar espacio al resto */
@@ -1535,7 +1543,13 @@
                 border-radius: 10px;
             }
             .buscador-direccion .btn-ubicacion { height: 42px; }
-            #map { height: 300px; border-radius: 12px; margin-bottom: 12px; }
+            #map { 
+                height: 240px; 
+                border-radius: 12px; 
+                margin-bottom: 10px;
+                position: relative;
+                z-index: 1;
+            }
             .pin-central { display: block; font-size: 2.2rem; }
             .btn-mi-ubicacion {
                 display: flex;
@@ -1572,7 +1586,7 @@
 
             /* --- Botón confirmar ubicación --- */
             .btn-confirmar-ubicacion {
-                position: static;
+                position: relative;
                 transform: none;
                 width: 100%;
                 padding: 14px;
@@ -1581,6 +1595,7 @@
                 border-radius: 25px;
                 display: none;
                 justify-content: center;
+                z-index: 10;
             }
             .btn-confirmar-ubicacion:hover,
             .btn-confirmar-ubicacion:active { transform: scale(0.98); }
@@ -1649,6 +1664,45 @@
             .review-item .review-text { font-size: 0.78rem; }
             .review-item .review-date { font-size: 0.65rem; }
             .btn-write-review { padding: 11px; font-size: 0.85rem; }
+
+                        /* Asegurar que las notas y el botón se vean siempre */
+            .notas-delivery-container {
+                display: block !important;
+                visibility: visible !important;
+            }
+
+            .delivery-result {
+                display: block !important;
+                visibility: visible !important;
+            }
+
+            .btn-confirmar-delivery {
+                display: block !important;
+                visibility: visible !important;
+                width: 100%;
+                padding: 14px;
+                margin-top: 12px;
+                font-size: 0.9rem;
+                background: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 25px;
+                font-family: 'Poppins', sans-serif;
+                font-weight: 600;
+                cursor: pointer;
+            }
+
+            /* Permitir scroll dentro del modal */
+            .modal {
+                overflow-y: auto !important;
+                align-items: flex-start !important;
+                padding: 10px !important;
+            }
+
+            .modal-content {
+                margin: 10px auto !important;
+                max-height: none !important;
+            }
         }
 
         /* ==================== RESPONSIVE MÓVIL PEQUEÑO ==================== */

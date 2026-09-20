@@ -54,6 +54,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 30px;
+            flex-wrap: wrap;
         }
         .search-box input {
             flex: 1;
@@ -229,10 +230,55 @@
         }
         .help-section strong { color: #4A3A5C; }
         @media (max-width: 600px) {
-            .tracking-container { padding: 25px 20px; margin: 15px auto; }
-            .tracking-header h1 { font-size: 1.4rem; }
+            body { padding: 12px; }
+            
+            .tracking-container { 
+                padding: 20px 15px; 
+                margin: 10px auto; 
+                border-radius: 15px;
+            }
+            
+            .tracking-header { margin-bottom: 20px; }
+            .tracking-header h1 { font-size: 1.3rem; }
             .tracking-header .logo img { height: 40px; }
+            .tracking-header p { font-size: 0.8rem; }
+            
+            .search-box {
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+            
+            .search-box input {
+                width: 100%;
+                padding: 12px 14px;
+                font-size: 0.85rem;
+                box-sizing: border-box;
+            }
+            
+            .search-box button {
+                width: 100%;
+                padding: 12px 20px;
+                font-size: 0.9rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+            }
+            
             .timeline-content h3 { font-size: 0.9rem; }
+            .timeline-content p { font-size: 0.8rem; }
+            .timeline-icon { width: 40px; height: 40px; font-size: 1rem; }
+            .timeline-item { gap: 15px; padding-bottom: 25px; }
+            .timeline-item::before { left: 19px; top: 40px; }
+            
+            .info-pedido { padding: 15px; }
+            .info-pedido p { font-size: 0.82rem; }
+            
+            .help-section { padding: 12px; }
+            .help-section p { font-size: 0.78rem; }
+            
+            .btn-back { padding: 10px 20px; font-size: 0.85rem; }
         }
     </style>
 </head>
