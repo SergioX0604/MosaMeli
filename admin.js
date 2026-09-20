@@ -250,29 +250,29 @@ async function cargarPedidos() {
         ` : '';
         
         const bloqueNotas = pedido.notas_delivery ? `
-            <div class="notas-pedido">
-                <i class="fas fa-pencil-alt"></i>
-                <div>
-                    <strong>Notas del cliente:</strong><br>
-                    ${pedido.notas_delivery}
+                <div class="notas-pedido">
+                    <i class="fas fa-pencil-alt"></i>
+                    <div>
+                        <strong>Notas del cliente:</strong><br>
+                        ${pedido.notas_delivery}
+                    </div>
                 </div>
-            </div>
-        ` : '';
+            ` : '';
 
-        const bloqueRegalo = pedido.tiene_regalo ? `
-            <div class="notas-pedido" style="background: #F3E5F5; border-left-color: #9C27B0; color: #6A1B9A;">
-                <i class="fas fa-gift"></i>
-                <div>
-                    <strong>🎁 Este pedido incluye regalo sorpresa</strong>
+            const bloqueRegalo = pedido.tiene_regalo ? `
+                <div class="notas-pedido" style="background: #F3E5F5; border-left-color: #9C27B0; color: #6A1B9A;">
+                    <i class="fas fa-gift"></i>
+                    <div>
+                        <strong>🎁 Este pedido incluye regalo sorpresa</strong>
+                    </div>
                 </div>
-            </div>
-        ` : '';
+            ` : '';
         
         return `
             <div class="pedido-card">
                 <div class="pedido-header">
                     <div>
-                        <strong>#${pedido.codigo_seguimiento || 'Sin código'}</strong>
+                        <strong>#${pedido.codigo_seguimiento || 'Sin código'} ${pedido.tiene_regalo ? '🎁' : ''}</strong>
                         <p>${pedido.cliente_nombre || 'Cliente'} - ${pedido.cliente_email || ''}</p>
                     </div>
                     <div class="pedido-total">

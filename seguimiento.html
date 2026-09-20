@@ -280,6 +280,28 @@
             
             .btn-back { padding: 10px 20px; font-size: 0.85rem; }
         }
+                .btn-whatsapp-seguimiento {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 12px;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+            transition: all 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-whatsapp-seguimiento:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(37, 211, 102, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -313,8 +335,13 @@
             <div class="help-section">
                 <p><i class="fas fa-question-circle"></i> ¿Tienes dudas sobre tu pedido?</p>
                 <p>Contáctanos por WhatsApp y te ayudaremos. <strong>MosaMeli</strong></p>
+                <a href="https://wa.me/51937309837?text=Hola%20MosaMeli,%20tengo%20una%20consulta%20sobre%20mi%20pedido" 
+                    class="btn-whatsapp-seguimiento" 
+                    target="_blank" 
+                    rel="noopener">
+                    <i class="fab fa-whatsapp"></i> Contactar por WhatsApp
+                </a>
             </div>
-        </div>
 
         <div id="errorBusqueda" class="error-message">
             <i class="fas fa-search-minus"></i>
