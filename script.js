@@ -27,8 +27,8 @@ const CONFIG_DELIVERY = {
         { radio: 10, costo: 15.00, color: '#F44336', nombre: 'Zona 4 - Chosica / Ricardo Palma' }
     ],
     
-    // Delivery gratis desde este monto
-    gratisDesde: 150.00
+        // Regalo sorpresa desde este monto
+    regaloDesde: 150.00
 };
 
 let mapaDelivery = null;
@@ -292,7 +292,7 @@ function viewCart() {
     
     const subtotal = totalCarrito();
     const total = subtotal + costoDeliverySeleccionado;
-    const faltante = calcularFaltanteEnvioGratis();
+    const faltante = calcularFaltanteRegalo();
     
     itemsDiv.innerHTML = carrito.map((item, index) => `
         <div class="cart-item">
@@ -302,28 +302,28 @@ function viewCart() {
         </div>
     `).join('');
     
-    // Aviso de envío gratis (#6)
-    let avisoGratis = '';
+        // Aviso de regalo sorpresa 🎁
+    let avisoRegalo = '';
     if (faltante !== null && faltante > 0) {
-        avisoGratis = `
+        avisoRegalo = `
             <div style="background: linear-gradient(135deg, #FFF8E1 0%, #FFF3C4 100%); 
                         border-left: 4px solid #FFC107; border-radius: 10px; 
                         padding: 12px 15px; margin-top: 12px; 
                         display: flex; align-items: center; gap: 10px;
                         font-size: 0.85rem; color: #F57C00;">
-                <i class="fas fa-truck" style="font-size: 1.3rem;"></i>
-                <span>Te faltan <strong>S/ ${faltante.toFixed(2)}</strong> para obtener <strong>envío GRATIS</strong> 🎉</span>
+                <i class="fas fa-gift" style="font-size: 1.3rem;"></i>
+                <span>Te faltan <strong>S/ ${faltante.toFixed(2)}</strong> para recibir un <strong>regalo sorpresa</strong> 🎁</span>
             </div>
         `;
     } else if (faltante === null) {
-        avisoGratis = `
-            <div style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); 
-                        border-left: 4px solid #4CAF50; border-radius: 10px; 
+        avisoRegalo = `
+            <div style="background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%); 
+                        border-left: 4px solid #9C27B0; border-radius: 10px; 
                         padding: 12px 15px; margin-top: 12px; 
                         display: flex; align-items: center; gap: 10px;
-                        font-size: 0.85rem; color: #2E7D32;">
-                <i class="fas fa-check-circle" style="font-size: 1.3rem;"></i>
-                <span>¡Felicidades! Tienes <strong>envío GRATIS</strong> 🎉</span>
+                        font-size: 0.85rem; color: #6A1B9A;">
+                <i class="fas fa-gift" style="font-size: 1.3rem;"></i>
+                <span>¡Felicidades! Tienes un <strong>regalo sorpresa</strong> 🎁</span>
             </div>
         `;
     }
@@ -372,7 +372,7 @@ function viewCart() {
                 <span>S/ ${total.toFixed(2)}</span>
             </div>
         </div>
-        ${avisoGratis}
+        ${avisoRegalo}
         ${avisoZona}
         ${mostrarNotas}
         <button class="btn-ver-mapa" onclick="abrirMapa()">
@@ -1327,15 +1327,11 @@ async function confirmarPago() {
         return;
     }
     
-    // ✅ Validar delivery
-    if (costoDeliverySeleccionado === 0 && !direccionClienteSeleccionada) {
-        // Verificar si es porque el carrito califica para envío gratis
-        const subtotal = totalCarrito();
-        if (subtotal < CONFIG_DELIVERY.gratisDesde) {
-            showToast("⚠️ Por favor, selecciona tu ubicación en el mapa de delivery");
-            abrirMapa();
-            return;
-        }
+    // ✅ Validar delivery (siempre obligatorio ahora)
+    if (!direccionClienteSeleccionada) {
+        showToast("⚠️ Por favor, selecciona tu ubicación en el mapa de delivery");
+        abrirMapa();
+        return;
     }
 
     // ✅ Validar sesión
@@ -1393,7 +1389,8 @@ async function confirmarPago() {
             costo_delivery: costoDeliverySeleccionado,
             distancia_delivery: distanciaDelivery,
             direccion_cliente: direccionClienteSeleccionada,
-            notas_delivery: notasDeliveryActual || null
+            notas_delivery: notasDeliveryActual || null,
+            tiene_regalo: totalFinal >= CONFIG_DELIVERY.gratisDesde
         }
     ]).select().single();
     
@@ -1425,7 +1422,8 @@ async function confirmarPago() {
                 subtotal: subtotal,
                 costo_delivery: costoDeliverySeleccionado,
                 metodo_pago: metodoPagoElegido,
-                direccion: direccionClienteSeleccionada
+                direccion: direccionClienteSeleccionada,
+                tiene_regalo: totalFinal >= CONFIG_DELIVERY.gratisDesde
             }
         });
     } catch (e) {
@@ -1692,19 +1690,18 @@ async function procesarUbicacionMovil(lat, lng) {
     
     // Calcular costo
     const { costo, zonaNombre, color } = calcularCostoDelivery(distanciaReal);
-    const subtotal = totalCarrito();
-    const esGratis = subtotal >= CONFIG_DELIVERY.gratisDesde;
+        // 🆕 #7 - Recargo nocturno
     const { recargo } = calcularRecargo();
     
-    const costoFinalBase = esGratis ? 0 : costo;
-    costoDeliverySeleccionado = costoFinalBase + recargo;
+    costoDeliverySeleccionado = costo + recargo;
     
     // Mostrar badge
     const badge = document.getElementById('badgeZona');
     const textoZona = document.getElementById('textoZona');
     const precioZona = document.getElementById('precioZona');
     
-    if (distanciaReal > 10) {
+        if (distanciaReal > 10) {
+        // Fuera de cobertura
         textoZona.textContent = 'Fuera de cobertura';
         precioZona.textContent = '❌';
         badge.querySelector('.badge-zona-inner').style.background = 'linear-gradient(135deg, #E57373 0%, #D32F2F 100%)';
@@ -1713,14 +1710,10 @@ async function procesarUbicacionMovil(lat, lng) {
         direccionClienteSeleccionada = '';
     } else {
         textoZona.textContent = zonaNombre;
-        if (esGratis && recargo === 0) {
-            precioZona.textContent = '¡GRATIS!';
-        } else if (esGratis && recargo > 0) {
-            precioZona.textContent = `S/ ${recargo.toFixed(2)} (recargo)`;
-        } else if (recargo > 0) {
-            precioZona.textContent = `S/ ${costoFinalBase.toFixed(2)} + S/ ${recargo.toFixed(2)}`;
+        if (recargo > 0) {
+            precioZona.textContent = `S/ ${costo.toFixed(2)} + S/ ${recargo.toFixed(2)}`;
         } else {
-            precioZona.textContent = `S/ ${costoFinalBase.toFixed(2)}`;
+            precioZona.textContent = `S/ ${costo.toFixed(2)}`;
         }
         badge.querySelector('.badge-zona-inner').style.background = color 
             ? `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)` 
@@ -1733,18 +1726,13 @@ async function procesarUbicacionMovil(lat, lng) {
     const costDiv = document.getElementById('deliveryCost');
     const tiempoDiv = document.getElementById('deliveryTiempo');
     
-    if (distanciaReal > 10) {
+        if (distanciaReal > 10) {
         costDiv.innerHTML = `<span style="color: #D32F2F;">Fuera de cobertura</span>`;
         tiempoDiv.innerHTML = `<i class="fas fa-phone"></i> Contáctanos por WhatsApp al 937 309 837`;
-    } else if (esGratis && recargo === 0) {
-        costDiv.innerHTML = `<span style="color: #4CAF50;">¡ENVÍO GRATIS!</span>`;
-        tiempoDiv.innerHTML = `<i class="fas fa-clock"></i> ${tiempoEstimado || estimarTiempo(distanciaReal)}`;
     } else {
         let texto = `S/ ${costoDeliverySeleccionado.toFixed(2)}`;
-        if (recargo > 0 && !esGratis) {
+        if (recargo > 0) {
             texto += ` <small style="font-size: 0.75rem;">(incluye recargo nocturno S/ ${recargo.toFixed(2)})</small>`;
-        } else if (recargo > 0 && esGratis) {
-            texto = `S/ ${recargo.toFixed(2)} <small style="font-size: 0.75rem;">(recargo nocturno, envío gratis)</small>`;
         }
         costDiv.innerHTML = texto;
         tiempoDiv.innerHTML = `<i class="fas fa-clock"></i> ${tiempoEstimado || estimarTiempo(distanciaReal)}`;
@@ -1992,10 +1980,10 @@ async function procesarUbicacion(lat, lng, esAutomatico) {
     
     // Verificar si aplica envío gratis
     const subtotal = totalCarrito();
-    const esGratis = subtotal >= CONFIG_DELIVERY.gratisDesde;
+        // 🆕 #7 - Recargo nocturno
+    const { recargo } = calcularRecargo();
     
-    // 🆕 #7 - Recargo nocturno
-    const { recargo, aplicaRecargo } = calcularRecargo();
+    costoDeliverySeleccionado = costo + recargo;
     
     const costoFinalBase = esGratis ? 0 : costo;
     costoDeliverySeleccionado = costoFinalBase + recargo;
@@ -2035,18 +2023,13 @@ async function procesarUbicacion(lat, lng, esAutomatico) {
     const costDiv = document.getElementById('deliveryCost');
     const tiempoDiv = document.getElementById('deliveryTiempo');
     
-    if (distanciaReal > 10) {
+        if (distanciaReal > 10) {
         costDiv.innerHTML = `<span style="color: #D32F2F;">Fuera de cobertura</span>`;
         tiempoDiv.innerHTML = `<i class="fas fa-phone"></i> Contáctanos por WhatsApp al 937 309 837`;
-    } else if (esGratis && recargo === 0) {
-        costDiv.innerHTML = `<span style="color: #4CAF50;">¡ENVÍO GRATIS!</span>`;
-        tiempoDiv.innerHTML = `<i class="fas fa-clock"></i> ${tiempoEstimado || estimarTiempo(distanciaReal)}`;
     } else {
         let texto = `S/ ${costoDeliverySeleccionado.toFixed(2)}`;
-        if (recargo > 0 && !esGratis) {
+        if (recargo > 0) {
             texto += ` <small style="font-size: 0.75rem;">(incluye recargo nocturno S/ ${recargo.toFixed(2)})</small>`;
-        } else if (recargo > 0 && esGratis) {
-            texto = `S/ ${recargo.toFixed(2)} <small style="font-size: 0.75rem;">(recargo nocturno, envío gratis)</small>`;
         }
         costDiv.innerHTML = texto;
         tiempoDiv.innerHTML = `<i class="fas fa-clock"></i> ${tiempoEstimado || estimarTiempo(distanciaReal)}`;
@@ -2349,21 +2332,6 @@ document.addEventListener('input', (e) => {
 
 // ================== 🆕 #13 - VALIDAR ZONA ANTES DEL CHECKOUT ==================
 function validarZonaAntesDeCheckout() {
-    const subtotal = totalCarrito();
-    
-    // Si el pedido califica para envío gratis, no necesita dirección
-    if (subtotal >= CONFIG_DELIVERY.gratisDesde && distanciaDelivery <= 10) {
-        // Si tiene envío gratis pero no ha seleccionado zona, aún así verificar
-        if (direccionClienteSeleccionada && distanciaDelivery > 10) {
-            return {
-                valido: false,
-                mensaje: '❌ Tu dirección está fuera de nuestra zona de cobertura (máx. 10 km). Contáctanos por WhatsApp al 937 309 837.',
-                tipo: 'error'
-            };
-        }
-        return { valido: true };
-    }
-    
     // Si no hay dirección seleccionada
     if (!direccionClienteSeleccionada) {
         return {
@@ -2386,14 +2354,14 @@ function validarZonaAntesDeCheckout() {
     return { valido: true };
 }
 
-// ================== 🆕 #6 - AVISO DE ENVÍO GRATIS ==================
-function calcularFaltanteEnvioGratis() {
+// ================== 🆕 #6 - AVISO DE REGALO GRATIS ==================
+function calcularFaltanteRegalo() {
     const subtotal = totalCarrito();
-    const gratisDesde = CONFIG_DELIVERY.gratisDesde;
+    const regaloDesde = CONFIG_DELIVERY.gratisDesde;
     
-    if (subtotal >= gratisDesde) return null;
+    if (subtotal >= regaloDesde) return null;
     
-    return gratisDesde - subtotal;
+    return regaloDesde - subtotal;
 }
 
 // ================== 🆕 MENSAJE DE AYUDA EN EL MAPA ==================
