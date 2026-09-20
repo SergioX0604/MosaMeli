@@ -1389,11 +1389,9 @@ async function confirmarPago() {
             costo_delivery: costoDeliverySeleccionado,
             distancia_delivery: distanciaDelivery,
             direccion_cliente: direccionClienteSeleccionada,
-                        notas_delivery: notasDeliveryActual || null,
-            tiene_regalo: totalFinal >= CONFIG_DELIVERY.regaloDesde
+            notas_delivery: notasDeliveryActual || null
         }
     ]).select().single();
-    
     if (error) { 
         showToast("Error al guardar pedido: " + error.message); 
         return; 
@@ -1422,8 +1420,7 @@ async function confirmarPago() {
                 subtotal: subtotal,
                 costo_delivery: costoDeliverySeleccionado,
                 metodo_pago: metodoPagoElegido,
-                direccion: direccionClienteSeleccionada,
-                tiene_regalo: totalFinal >= CONFIG_DELIVERY.regaloDesde
+                direccion: direccionClienteSeleccionada
             }
         });
     } catch (e) {

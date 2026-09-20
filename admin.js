@@ -237,11 +237,11 @@ async function cargarPedidos() {
                     <i class="fas fa-edit"></i>
                     <span>Costo real: S/</span>
                     <input type="number" 
-                           step="0.01" 
-                           min="0" 
-                           value="${costoReal.toFixed(2)}" 
-                           id="costo-real-${pedido.id}"
-                           placeholder="0.00">
+                    step="0.01" 
+                    min="0" 
+                    value="${costoReal.toFixed(2)}" 
+                    id="costo-real-${pedido.id}"
+                    placeholder="0.00">
                     <button onclick="guardarCostoReal(${pedido.id})">
                         Guardar
                     </button>
@@ -255,6 +255,15 @@ async function cargarPedidos() {
                 <div>
                     <strong>Notas del cliente:</strong><br>
                     ${pedido.notas_delivery}
+                </div>
+            </div>
+        ` : '';
+
+        const bloqueRegalo = pedido.tiene_regalo ? `
+            <div class="notas-pedido" style="background: #F3E5F5; border-left-color: #9C27B0; color: #6A1B9A;">
+                <i class="fas fa-gift"></i>
+                <div>
+                    <strong>🎁 Este pedido incluye regalo sorpresa</strong>
                 </div>
             </div>
         ` : '';
@@ -273,6 +282,7 @@ async function cargarPedidos() {
                 </div>
                 
                 ${bloqueNotas}
+                ${bloqueRegalo}
                 
                 <div class="pedido-estado">
                     <label>Estado:</label>
