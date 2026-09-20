@@ -5,15 +5,16 @@ const authSupabase = window.supabaseClient;
 async function checkLoginStatus() {
     const { data: { user } } = await authSupabase.auth.getUser();
     const userName = document.getElementById('userName');
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const adminBtn = document.getElementById('adminBtn');
-    const misPedidosBtn = document.getElementById('misPedidosBtn');
-
-    if (!userName || !loginBtn || !logoutBtn) return;
+    const menuUserName = document.getElementById('menuUserName');
+    const menuUserEmail = document.getElementById('menuUserEmail');
+    const menuMisPedidos = document.getElementById('menuMisPedidos');
+    const menuMiPerfil = document.getElementById('menuMiPerfil');
+    const menuLogin = document.getElementById('menuLogin');
+    const menuAdmin = document.getElementById('menuAdmin');
+    const menuLogout = document.getElementById('menuLogout');
 
     if (user) {
-        // Buscar el username en la tabla perfiles
+        // Obtener perfil
         const { data: perfil } = await authSupabase
             .from('perfiles')
             .select('username')
@@ -26,21 +27,32 @@ async function checkLoginStatus() {
 
         nombreMostrar = nombreMostrar.replace(/_\d+$/, '');
 
-        userName.textContent = nombreMostrar;
-        userName.style.display = 'inline';
-        loginBtn.style.display = 'none';
-        logoutBtn.style.display = 'inline';
+        // Actualizar nombre en el header
+        if (userName) userName.textContent = nombreMostrar;
+        if (menuUserName) menuUserName.textContent = nombreMostrar;
+        if (menuUserEmail) menuUserEmail.textContent = user.email;
 
-        // Mostrar botón "Mis Pedidos"
-        if (misPedidosBtn) misPedidosBtn.style.display = 'flex';
-        
-        // Mostrar botón de admin solo si es el admin
-        if (adminBtn && user.email === 'espis0611@gmail.com') {
-            adminBtn.style.display = 'flex';
+        // Mostrar opciones de usuario logueado
+        if (menuMisPedidos) menuMisPedidos.style.display = 'flex';
+        if (menuMiPerfil) menuMiPerfil.style.display = 'flex';
+        if (menuLogout) menuLogout.style.display = 'flex';
+        if (menuLogin) menuLogin.style.display = 'none';
+
+        // Mostrar botón admin solo si es admin
+        if (menuAdmin && user.email === 'espis0611@gmail.com') {
+            menuAdmin.style.display = 'flex';
         }
     } else {
-        // Si no hay sesión, ocultar Mis Pedidos
-        if (misPedidosBtn) misPedidosBtn.style.display = 'none';
+        // Usuario no logueado
+        if (userName) userName.textContent = 'Invitado';
+        if (menuUserName) menuUserName.textContent = 'Invitado';
+        if (menuUserEmail) menuUserEmail.textContent = 'Inicia sesión para continuar';
+        
+        if (menuMisPedidos) menuMisPedidos.style.display = 'none';
+        if (menuMiPerfil) menuMiPerfil.style.display = 'none';
+        if (menuLogout) menuLogout.style.display = 'none';
+        if (menuLogin) menuLogin.style.display = 'flex';
+        if (menuAdmin) menuAdmin.style.display = 'none';
     }
 }
 

@@ -2400,6 +2400,23 @@ function configurarOcultarMensajeAlInteractuar() {
     });
 }
 
+// ================== MENÚ DESPLEGABLE DE USUARIO (MÓVIL) ==================
+function toggleUserMenu() {
+    const menu = document.getElementById('userMenu');
+    if (!menu) return;
+    menu.classList.toggle('active');
+}
+
+// Cerrar menú al hacer clic fuera
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('userMenu');
+    const userInfo = document.querySelector('.user-info');
+    
+    if (menu && menu.classList.contains('active') && userInfo && !userInfo.contains(e.target)) {
+        menu.classList.remove('active');
+    }
+});
+
 // ================== INICIALIZACIÓN ==================
 window.addEventListener('load', async function() {
     checkLoginStatus();

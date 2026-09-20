@@ -1309,405 +1309,335 @@
             to { transform: rotate(360deg); }
         }
 
-        /* ==================== RESPONSIVE MÓVIL ==================== */
+        /* ==================== HEADER MÓVIL ==================== */
         @media (max-width: 768px) {
-            /* --- Producto --- */
-            .product-detail-grid { grid-template-columns: 1fr; }
-            .product-main-image { height: 280px; }
-            .product-detail-info { padding: 25px 20px; }
-            .product-detail-info h2 { font-size: 1.3rem; }
-            .detail-current-price { font-size: 1.5rem; }
-            .product-detail-actions { flex-direction: column; }
-            .admin-btn { padding: 6px 10px; font-size: 0.75rem; }
-            .zoom-hint { display: none; }
-            .close-fullscreen { top: 15px; right: 20px; font-size: 32px; }
-            .fullscreen-controls button { width: 40px; height: 40px; }
-            .video-controls { padding: 20px 10px 10px 10px; gap: 8px; }
-            .video-btn { width: 34px; height: 34px; font-size: 0.8rem; }
-            .video-time { font-size: 0.7rem; min-width: 60px; }
-            .speed-label { font-size: 0.7rem; }
-            .volume-slider-container { bottom: 45px; padding: 12px 8px; }
-            .volume-slider { height: 80px; }
-            .volume-percent { font-size: 0.65rem; }
-            .qr-container img { width: 200px; height: 200px; }
-
-            /* --- Header --- */
             .main-header {
-                padding: 10px 12px;
+                background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+                padding: 10px 12px 0 12px;
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                box-shadow: 0 4px 15px rgba(155, 127, 212, 0.2);
             }
-            .main-header .logo { align-self: flex-start; }
-            .main-header .logo img { height: 32px; }
-            .header-actions {
-                width: 100%;
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-            .search-bar {
-                width: 100%;
-                max-width: 100%;
-                padding: 6px 8px 6px 16px;
-                order: 1;
-            }
-            .search-bar input { font-size: 0.85rem; padding: 8px 4px; }
-            .search-bar button { width: 34px; height: 34px; }
-            .user-area {
+
+            /* Fila 1: Logo + Buscador + Carrito */
+            .header-top {
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 10px;
                 width: 100%;
-                justify-content: center;
-                flex-wrap: wrap;
-                order: 2;
-                padding: 4px 0;
             }
-            .user-area span#userName { 
-                max-width: 110px; 
-                font-size: 0.75rem; 
-                padding: 6px 12px;
-                font-weight: 600;
-                letter-spacing: 0.3px;
-                background: rgba(255, 255, 255, 0.25);
-                border: 1px solid rgba(255, 255, 255, 0.35);
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                text-overflow: ellipsis;
-                overflow: hidden;
-                white-space: nowrap;
-            }
-            .user-area .icon-btn, #misPedidosBtn {
-                width: 34px !important;
-                height: 34px !important;
-                font-size: 0.85rem !important;
-            }
-            .admin-btn { 
-                padding: 6px 12px; 
-                font-size: 0.7rem; 
-                border-radius: 20px; 
-                order: 2;
-                margin-top: -4px;
-            }
-            .cart-btn {
-                width: 34px !important;
-                height: 34px !important;
-                order: 2;
-            }
-            .cart-btn span { font-size: 0.6rem; padding: 1px 4px; top: -3px; right: -3px; }
 
-            /* --- Categorías --- */
-            .category-nav { padding: 8px 10px; gap: 6px; }
-            .cat-pill { padding: 7px 12px; font-size: 0.78rem; gap: 5px; }
-            .cat-pill i { font-size: 0.85rem; }
-            .mobile-filter-btn {
-                margin: 12px 12px 0 12px;
-                width: calc(100% - 24px);
-                padding: 10px;
-                font-size: 0.85rem;
+            .main-header .logo {
+                background: white;
+                padding: 4px 8px;
+                border-radius: 10px;
+                flex-shrink: 0;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             }
-            #categoryTitle { font-size: 1.2rem; margin-top: 15px; }
-            #productCount { font-size: 0.8rem; }
 
-            /* --- Grid productos --- */
-            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 12px; }
-            .product-card { border-radius: 12px; overflow: hidden; }
-            .product-image { height: 145px; object-fit: cover; }
-            .product-info { padding: 10px 8px; }
-            .product-info h3 {
-                font-size: 0.78rem;
-                line-height: 1.3;
-                margin-bottom: 6px;
-                min-height: 2.6em;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-            }
-            .price-container { margin-bottom: 6px; }
-            .current-price { font-size: 1.05rem; }
-            .shipping-info { font-size: 0.62rem; padding: 3px 6px; margin-bottom: 8px; }
-            .btn-buy-now {
-                font-size: 0.68rem;
-                padding: 9px 2px;
-                border-radius: 15px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                text-align: center;
-            }
-            .btn-add-cart {
-                font-size: 0.62rem;
-                padding: 8px 2px;
-                border-radius: 15px;
-                margin-top: 5px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                text-align: center;
-            }
-            .btn-add-cart i { font-size: 0.7rem; margin-right: 2px; }
-
-            /* --- Mapa --- */
-            .map-modal-content {
-                padding: 15px 12px;
-                max-height: 92vh;
-                overflow-y: auto;
-                overflow-x: hidden;
-                border-radius: 20px;
-                -webkit-overflow-scrolling: touch;
-                touch-action: pan-y;
+            .main-header .logo img {
+                height: 28px;
+                width: auto;
                 display: block;
             }
 
-            /* Asegurar que el contenido del modal se pueda scrollear */
-            .map-modal-content > * {
+            .search-bar {
+                flex: 1;
+                background: white;
+                border-radius: 22px;
+                padding: 0 12px;
+                display: flex;
+                align-items: center;
+                height: 40px;
+                position: relative;
+                min-width: 0;
+                max-width: none;
+            }
+
+            .search-bar .search-icon {
+                color: #9B7FD4;
+                font-size: 0.85rem;
+                margin-right: 8px;
                 flex-shrink: 0;
             }
 
-            /* Reducir altura del mapa para dar espacio al resto */
-            #map { 
-                height: 220px; 
-                border-radius: 12px; 
-                margin-bottom: 10px; 
-            }
-
-            /* Leyenda más compacta */
-            .delivery-legend { 
-                padding: 10px; 
-                margin-bottom: 10px; 
-            }
-
-            .delivery-legend h4 { 
-                font-size: 0.8rem; 
-                margin-bottom: 6px; 
-            }
-
-            .legend-item { 
-                font-size: 0.7rem; 
-                padding: 3px 0; 
-                gap: 6px; 
-            }
-
-            /* Resultado del delivery más compacto */
-            .delivery-result { 
-                padding: 12px 10px; 
-            }
-
-            .delivery-cost { 
-                font-size: 1.3rem; 
-                margin-bottom: 8px; 
-            }
-
-            /* Notas de delivery más compactas */
-            .notas-delivery-container { 
-                padding: 10px; 
-                margin: 8px 0; 
-            }
-
-            .notas-delivery-container label { 
-                font-size: 0.7rem; 
-                margin-bottom: 6px; 
-            }
-
-            .notas-delivery-container textarea { 
-                font-size: 0.75rem; 
-                padding: 6px 8px; 
-                min-height: 40px; 
-            }
-
-            /* Botón "Usar este delivery" más compacto */
-            .btn-confirmar-delivery {
-                padding: 12px 20px;
-                font-size: 0.9rem;
-                width: 100%;
-            }
-            .map-modal-content h2 { font-size: 1.1rem; margin-bottom: 4px; }
-            .map-subtitle { font-size: 0.75rem; margin-bottom: 12px; }
-            .buscador-direccion {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                margin-bottom: 10px;
-            }
-            .buscador-direccion input {
-                width: 100%;
-                font-size: 0.85rem;
-                padding: 11px 14px;
-            }
-            .buscador-direccion button {
-                width: 100%;
-                height: 42px;
-                font-size: 0.9rem;
-                border-radius: 10px;
-            }
-            .buscador-direccion .btn-ubicacion { height: 42px; }
-            #map { 
-                height: 240px; 
-                border-radius: 12px; 
-                margin-bottom: 10px;
-                position: relative;
-                z-index: 1;
-            }
-            .pin-central { display: block; font-size: 2.2rem; }
-            .btn-mi-ubicacion {
-                display: flex;
-                width: 44px;
-                height: 44px;
-                font-size: 1.1rem;
-                bottom: 12px;
-                right: 12px;
-            }
-            .mensaje-ayuda-mapa {
-                display: flex;
-                font-size: 0.75rem;
-                padding: 8px 14px;
-                top: 10px;
-                max-width: 85%;
-            }
-            .direccion-seleccionada { font-size: 0.75rem; padding: 8px 12px; margin-bottom: 10px; }
-            .calculando-ruta { padding: 12px; font-size: 0.8rem; margin: 10px 0; }
-            .badge-zona { margin: 10px 0; }
-            .badge-zona-inner { padding: 10px 16px; font-size: 0.8rem; gap: 8px; border-radius: 25px; }
-            .badge-zona-inner i { font-size: 0.9rem; }
-            .badge-precio { font-size: 0.85rem; padding: 3px 10px; }
-            .delivery-legend { padding: 12px; margin-bottom: 12px; }
-            .delivery-legend h4 { font-size: 0.85rem; margin-bottom: 8px; }
-            .legend-item { font-size: 0.75rem; padding: 4px 0; gap: 8px; }
-            .legend-color { width: 12px; height: 12px; }
-            .delivery-result { padding: 15px 12px; }
-            .delivery-result p:first-child { font-size: 0.8rem; margin-bottom: 6px; }
-            .delivery-cost { font-size: 1.5rem; margin-bottom: 10px; }
-            .delivery-tiempo { font-size: 0.75rem !important; margin-bottom: 10px !important; }
-            .notas-delivery-container { padding: 12px; margin: 10px 0; }
-            .notas-delivery-container label { font-size: 0.75rem; margin-bottom: 8px; }
-            .notas-delivery-container textarea { font-size: 0.8rem; padding: 8px 10px; min-height: 50px; }
-
-            /* --- Botón confirmar ubicación --- */
-            .btn-confirmar-ubicacion {
-                position: relative;
-                transform: none;
-                left: auto;
-                right: auto;
-                width: 100%;
-                max-width: 100%;
-                padding: 14px;
-                margin: 10px auto 0 auto;
-                font-size: 0.9rem;
-                border-radius: 25px;
-                display: none;
-                justify-content: center;
-                align-items: center;
-                gap: 10px;
-                box-sizing: border-box;
-                z-index: 10;
-            }
-            .btn-confirmar-ubicacion:hover,
-            .btn-confirmar-ubicacion:active { transform: scale(0.98); }
-            .btn-confirmar-ubicacion[style*="display: flex"],
-            .btn-confirmar-ubicacion[style*="display:flex"] { display: flex !important; }
-
-            /* --- Modal de producto --- */
-            .product-detail-content { 
-                width: 98%; 
-                max-height: 95vh; 
-                border-radius: 16px;
-                overflow-y: auto;
-                display: block;
-            }
-
-            .product-detail-grid {
-                display: block;
-            }
-
-            .product-detail-info { 
-                padding: 20px 15px; 
-                max-height: none; 
-                overflow: visible;
-            }
-            .close-product { top: 10px; right: 12px; width: 32px; height: 32px; font-size: 22px; }
-            .product-gallery { padding: 15px 15px 10px; }
-            .product-main-image { height: 260px; border-radius: 12px; }
-            .gallery-nav { width: 34px; height: 34px; font-size: 0.9rem; }
-            .gallery-nav.prev { left: 10px; }
-            .gallery-nav.next { right: 10px; }
-            .product-thumbnails { gap: 8px; margin-top: 10px; }
-            .thumbnail { width: 55px; height: 55px; }
-            .thumbnail.video-thumb .play-icon { width: 20px; height: 20px; font-size: 0.6rem; }
-            .product-detail-info { 
-                padding: 20px 15px; 
-                max-height: none; 
-                overflow: visible; 
-                padding-bottom: 30px;
-            }
-            .product-detail-info h2 { font-size: 1.15rem; margin-bottom: 4px; }
-            .product-brand { font-size: 0.75rem; margin-bottom: 10px; }
-            .detail-current-price { font-size: 1.5rem; }
-            .product-description { font-size: 0.8rem; padding: 12px; margin-bottom: 15px; line-height: 1.5; }
-            .product-features { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-            .feature-item { padding: 8px; font-size: 0.7rem; }
-            .feature-item strong { font-size: 0.68rem; }
-            .product-quantity { margin-bottom: 12px; gap: 12px; }
-            .product-quantity label { font-size: 0.85rem; }
-            .quantity-selector { padding: 3px; }
-            .quantity-selector button { width: 30px; height: 30px; font-size: 1rem; }
-            .quantity-selector input { width: 42px; font-size: 0.9rem; }
-            .product-detail-actions { flex-direction: column; gap: 8px; margin-bottom: 15px; }
-            .btn-detail-add, .btn-detail-buy { padding: 13px; font-size: 0.85rem; }
-            .product-shipping-info { padding-top: 12px; gap: 8px; margin-bottom: 15px; }
-            .shipping-item { font-size: 0.78rem; gap: 8px; }
-            .product-reviews { margin-top: 15px; padding-top: 15px; }
-            .product-reviews h3 { font-size: 0.95rem; margin-bottom: 12px; }
-            .reviews-summary { padding: 12px; margin-bottom: 12px; }
-            .reviews-average #averageRating { font-size: 1.6rem; }
-            .reviews-stars { font-size: 1.1rem; }
-            .reviews-average p { font-size: 0.78rem; }
-            .reviews-list { max-height: 200px; margin-bottom: 12px; }
-            .review-item { padding: 10px; margin-bottom: 8px; }
-            .review-item .review-author { font-size: 0.78rem; }
-            .review-item .review-stars { font-size: 0.75rem; }
-            .review-item .review-text { font-size: 0.78rem; }
-            .review-item .review-date { font-size: 0.65rem; }
-            .btn-write-review { padding: 11px; font-size: 0.85rem; }
-
-                        /* Asegurar que las notas y el botón se vean siempre */
-            .notas-delivery-container {
-                display: block !important;
-                visibility: visible !important;
-            }
-
-            .delivery-result {
-                display: block !important;
-                visibility: visible !important;
-            }
-
-            .btn-confirmar-delivery {
-                display: block !important;
-                visibility: visible !important;
-                width: 100%;
-                padding: 14px;
-                margin-top: 12px;
-                font-size: 0.9rem;
-                background: #4CAF50;
-                color: white;
+            .search-bar input {
+                flex: 1;
                 border: none;
-                border-radius: 25px;
+                background: transparent;
+                font-size: 0.82rem;
+                outline: none;
+                padding: 0;
+                min-width: 0;
+                color: #4A3A5C;
                 font-family: 'Poppins', sans-serif;
-                font-weight: 600;
+            }
+
+            .search-bar input::placeholder {
+                color: #B0A5BD;
+            }
+
+            /* Ocultar el botón de búsqueda */
+            .search-bar button {
+                display: none;
+            }
+
+            .cart-btn {
+                background: rgba(255, 255, 255, 0.2);
+                width: 40px !important;
+                height: 40px !important;
+                border-radius: 50%;
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                padding: 0 !important;
+                font-size: 1rem !important;
+                position: relative;
+                flex-shrink: 0;
+                border: none;
+                color: white;
                 cursor: pointer;
             }
 
-            /* Permitir scroll dentro del modal */
-            .modal {
-                overflow-y: auto !important;
-                align-items: flex-start !important;
-                padding: 10px !important;
+            .cart-btn span {
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                background: #FFC107;
+                color: #4A3A5C;
+                border-radius: 50%;
+                padding: 2px 5px;
+                font-size: 0.6rem;
+                font-weight: 700;
+                border: 2px solid #9B7FD4;
+                min-width: 18px;
+                text-align: center;
             }
 
-            .modal-content {
-                margin: 10px auto !important;
-                max-height: none !important;
+            /* Fila 2: Ubicación + Usuario */
+            .header-bottom {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 8px 4px;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+                width: 100%;
+                position: relative;
+            }
+
+            .location-info {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                color: white;
+                font-size: 0.75rem;
+                font-weight: 500;
+                cursor: pointer;
+                padding: 4px 8px;
+                border-radius: 20px;
+                transition: all 0.3s;
+                max-width: 50%;
+                overflow: hidden;
+            }
+
+            .location-info:active {
+                background: rgba(255, 255, 255, 0.15);
+            }
+
+            .location-info i:first-child {
+                font-size: 0.85rem;
+                flex-shrink: 0;
+            }
+
+            .location-info span {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .location-info .arrow {
+                font-size: 0.65rem;
+                opacity: 0.8;
+                flex-shrink: 0;
+            }
+
+            .user-info {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                color: white;
+                font-size: 0.75rem;
+                font-weight: 500;
+                cursor: pointer;
+                padding: 4px 8px;
+                border-radius: 20px;
+                transition: all 0.3s;
+                max-width: 45%;
+                overflow: hidden;
+            }
+
+            .user-info:active {
+                background: rgba(255, 255, 255, 0.15);
+            }
+
+            .user-info i:first-child {
+                font-size: 0.9rem;
+                flex-shrink: 0;
+            }
+
+            .user-info span {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                text-transform: capitalize;
+            }
+
+            .user-info .arrow {
+                font-size: 0.65rem;
+                opacity: 0.8;
+                flex-shrink: 0;
+            }
+
+            /* Ocultar elementos antiguos en móvil */
+            .header-actions,
+            .user-area,
+            #misPedidosBtn,
+            #loginBtn,
+            #logoutBtn {
+                display: none !important;
+            }
+
+            /* Admin-btn se muestra en el menú desplegable */
+            .admin-btn {
+                display: none !important;
+            }
+
+            /* ==================== MENÚ DESPLEGABLE DEL USUARIO ==================== */
+            .user-menu {
+                display: none;
+                position: absolute;
+                top: calc(100% + 8px);
+                right: 0;
+                width: 260px;
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 12px 40px rgba(74, 58, 92, 0.25);
+                padding: 8px 0;
+                z-index: 200;
+                animation: menuSlideDown 0.3s ease-out;
+                overflow: hidden;
+            }
+
+            .user-menu.active {
+                display: block;
+            }
+
+            @keyframes menuSlideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .user-menu-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 16px;
+                background: linear-gradient(135deg, #F5F0FA 0%, #FFF8E1 100%);
+                border-bottom: 1px solid #EDE4F5;
+            }
+
+            .user-avatar {
+                width: 42px;
+                height: 42px;
+                background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.1rem;
+                flex-shrink: 0;
+                box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+            }
+
+            .user-menu-data {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                min-width: 0;
+                flex: 1;
+            }
+
+            .user-menu-data strong {
+                color: #4A3A5C;
+                font-size: 0.9rem;
+                font-weight: 700;
+                text-transform: capitalize;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .user-menu-data span {
+                color: #7A6A8C;
+                font-size: 0.72rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .user-menu-item {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 12px 18px;
+                color: #4A3A5C;
+                text-decoration: none;
+                font-size: 0.85rem;
+                font-weight: 500;
+                transition: all 0.2s;
+                cursor: pointer;
+            }
+
+            .user-menu-item:active {
+                background: #F5F0FA;
+            }
+
+            .user-menu-item i {
+                color: #9B7FD4;
+                font-size: 1rem;
+                width: 22px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+
+            .user-menu-item span {
+                flex: 1;
+            }
+
+            .user-menu-item.menu-admin i {
+                color: #FF9800;
+            }
+
+            .user-menu-item.menu-logout i {
+                color: #E57373;
+            }
+
+            .user-menu-divider {
+                height: 1px;
+                background: #EDE4F5;
+                margin: 6px 0;
             }
         }
 
@@ -1768,33 +1698,97 @@
     </script>
 
     <header class="main-header">
+    <!-- Fila 1: Logo + Buscador + Carrito -->
+    <div class="header-top">
         <div class="logo">
             <img src="img/logo-mosameli.png" alt="MosaMeli">
         </div>
-        <div class="header-actions">
-            <div class="search-bar">
-                <input type="text" id="searchBar" placeholder="Buscar productos...">
-                <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="user-area">
-                <span id="userName" style="display:none;"></span>
-                <button id="misPedidosBtn" class="icon-btn" style="display:none;" 
-                        onclick="window.location.href='seguimiento.html'" 
-                        title="Mis Pedidos">
-                    <i class="fas fa-box"></i>
-                </button>
-                <button id="loginBtn" class="icon-btn" onclick="window.location.href='login.html'"><i class="fas fa-user"></i></button>
-                <button id="logoutBtn" class="icon-btn" style="display:none;" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
-            </div>
-            <button id="adminBtn" class="admin-btn" onclick="window.location.href='admin.html'">
-                <i class="fas fa-user-shield"></i> Admin
-            </button>
-            <button class="icon-btn cart-btn" onclick="viewCart()">
-                <i class="fas fa-shopping-cart"></i>
-                <span id="cartCount">0</span>
-            </button>
+        
+        <div class="search-bar">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchBar" placeholder="¿Qué estás buscando?">
         </div>
-    </header>
+
+        <button class="icon-btn cart-btn" onclick="viewCart()">
+            <i class="fas fa-shopping-cart"></i>
+            <span id="cartCount">0</span>
+        </button>
+    </div>
+
+    <!-- Fila 2: Ubicación + Usuario (solo móvil) -->
+    <div class="header-bottom">
+        <div class="location-info" onclick="abrirMapa()">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Selecciona tu ubicación</span>
+            <i class="fas fa-chevron-down arrow"></i>
+        </div>
+
+        <div class="user-info" onclick="toggleUserMenu()">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Invitado</span>
+            <i class="fas fa-chevron-down arrow"></i>
+        </div>
+
+        <!-- Menú desplegable del usuario -->
+        <div id="userMenu" class="user-menu">
+            <div class="user-menu-header">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-menu-data">
+                    <strong id="menuUserName">Invitado</strong>
+                    <span id="menuUserEmail">Inicia sesión</span>
+                </div>
+            </div>
+
+            <!-- Opciones para usuarios logueados -->
+            <a href="seguimiento.html" class="user-menu-item" id="menuMisPedidos" style="display:none;">
+                <i class="fas fa-box"></i>
+                <span>Mis pedidos</span>
+            </a>
+
+            <a href="#" class="user-menu-item" id="menuMiPerfil" style="display:none;">
+                <i class="fas fa-user-edit"></i>
+                <span>Mi perfil</span>
+            </a>
+
+            <a href="seguimiento.html" class="user-menu-item" id="menuRastrearPedido">
+                <i class="fas fa-search-location"></i>
+                <span>Rastrear pedido</span>
+            </a>
+
+            <a href="https://wa.me/51937309837" target="_blank" class="user-menu-item">
+                <i class="fab fa-whatsapp"></i>
+                <span>Contáctanos</span>
+            </a>
+
+            <div class="user-menu-divider"></div>
+
+            <!-- Solo si NO hay sesión -->
+            <a href="login.html" class="user-menu-item menu-login" id="menuLogin">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Iniciar sesión</span>
+            </a>
+
+            <!-- Solo si HAY sesión -->
+            <a href="admin.html" class="user-menu-item menu-admin" id="menuAdmin" style="display:none;">
+                <i class="fas fa-user-shield"></i>
+                <span>Panel de Admin</span>
+            </a>
+
+            <a href="#" class="user-menu-item menu-logout" id="menuLogout" onclick="logout(); return false;" style="display:none;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Cerrar sesión</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Botones ocultos (para compatibilidad con JS existente) -->
+    <button id="misPedidosBtn" style="display:none;"></button>
+    <button id="loginBtn" style="display:none;"></button>
+    <button id="logoutBtn" style="display:none;"></button>
+    <button id="adminBtn" style="display:none;"></button>
+</header>
 
     <div class="category-nav">
         <button class="cat-pill active" onclick="showAll()"><i class="fas fa-th-large"></i> Todo</button>
