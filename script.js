@@ -131,7 +131,7 @@ function renderProductos() {
                 <div class="price-container">
                     <span class="current-price">S/ ${p.precio.toFixed(2)}</span>
                 </div>
-                <p class="shipping-info"><i class="fas fa-truck"></i> Envío gratis</p>
+                <p class="shipping-info"><i class="fas fa-gift"></i> Regalo sorpresa</p>
                 <button class="btn-buy-now" onclick="buyNow(${p.id})">Comprar ahora</button>
                 <button class="btn-add-cart" onclick="addToCart(${p.id})"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
             </div>
@@ -1389,8 +1389,8 @@ async function confirmarPago() {
             costo_delivery: costoDeliverySeleccionado,
             distancia_delivery: distanciaDelivery,
             direccion_cliente: direccionClienteSeleccionada,
-            notas_delivery: notasDeliveryActual || null,
-            tiene_regalo: totalFinal >= CONFIG_DELIVERY.gratisDesde
+                        notas_delivery: notasDeliveryActual || null,
+            tiene_regalo: totalFinal >= CONFIG_DELIVERY.regaloDesde
         }
     ]).select().single();
     
@@ -1423,7 +1423,7 @@ async function confirmarPago() {
                 costo_delivery: costoDeliverySeleccionado,
                 metodo_pago: metodoPagoElegido,
                 direccion: direccionClienteSeleccionada,
-                tiene_regalo: totalFinal >= CONFIG_DELIVERY.gratisDesde
+                tiene_regalo: totalFinal >= CONFIG_DELIVERY.regaloDesde
             }
         });
     } catch (e) {
@@ -1684,23 +1684,24 @@ async function procesarUbicacionMovil(lat, lng) {
     
     document.getElementById('calculandoRuta').style.display = 'none';
     
-    // Guardar variables
+    // Guardar variables globales
     distanciaDelivery = distanciaReal;
     direccionClienteSeleccionada = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     
-    // Calcular costo
+    // Calcular costo según zona
     const { costo, zonaNombre, color } = calcularCostoDelivery(distanciaReal);
-        // 🆕 #7 - Recargo nocturno
+    
+    // 🆕 #7 - Recargo nocturno
     const { recargo } = calcularRecargo();
     
     costoDeliverySeleccionado = costo + recargo;
     
-    // Mostrar badge
+    // 🆕 #19 - Mostrar badge de zona
     const badge = document.getElementById('badgeZona');
     const textoZona = document.getElementById('textoZona');
     const precioZona = document.getElementById('precioZona');
     
-        if (distanciaReal > 10) {
+    if (distanciaReal > 10) {
         // Fuera de cobertura
         textoZona.textContent = 'Fuera de cobertura';
         precioZona.textContent = '❌';
@@ -1978,15 +1979,10 @@ async function procesarUbicacion(lat, lng, esAutomatico) {
     // Calcular costo según zona
     const { costo, zonaNombre, color } = calcularCostoDelivery(distanciaReal);
     
-    // Verificar si aplica envío gratis
-    const subtotal = totalCarrito();
-        // 🆕 #7 - Recargo nocturno
+    // 🆕 #7 - Recargo nocturno
     const { recargo } = calcularRecargo();
     
     costoDeliverySeleccionado = costo + recargo;
-    
-    const costoFinalBase = esGratis ? 0 : costo;
-    costoDeliverySeleccionado = costoFinalBase + recargo;
     
     // 🆕 #19 - Mostrar badge de zona
     const badge = document.getElementById('badgeZona');
@@ -2003,14 +1999,10 @@ async function procesarUbicacion(lat, lng, esAutomatico) {
         direccionClienteSeleccionada = '';
     } else {
         textoZona.textContent = zonaNombre;
-        if (esGratis && recargo === 0) {
-            precioZona.textContent = '¡GRATIS!';
-        } else if (esGratis && recargo > 0) {
-            precioZona.textContent = `S/ ${recargo.toFixed(2)} (recargo)`;
-        } else if (recargo > 0) {
-            precioZona.textContent = `S/ ${costoFinalBase.toFixed(2)} + S/ ${recargo.toFixed(2)}`;
+        if (recargo > 0) {
+            precioZona.textContent = `S/ ${costo.toFixed(2)} + S/ ${recargo.toFixed(2)}`;
         } else {
-            precioZona.textContent = `S/ ${costoFinalBase.toFixed(2)}`;
+            precioZona.textContent = `S/ ${costo.toFixed(2)}`;
         }
         badge.querySelector('.badge-zona-inner').style.background = color 
             ? `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)` 
@@ -2357,12 +2349,12 @@ function validarZonaAntesDeCheckout() {
 // ================== 🆕 #6 - AVISO DE REGALO GRATIS ==================
 function calcularFaltanteRegalo() {
     const subtotal = totalCarrito();
-    const regaloDesde = CONFIG_DELIVERY.gratisDesde;
+    const regaloDesde = CONFIG_DELIVERY.regaloDesde;
     
     if (subtotal >= regaloDesde) return null;
     
     return regaloDesde - subtotal;
-}
+}   
 
 // ================== 🆕 MENSAJE DE AYUDA EN EL MAPA ==================
 function mostrarMensajeAyuda() {
