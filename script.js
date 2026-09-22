@@ -75,12 +75,12 @@ let ratingSeleccionado = 0;
 // ================== DATOS DE PAGO ==================
 const DATOS_PAGO = {
     plin: {
-        qr: 'https://res.cloudinary.com/uj9d2ddz/image/upload/q_auto,f_auto,w_400/v1789582950/PLIN.jpg',
+        qr: 'https://res.cloudinary.com/uj9d2ddz/image/upload/q_auto,f_auto,w_400/v1789582950/PLIN.jpg',  
         titular: 'Melissa Judith Morillas Salinas'
     },
     yape: {
-        qr: null,
-        titular: 'Sergio Antonio Sebastián Espinal Morillas'
+        qr: 'https://res.cloudinary.com/uj9d2ddz/image/upload/q_auto,f_auto,w_400/v1790099479/YAPE.jpg',
+        titular: 'Melissa Judith Morillas Salinas'
     },
     transferencia: {
         banco: 'Interbank',
@@ -2874,7 +2874,7 @@ function mostrarMetodosPago() {
                 </div>
                 <div>
                     <strong style="color: #6A1B9A; font-size: 0.95rem; display: block; margin-bottom: 3px;">💜 Yape</strong>
-                    <span style="color: #4A3A5C; font-size: 0.82rem;">Próximamente disponible</span>
+                    <span style="color: #4A3A5C; font-size: 0.82rem;">Escanea el QR al instante desde tu celular</span>
                 </div>
             </div>
 
