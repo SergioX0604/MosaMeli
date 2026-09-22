@@ -45,9 +45,9 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #FFF8E1 0%, #D1C4E9 50%, #F8BBD0 100%);
+    background: linear-gradient(135deg, #FFF8E1 0%, #F5F0FA 25%, #FFE8F0 50%, #F5F0FA 75%, #FFF8E1 100%);
     background-size: 300% 300%;
-    animation: moverGradiente 12s ease infinite;
+    animation: moverGradiente 15s ease infinite;
     color: var(--texto-oscuro);
     overflow-x: hidden;
 }
