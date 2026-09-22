@@ -2678,12 +2678,12 @@ function inicializarScrollCategorias() {
         scroll.classList.add('pausado');
     };
 
-    // Reanudar después de 5 segundos sin interacción
+    // Reanudar después de 2 segundos sin interacción
     const reanudar = () => {
         if (timeoutReanudar) clearTimeout(timeoutReanudar);
         timeoutReanudar = setTimeout(() => {
             scroll.classList.remove('pausado');
-        }, 5000);
+        }, 2000);
     };
 
     // ================== EVENTOS TÁCTILES (MÓVIL) ==================
