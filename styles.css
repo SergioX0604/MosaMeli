@@ -27,28 +27,6 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* Asegurar que el fondo de estrellas esté visible */
-body {
-    position: relative;
-}
-
-/* El fondo de estrellas debe estar por encima del fondo del body */
-.fondo-estrellas {
-    z-index: 0 !important;
-}
-
-/* Todo el contenido debe estar por encima del fondo de estrellas */
-.main-header,
-.category-nav,
-.shop-layout,
-.mobile-filter-btn,
-.modal,
-.toast-container,
-.mensaje-bienvenida {
-    position: relative;
-    z-index: 1;
-}
-
 .main-header {
     z-index: 100 !important;
 }
@@ -68,8 +46,16 @@ body {
 body {
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(135deg, #FFF8E1 0%, #F5F0FA 50%, #FFE8F0 100%);
+    background-size: 200% 200%;
+    animation: moverGradiente 20s ease infinite;
     color: var(--texto-oscuro);
     overflow-x: hidden;
+}
+
+@keyframes moverGradiente {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* ==================== HEADER ==================== */
