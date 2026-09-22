@@ -1687,6 +1687,246 @@
                 opacity: 1; 
             }
         }
+
+                /* ==================== MENÚ DE USUARIO (DESKTOP) ==================== */
+        @media (min-width: 769px) {
+            
+            /* Header con estructura vertical en desktop también */
+            .main-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            /* Primera fila del header */
+            .header-top {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                width: 100%;
+            }
+
+            .header-top .logo img {
+                height: 45px;
+            }
+
+            .header-top .search-bar {
+                flex: 1;
+                max-width: none;
+            }
+
+            /* Segunda fila: ubicación + usuario */
+            .header-bottom {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 8px 4px;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+                position: relative;
+            }
+
+            .location-info {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: white;
+                font-size: 0.85rem;
+                font-weight: 500;
+                cursor: pointer;
+                padding: 6px 12px;
+                border-radius: 20px;
+                transition: all 0.3s;
+            }
+
+            .location-info:hover {
+                background: rgba(255, 255, 255, 0.15);
+            }
+
+            .location-info i:first-child {
+                font-size: 0.95rem;
+            }
+
+            .location-info .arrow {
+                font-size: 0.7rem;
+                opacity: 0.8;
+            }
+
+            .user-info {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: white;
+                font-size: 0.85rem;
+                font-weight: 500;
+                cursor: pointer;
+                padding: 6px 14px;
+                border-radius: 20px;
+                transition: all 0.3s;
+            }
+
+            .user-info:hover {
+                background: rgba(255, 255, 255, 0.15);
+            }
+
+            .user-info i:first-child {
+                font-size: 1rem;
+            }
+
+            .user-info span {
+                text-transform: capitalize;
+                max-width: 150px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .user-info .arrow {
+                font-size: 0.7rem;
+                opacity: 0.8;
+            }
+
+            /* ==================== MENÚ DESPLEGABLE ==================== */
+            .user-menu {
+                display: none;
+                position: absolute;
+                top: calc(100% + 8px);
+                right: 0;
+                width: 300px;
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 12px 40px rgba(74, 58, 92, 0.25);
+                padding: 8px 0;
+                z-index: 200;
+                animation: menuSlideDown 0.3s ease-out;
+                overflow: hidden;
+            }
+
+            .user-menu.active {
+                display: block;
+            }
+
+            @keyframes menuSlideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .user-menu-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 16px 20px;
+                background: linear-gradient(135deg, #F5F0FA 0%, #FFF8E1 100%);
+                border-bottom: 1px solid #EDE4F5;
+            }
+
+            .user-avatar {
+                width: 48px;
+                height: 48px;
+                background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.3rem;
+                flex-shrink: 0;
+                box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+            }
+
+            .user-menu-data {
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+                min-width: 0;
+                flex: 1;
+            }
+
+            .user-menu-data strong {
+                color: #4A3A5C;
+                font-size: 0.95rem;
+                font-weight: 700;
+                text-transform: capitalize;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .user-menu-data span {
+                color: #7A6A8C;
+                font-size: 0.75rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .user-menu-item {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 12px 20px;
+                color: #4A3A5C;
+                text-decoration: none;
+                font-size: 0.88rem;
+                font-weight: 500;
+                transition: all 0.2s;
+                cursor: pointer;
+                text-transform: none;
+                border: none;
+            }
+
+            .user-menu-item:hover {
+                background: #F5F0FA;
+                color: #7E57C2;
+                padding-left: 24px;
+            }
+
+            .user-menu-item i {
+                color: #9B7FD4;
+                font-size: 1.05rem;
+                width: 22px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+
+            .user-menu-item span {
+                flex: 1;
+            }
+
+            .user-menu-item.menu-admin i {
+                color: #FF9800;
+            }
+
+            .user-menu-item.menu-logout i {
+                color: #E57373;
+            }
+
+            .user-menu-item.menu-login i {
+                color: #4CAF50;
+            }
+
+            .user-menu-divider {
+                height: 1px;
+                background: #EDE4F5;
+                margin: 6px 0;
+            }
+
+            /* Ocultar elementos viejos del header */
+            .header-actions,
+            .user-area,
+            #misPedidosBtn,
+            #loginBtn,
+            #logoutBtn,
+            .admin-btn {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1698,97 +1938,95 @@
     </script>
 
     <header class="main-header">
-    <!-- Fila 1: Logo + Buscador + Carrito -->
-    <div class="header-top">
-        <div class="logo">
-            <img src="img/logo-mosameli.png" alt="MosaMeli">
-        </div>
-        
-        <div class="search-bar">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchBar" placeholder="¿Qué estás buscando?">
-        </div>
-
-        <button class="icon-btn cart-btn" onclick="viewCart()">
-            <i class="fas fa-shopping-cart"></i>
-            <span id="cartCount">0</span>
-        </button>
-    </div>
-
-    <!-- Fila 2: Ubicación + Usuario (solo móvil) -->
-    <div class="header-bottom">
-        <div class="location-info" onclick="abrirMapa()">
-            <i class="fas fa-map-marker-alt"></i>
-            <span>Selecciona tu ubicación</span>
-            <i class="fas fa-chevron-down arrow"></i>
-        </div>
-
-        <div class="user-info" onclick="toggleUserMenu()">
-            <i class="fas fa-user-circle"></i>
-            <span id="userName">Invitado</span>
-            <i class="fas fa-chevron-down arrow"></i>
-        </div>
-
-        <!-- Menú desplegable del usuario -->
-        <div id="userMenu" class="user-menu">
-            <div class="user-menu-header">
-                <div class="user-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="user-menu-data">
-                    <strong id="menuUserName">Invitado</strong>
-                    <span id="menuUserEmail">Inicia sesión</span>
-                </div>
+        <!-- Fila 1: Logo + Buscador + Carrito -->
+        <div class="header-top">
+            <div class="logo">
+                <img src="img/logo-mosameli.png" alt="MosaMeli">
+            </div>
+            
+            <div class="search-bar">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchBar" placeholder="¿Qué estás buscando?">
             </div>
 
-            <!-- Opciones para usuarios logueados -->
-            <a href="seguimiento.html" class="user-menu-item" id="menuMisPedidos" style="display:none;">
-                <i class="fas fa-box"></i>
-                <span>Mis pedidos</span>
-            </a>
-
-            <a href="#" class="user-menu-item" id="menuMiPerfil" style="display:none;">
-                <i class="fas fa-user-edit"></i>
-                <span>Mi perfil</span>
-            </a>
-
-            <a href="seguimiento.html" class="user-menu-item" id="menuRastrearPedido">
-                <i class="fas fa-search-location"></i>
-                <span>Rastrear pedido</span>
-            </a>
-
-            <a href="https://wa.me/51937309837" target="_blank" class="user-menu-item">
-                <i class="fab fa-whatsapp"></i>
-                <span>Contáctanos</span>
-            </a>
-
-            <div class="user-menu-divider"></div>
-
-            <!-- Solo si NO hay sesión -->
-            <a href="login.html" class="user-menu-item menu-login" id="menuLogin">
-                <i class="fas fa-sign-in-alt"></i>
-                <span>Iniciar sesión</span>
-            </a>
-
-            <!-- Solo si HAY sesión -->
-            <a href="admin.html" class="user-menu-item menu-admin" id="menuAdmin" style="display:none;">
-                <i class="fas fa-user-shield"></i>
-                <span>Panel de Admin</span>
-            </a>
-
-            <a href="#" class="user-menu-item menu-logout" id="menuLogout" onclick="logout(); return false;" style="display:none;">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Cerrar sesión</span>
-            </a>
+            <button class="icon-btn cart-btn" onclick="viewCart()">
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cartCount">0</span>
+            </button>
         </div>
-    </div>
 
-    <!-- Botones ocultos (para compatibilidad con JS existente) -->
-    <button id="misPedidosBtn" style="display:none;"></button>
-    <button id="loginBtn" style="display:none;"></button>
-    <button id="logoutBtn" style="display:none;"></button>
-    <button id="adminBtn" style="display:none;"></button>
-</header>
+        <!-- Fila 2: Ubicación + Usuario -->
+        <div class="header-bottom">
+            <div class="location-info" onclick="abrirMapa()">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Selecciona tu ubicación</span>
+                <i class="fas fa-chevron-down arrow"></i>
+            </div>
+
+            <div class="user-info" onclick="toggleUserMenu()">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Invitado</span>
+                <i class="fas fa-chevron-down arrow"></i>
+            </div>
+
+            <!-- Menú desplegable -->
+            <div id="userMenu" class="user-menu">
+                <!-- Contenido del menú igual que antes -->
+                <div class="user-menu-header">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-menu-data">
+                        <strong id="menuUserName">Invitado</strong>
+                        <span id="menuUserEmail">Inicia sesión</span>
+                    </div>
+                </div>
+
+                <a href="seguimiento.html" class="user-menu-item" id="menuMisPedidos" style="display:none;">
+                    <i class="fas fa-box"></i>
+                    <span>Mis pedidos</span>
+                </a>
+
+                <a href="mi-perfil.html" class="user-menu-item" id="menuMiPerfil" style="display:none;">
+                    <i class="fas fa-user-edit"></i>
+                    <span>Mi perfil</span>
+                </a>
+
+                <a href="seguimiento.html" class="user-menu-item" id="menuRastrearPedido">
+                    <i class="fas fa-search-location"></i>
+                    <span>Rastrear pedido</span>
+                </a>
+
+                <a href="https://wa.me/51937309837" target="_blank" class="user-menu-item">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>Contáctanos</span>
+                </a>
+
+                <div class="user-menu-divider"></div>
+
+                <a href="login.html" class="user-menu-item menu-login" id="menuLogin">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Iniciar sesión</span>
+                </a>
+
+                <a href="admin.html" class="user-menu-item menu-admin" id="menuAdmin" style="display:none;">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Panel de Admin</span>
+                </a>
+
+                <a href="#" class="user-menu-item menu-logout" id="menuLogout" onclick="logout(); return false;" style="display:none;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar sesión</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Botones ocultos (compatibilidad) -->
+        <button id="misPedidosBtn" style="display:none;"></button>
+        <button id="loginBtn" style="display:none;"></button>
+        <button id="logoutBtn" style="display:none;"></button>
+        <button id="adminBtn" style="display:none;"></button>
+    </header>
 
     <div class="category-nav">
         <button class="cat-pill active" onclick="showAll()"><i class="fas fa-th-large"></i> Todo</button>
