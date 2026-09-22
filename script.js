@@ -1336,6 +1336,26 @@ function copiarDato(texto) {
     });
 }
 
+// ================== COPIAR CORREO AL PORTAPAPELES ==================
+function copiarCorreo(correo) {
+    navigator.clipboard.writeText(correo).then(() => {
+        showToast(`📧 Correo copiado: ${correo}`);
+    }).catch(() => {
+        // Fallback para navegadores antiguos
+        const textarea = document.createElement('textarea');
+        textarea.value = correo;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showToast(`📧 Correo copiado: ${correo}`);
+        } catch (e) {
+            showToast(`📧 Escríbenos a: ${correo}`);
+        }
+        document.body.removeChild(textarea);
+    });
+}
+
 async function confirmarPago() {
     // ✅ Validar carrito
     if (carrito.length === 0) { 
