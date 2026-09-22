@@ -27,9 +27,47 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* Asegurar que el fondo de estrellas esté visible */
+body {
+    position: relative;
+}
+
+/* El fondo de estrellas debe estar por encima del fondo del body */
+.fondo-estrellas {
+    z-index: 0 !important;
+}
+
+/* Todo el contenido debe estar por encima del fondo de estrellas */
+.main-header,
+.category-nav,
+.shop-layout,
+.mobile-filter-btn,
+.modal,
+.toast-container,
+.mensaje-bienvenida {
+    position: relative;
+    z-index: 1;
+}
+
+.main-header {
+    z-index: 100 !important;
+}
+
+.modal {
+    z-index: 200 !important;
+}
+
+.toast-container {
+    z-index: 1000 !important;
+}
+
+.mensaje-bienvenida {
+    z-index: 99999 !important;
+}
+
 body {
     font-family: 'Poppins', sans-serif;
-    background: var(--crema-logo);
+    background: linear-gradient(135deg, #FFF8E1 0%, #F5F0FA 50%, #FFE8F0 100%);
     color: var(--texto-oscuro);
     overflow-x: hidden;
 }
