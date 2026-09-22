@@ -2454,6 +2454,8 @@ window.addEventListener('load', async function() {
     
     // 🆕 Mostrar mensaje de bienvenida (temporal)
     setTimeout(() => mostrarMensajeBienvenida(), 500);
+        // 🆕 Inicializar scroll infinito de categorías
+    setTimeout(() => inicializarScrollCategorias(), 300);
 });
 
 window.addEventListener('click', function(event) {
@@ -2657,4 +2659,35 @@ function actualizarEstrellasFavoritos() {
             btn.querySelector('i').className = 'fas fa-star';
         }
     });
+}
+// ================== SCROLL INFINITO DE CATEGORÍAS ==================
+function inicializarScrollCategorias() {
+    const scroll = document.getElementById('categoryScroll');
+    const nav = document.getElementById('categoryNav');
+    if (!scroll || !nav) return;
+
+    // Duplicar las categorías para efecto infinito
+    const contenidoOriginal = scroll.innerHTML;
+    scroll.innerHTML = contenidoOriginal + contenidoOriginal;
+
+    // Pausar cuando el usuario interactúa
+    const pausar = () => scroll.classList.add('pausado');
+    const reanudar = () => {
+        setTimeout(() => {
+            scroll.classList.remove('pausado');
+        }, 3000); // Reanudar después de 3 segundos
+    };
+
+    // Detectar interacción táctil/mouse
+    scroll.addEventListener('touchstart', pausar);
+    scroll.addEventListener('touchend', reanudar);
+    scroll.addEventListener('mouseenter', pausar);
+    scroll.addEventListener('mouseleave', reanudar);
+    scroll.addEventListener('mousedown', pausar);
+    scroll.addEventListener('mouseup', reanudar);
+
+    // Ajustar animación si es móvil
+    if (window.innerWidth <= 768) {
+        scroll.style.animation = 'scrollInfinito 30s linear infinite';
+    }
 }

@@ -2246,15 +2246,34 @@
         <button id="adminBtn" style="display:none;"></button>
     </header>
 
-    <div class="category-nav">
-        <button class="cat-pill active" onclick="showAll()"><i class="fas fa-th-large"></i> Todo</button>
-        <button class="cat-pill" onclick="showCategory('hogar')"><i class="fas fa-home"></i> Hogar</button>
-        <button class="cat-pill" onclick="showCategory('bano')"><i class="fas fa-bath"></i> Baño</button>
-        <button class="cat-pill" onclick="showCategory('vestuario')"><i class="fas fa-tshirt"></i> Vestuario</button>
-        <button class="cat-pill" onclick="showCategory('juegos')"><i class="fas fa-gamepad"></i> Juegos</button>
-        <button class="cat-pill" onclick="showCategory('electronica')"><i class="fas fa-tv"></i> Electrónica</button>
-        <button class="cat-pill" onclick="showCategory('mascotas')"><i class="fas fa-dog"></i> Mascotas</button>
+<div class="category-nav-container">
+    <!-- Botón "Todo" FIJO a la izquierda -->
+    <button class="cat-pill cat-pill-fijo active" onclick="showAll()">
+        <i class="fas fa-th-large"></i> Todo
+    </button>
+
+    <!-- Contenedor de categorías con scroll infinito -->
+    <div class="category-nav" id="categoryNav">
+        <div class="category-scroll" id="categoryScroll">
+            <!-- Las categorías se duplican para efecto infinito -->
+            <button class="cat-pill" onclick="showCategory('hogar')"><i class="fas fa-home"></i> Hogar</button>
+            <button class="cat-pill" onclick="showCategory('bano')"><i class="fas fa-bath"></i> Baño</button>
+            <button class="cat-pill" onclick="showCategory('vestuario')"><i class="fas fa-tshirt"></i> Vestuario</button>
+            <button class="cat-pill" onclick="showCategory('juegos')"><i class="fas fa-gamepad"></i> Juegos</button>
+            <button class="cat-pill" onclick="showCategory('electronica')"><i class="fas fa-tv"></i> Electrónica</button>
+            <button class="cat-pill" onclick="showCategory('mascotas')"><i class="fas fa-dog"></i> Mascotas</button>
+            <button class="cat-pill" onclick="showCategory('belleza')"><i class="fas fa-spa"></i> Belleza</button>
+            <button class="cat-pill" onclick="showCategory('deportes')"><i class="fas fa-dumbbell"></i> Deportes</button>
+            <button class="cat-pill" onclick="showCategory('cocina')"><i class="fas fa-utensils"></i> Cocina</button>
+            <button class="cat-pill" onclick="showCategory('herramientas')"><i class="fas fa-tools"></i> Herramientas</button>
+            <button class="cat-pill" onclick="showCategory('tecnologia')"><i class="fas fa-laptop"></i> Tecnología</button>
+            <button class="cat-pill" onclick="showCategory('bebes')"><i class="fas fa-baby"></i> Bebés</button>
+            <button class="cat-pill" onclick="showCategory('oficina')"><i class="fas fa-briefcase"></i> Oficina</button>
+            <button class="cat-pill" onclick="showCategory('autos')"><i class="fas fa-car"></i> Autos</button>
+            <button class="cat-pill" onclick="showCategory('salud')"><i class="fas fa-heartbeat"></i> Salud</button>
+        </div>
     </div>
+</div>
 
     <button class="mobile-filter-btn" onclick="toggleFilters()">
         <i class="fas fa-filter"></i> Mostrar filtros

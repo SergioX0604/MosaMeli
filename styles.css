@@ -215,20 +215,76 @@ body {
     }
 }
 
-/* ==================== CATEGORÍAS ==================== */
-.category-nav {
-    background: var(--blanco);
-    padding: 12px 15px;
+/* ==================== CONTENEDOR DE CATEGORÍAS ==================== */
+.category-nav-container {
+    background: white;
     display: flex;
-    gap: 8px;
+    align-items: center;
+    gap: 0;
+    padding: 10px 0;
     border-bottom: 2px solid var(--borde);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    overflow: hidden;
+    position: relative;
 }
 
-.category-nav::-webkit-scrollbar { display: none; }
+/* ==================== BOTÓN "TODO" FIJO ==================== */
+.cat-pill-fijo {
+    flex-shrink: 0;
+    margin-left: 15px;
+    margin-right: 8px;
+    background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+    z-index: 2;
+    position: relative;
+}
 
+.cat-pill-fijo i {
+    color: white;
+}
+
+/* Sombra a la derecha del botón fijo para dar efecto de separación */
+.cat-pill-fijo::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: -12px;
+    width: 12px;
+    height: calc(100% + 20px);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), transparent);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ==================== CONTENEDOR CON SCROLL INFINITO ==================== */
+.category-nav {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    mask-image: linear-gradient(90deg, transparent 0%, black 3%, black 97%, transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 3%, black 97%, transparent 100%);
+}
+
+.category-scroll {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    animation: scrollInfinito 40s linear infinite;
+    width: max-content;
+    will-change: transform;
+}
+
+.category-scroll.pausado {
+    animation-play-state: paused;
+}
+
+@keyframes scrollInfinito {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+/* ==================== BOTONES DE CATEGORÍA ==================== */
 .cat-pill {
     background: var(--crema-logo);
     border: 2px solid var(--borde);
@@ -247,15 +303,53 @@ body {
     flex-shrink: 0;
 }
 
-.cat-pill i { font-size: 1rem; color: var(--violeta-logo); }
+.cat-pill i {
+    font-size: 1rem;
+    color: var(--violeta-logo);
+}
+
+.cat-pill:hover {
+    background: var(--rosa-logo-claro);
+    transform: translateY(-2px);
+}
 
 .cat-pill.active {
     background: linear-gradient(135deg, var(--violeta-logo) 0%, var(--rosa-logo) 100%);
     color: white;
     border-color: transparent;
+    box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
 }
 
-.cat-pill.active i { color: white; }
+.cat-pill.active i {
+    color: white;
+}
+
+/* ==================== RESPONSIVE MÓVIL ==================== */
+@media (max-width: 768px) {
+    .category-nav-container {
+        padding: 8px 0;
+    }
+
+    .cat-pill-fijo {
+        margin-left: 12px;
+        padding: 7px 14px;
+        font-size: 0.78rem;
+    }
+
+    .cat-pill {
+        padding: 7px 12px;
+        font-size: 0.78rem;
+    }
+
+    .cat-pill i {
+        font-size: 0.85rem;
+    }
+
+    .category-scroll {
+        animation: scrollInfinito 30s linear infinite;
+        gap: 6px;
+    }
+}
 
 /* ==================== BOTÓN DE FILTROS (MÓVIL) ==================== */
 .mobile-filter-btn {
