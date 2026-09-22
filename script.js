@@ -2449,11 +2449,11 @@ window.addEventListener('load', async function() {
     initFilterEvents();
     setTimeout(() => initVolumeControl(), 500);
     
-    // 🆕 Mostrar mensaje de bienvenida (siempre, se oculta solo)
-    setTimeout(() => mostrarMensajeBienvenida(), 500);
+    // 🆕 Mostrar indicador de horario (permanente)
+    setTimeout(() => actualizarIndicadorHorario(), 300);
     
-    // 🆕 Mostrar aviso si está fuera de horario (también se oculta solo)
-    setTimeout(() => mostrarAvisoHorario(), 900);
+    // 🆕 Mostrar mensaje de bienvenida (temporal)
+    setTimeout(() => mostrarMensajeBienvenida(), 500);
 });
 
 window.addEventListener('click', function(event) {
@@ -2556,22 +2556,28 @@ function obtenerMensajeEntrega() {
     };
 }
 
-function mostrarAvisoHorario() {
-    const aviso = document.getElementById('avisoHorario');
-    if (!aviso) return;
+function actualizarIndicadorHorario() {
+    const indicador = document.getElementById('indicadorHorario');
+    if (!indicador) return;
     
-    // Mostrar el aviso si estamos fuera de horario
-    if (!estaDentroDeHorario()) {
-        aviso.style.display = 'flex';
-        
-        // Ocultar automáticamente después de 8 segundos
-        setTimeout(() => {
-            aviso.classList.add('saliendo');
-            setTimeout(() => {
-                aviso.style.display = 'none';
-                aviso.classList.remove('saliendo');
-            }, 500);
-        }, 8000);
+    const abierto = estaDentroDeHorario();
+    const emoji = indicador.querySelector('.horario-emoji');
+    const estado = indicador.querySelector('.horario-estado');
+    
+    if (abierto) {
+        // ☀️ ✓ Abierto
+        emoji.textContent = '☀️';
+        estado.textContent = '✓';
+        indicador.classList.remove('cerrado');
+        indicador.classList.add('abierto');
+        indicador.title = 'Estamos abiertos (10am - 8pm)';
+    } else {
+        // 🌙 ✗ Cerrado
+        emoji.textContent = '🌙';
+        estado.textContent = '✗';
+        indicador.classList.remove('abierto');
+        indicador.classList.add('cerrado');
+        indicador.title = 'Fuera de horario (10am - 8pm)';
     }
 }
 
@@ -2582,14 +2588,46 @@ function mostrarMensajeBienvenida() {
     // Mostrar siempre al entrar
     mensaje.style.display = 'flex';
     
-    // Ocultar automáticamente después de 5 segundos
+    // Pequeño delay para que la animación se vea
     setTimeout(() => {
-        mensaje.classList.add('saliendo');
+        mensaje.classList.add('visible');
+    }, 100);
+    
+    // Ocultar automáticamente después de 4 segundos
+    setTimeout(() => {
+        mensaje.classList.remove('visible');
         setTimeout(() => {
             mensaje.style.display = 'none';
-            mensaje.classList.remove('saliendo');
         }, 500);
-    }, 5000);
+    }, 4000);
+}
+
+function mostrarMensajeBienvenida() {
+    const mensaje = document.getElementById('mensajeBienvenida');
+    if (!mensaje) return;
+    
+    mensaje.style.display = 'flex';
+    
+    setTimeout(() => {
+        mensaje.classList.add('visible');
+    }, 100);
+    
+    // Función para ocultar
+    const ocultar = () => {
+        mensaje.classList.remove('visible');
+        setTimeout(() => {
+            mensaje.style.display = 'none';
+        }, 400);
+        document.removeEventListener('click', ocultar);
+        document.removeEventListener('touchstart', ocultar);
+    };
+    
+    // Ocultar al primer clic/touch del usuario
+    document.addEventListener('click', ocultar, { once: true });
+    document.addEventListener('touchstart', ocultar, { once: true });
+    
+    // Ocultar automáticamente después de 3 segundos
+    setTimeout(ocultar, 3000);
 }
 
 // ================== FAVORITOS ==================

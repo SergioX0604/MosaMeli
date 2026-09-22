@@ -1341,7 +1341,6 @@
 
             .main-header .logo img {
                 height: 28px;
-                width: auto;
                 display: block;
             }
 
@@ -1353,9 +1352,7 @@
                 display: flex;
                 align-items: center;
                 height: 40px;
-                position: relative;
                 min-width: 0;
-                max-width: none;
             }
 
             .search-bar .search-icon {
@@ -1374,17 +1371,10 @@
                 padding: 0;
                 min-width: 0;
                 color: #4A3A5C;
-                font-family: 'Poppins', sans-serif;
             }
 
-            .search-bar input::placeholder {
-                color: #B0A5BD;
-            }
-
-            /* Ocultar el botón de búsqueda */
-            .search-bar button {
-                display: none;
-            }
+            .search-bar input::placeholder { color: #B0A5BD; }
+            .search-bar button { display: none; }
 
             .cart-btn {
                 background: rgba(255, 255, 255, 0.2);
@@ -1400,7 +1390,6 @@
                 flex-shrink: 0;
                 border: none;
                 color: white;
-                cursor: pointer;
             }
 
             .cart-btn span {
@@ -1418,39 +1407,73 @@
                 text-align: center;
             }
 
-            /* Fila 2: Ubicación + Usuario */
+            /* Fila 2: Horario + Ubicación + Usuario */
             .header-bottom {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                gap: 10px;
-                padding: 8px 4px;
+                gap: 8px;
+                padding: 8px 0;
                 border-top: 1px solid rgba(255, 255, 255, 0.2);
                 width: 100%;
                 position: relative;
             }
 
+            /* 🆕 Indicador de horario (izquierda) */
+            .indicador-horario {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                padding: 5px 10px;
+                border-radius: 20px;
+                font-size: 0.72rem;
+                font-weight: 600;
+                flex-shrink: 0;
+                transition: all 0.3s;
+            }
+
+            .indicador-horario.abierto {
+                background: rgba(76, 175, 80, 0.25);
+                color: #ffffff;
+                border: 1px solid rgba(76, 175, 80, 0.5);
+            }
+
+            .indicador-horario.cerrado {
+                background: rgba(255, 152, 0, 0.25);
+                color: #ffffff;
+                border: 1px solid rgba(255, 152, 0, 0.5);
+            }
+
+            .indicador-horario .horario-emoji {
+                font-size: 0.85rem;
+            }
+
+            .indicador-horario .horario-estado {
+                display: none;
+            }
+
+            /* Ubicación (centro) */
             .location-info {
                 display: flex;
                 align-items: center;
-                gap: 6px;
+                gap: 5px;
                 color: white;
-                font-size: 0.75rem;
+                font-size: 0.72rem;
                 font-weight: 500;
                 cursor: pointer;
-                padding: 4px 8px;
+                padding: 5px 10px;
                 border-radius: 20px;
                 transition: all 0.3s;
+                flex: 1;
+                justify-content: center;
                 max-width: 50%;
                 overflow: hidden;
             }
 
-            .location-info:active {
-                background: rgba(255, 255, 255, 0.15);
-            }
+            .location-info:active { background: rgba(255, 255, 255, 0.15); }
 
             .location-info i:first-child {
-                font-size: 0.85rem;
+                font-size: 0.8rem;
                 flex-shrink: 0;
             }
 
@@ -1461,32 +1484,32 @@
             }
 
             .location-info .arrow {
-                font-size: 0.65rem;
+                font-size: 0.6rem;
                 opacity: 0.8;
                 flex-shrink: 0;
             }
 
+            /* Usuario (derecha) */
             .user-info {
                 display: flex;
                 align-items: center;
-                gap: 6px;
+                gap: 5px;
                 color: white;
-                font-size: 0.75rem;
+                font-size: 0.72rem;
                 font-weight: 500;
                 cursor: pointer;
-                padding: 4px 8px;
+                padding: 5px 10px;
                 border-radius: 20px;
                 transition: all 0.3s;
-                max-width: 45%;
+                flex-shrink: 0;
+                max-width: 35%;
                 overflow: hidden;
             }
 
-            .user-info:active {
-                background: rgba(255, 255, 255, 0.15);
-            }
+            .user-info:active { background: rgba(255, 255, 255, 0.15); }
 
             .user-info i:first-child {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
                 flex-shrink: 0;
             }
 
@@ -1498,26 +1521,22 @@
             }
 
             .user-info .arrow {
-                font-size: 0.65rem;
+                font-size: 0.6rem;
                 opacity: 0.8;
                 flex-shrink: 0;
             }
 
-            /* Ocultar elementos antiguos en móvil */
+            /* Ocultar elementos viejos */
             .header-actions,
             .user-area,
             #misPedidosBtn,
             #loginBtn,
-            #logoutBtn {
-                display: none !important;
-            }
-
-            /* Admin-btn se muestra en el menú desplegable */
+            #logoutBtn,
             .admin-btn {
                 display: none !important;
             }
 
-            /* ==================== MENÚ DESPLEGABLE DEL USUARIO ==================== */
+            /* ==================== MENÚ DESPLEGABLE ==================== */
             .user-menu {
                 display: none;
                 position: absolute;
@@ -1533,19 +1552,11 @@
                 overflow: hidden;
             }
 
-            .user-menu.active {
-                display: block;
-            }
+            .user-menu.active { display: block; }
 
             @keyframes menuSlideDown {
-                from {
-                    opacity: 0;
-                    transform: translateY(-10px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
             }
 
             .user-menu-header {
@@ -1610,9 +1621,7 @@
                 cursor: pointer;
             }
 
-            .user-menu-item:active {
-                background: #F5F0FA;
-            }
+            .user-menu-item:active { background: #F5F0FA; }
 
             .user-menu-item i {
                 color: #9B7FD4;
@@ -1622,22 +1631,88 @@
                 flex-shrink: 0;
             }
 
-            .user-menu-item span {
-                flex: 1;
-            }
-
-            .user-menu-item.menu-admin i {
-                color: #FF9800;
-            }
-
-            .user-menu-item.menu-logout i {
-                color: #E57373;
-            }
+            .user-menu-item span { flex: 1; }
+            .user-menu-item.menu-admin i { color: #FF9800; }
+            .user-menu-item.menu-logout i { color: #E57373; }
 
             .user-menu-divider {
                 height: 1px;
                 background: #EDE4F5;
                 margin: 6px 0;
+            }
+        }
+
+        /* ==================== INDICADOR DE HORARIO EN DESKTOP ==================== */
+        @media (min-width: 769px) {
+            .indicador-horario {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 0.82rem;
+                font-weight: 600;
+                transition: all 0.3s;
+            }
+
+            .indicador-horario.abierto {
+                background: rgba(76, 175, 80, 0.25);
+                color: #ffffff;
+                border: 1px solid rgba(76, 175, 80, 0.5);
+            }
+
+            .indicador-horario.cerrado {
+                background: rgba(255, 152, 0, 0.25);
+                color: #ffffff;
+                border: 1px solid rgba(255, 152, 0, 0.5);
+            }
+
+            .indicador-horario .horario-emoji { font-size: 1rem; }
+            .indicador-horario .horario-estado { font-size: 0.82rem; }
+        }
+
+        /* ==================== MENSAJE DE BIENVENIDA (FLOTANTE) ==================== */
+        .mensaje-bienvenida {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 10px 30px rgba(155, 127, 212, 0.5);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            max-width: 90%;
+            text-align: center;
+            transition: all 0.5s ease;
+        }
+
+        .mensaje-bienvenida.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .mensaje-bienvenida i {
+            font-size: 1.1rem;
+            color: #FFD700;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .mensaje-bienvenida {
+                top: 140px;
+                font-size: 0.78rem;
+                padding: 12px 18px;
+                max-width: 90%;
             }
         }
 
@@ -1996,34 +2071,55 @@
                 }
             }
 
-                    /* ==================== MENSAJE DE BIENVENIDA ==================== */
-        .mensaje-bienvenida {
-            background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%);
-            border-left: 4px solid #9C27B0;
-            border-radius: 10px;
-            padding: 10px 15px;
-            margin: 8px 12px 0 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.78rem;
-            color: #6A1B9A;
-            font-weight: 500;
-            animation: slideDown 0.5s ease-out;
-        }
-
-        .mensaje-bienvenida i {
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-
-        @media (min-width: 769px) {
+            /* ==================== MENSAJE DE BIENVENIDA (FLOTANTE, ARRIBA) ==================== */
             .mensaje-bienvenida {
-                margin: 8px 0 0 0;
-                padding: 10px 18px;
-                font-size: 0.82rem;
+                position: fixed;
+                top: 15px;
+                left: 50%;
+                transform: translateX(-50%) translateY(-30px);
+                background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 25px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.78rem;
+                font-weight: 600;
+                font-family: 'Poppins', sans-serif;
+                box-shadow: 0 8px 24px rgba(155, 127, 212, 0.6);
+                z-index: 99999;
+                opacity: 0;
+                pointer-events: none;
+                max-width: 92%;
+                text-align: center;
+                transition: all 0.4s ease;
             }
-        }
+
+            .mensaje-bienvenida.visible {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+            .mensaje-bienvenida i {
+                font-size: 0.95rem;
+                color: #FFD700;
+                flex-shrink: 0;
+            }
+
+            @media (max-width: 768px) {
+                .mensaje-bienvenida {
+                    top: 12px;
+                    font-size: 0.72rem;
+                    padding: 8px 14px;
+                    gap: 6px;
+                    max-width: 92%;
+                }
+                
+                .mensaje-bienvenida i {
+                    font-size: 0.85rem;
+                }
+            }
 
         /* ==================== TRANSICIÓN DE SALIDA ==================== */
         .aviso-horario.saliendo,
@@ -2063,26 +2159,23 @@
             </button>
         </div>
 
-        <!-- Fila 2: Ubicación + Usuario -->
+        <!-- Fila 2: Horario + Ubicación + Usuario -->
         <div class="header-bottom">
+            
+            <!-- 🆕 Indicador de horario (izquierda, siempre visible) -->
+            <div id="indicadorHorario" class="indicador-horario">
+                <span class="horario-emoji">—</span>
+                <span class="horario-estado">—</span>
+            </div>
+
+            <!-- Ubicación (centro) -->
             <div class="location-info" onclick="abrirMapa()">
                 <i class="fas fa-map-marker-alt"></i>
                 <span>Selecciona tu ubicación</span>
                 <i class="fas fa-chevron-down arrow"></i>
             </div>
 
-            <!-- 🆕 Aviso de horario (solo si está fuera de horario) -->
-            <div id="avisoHorario" class="aviso-horario" style="display:none;">
-                <i class="fas fa-clock"></i>
-                <span>Estamos fuera de horario. Tu pedido se procesará al abrir (10am - 8pm)</span>
-            </div>
-
-            <!-- 🆕 Mensaje de bienvenida -->
-            <div id="mensajeBienvenida" class="mensaje-bienvenida" style="display:none;">
-                <i class="fas fa-sparkles"></i>
-                <span>¡Bienvenido a MosaMeli! Tu mundo, en un click 🎉</span>
-            </div>
-
+            <!-- Usuario (derecha) -->
             <div class="user-info" onclick="toggleUserMenu()">
                 <i class="fas fa-user-circle"></i>
                 <span id="userName">Invitado</span>
@@ -2133,6 +2226,12 @@
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Cerrar sesión</span>
                 </a>
+            </div>
+
+            <!-- 🆕 Mensaje de bienvenida (temporal, flotante) -->
+            <div id="mensajeBienvenida" class="mensaje-bienvenida">
+                <i class="fas fa-sparkles"></i>
+                <span>¡Bienvenido a MosaMeli! Tu mundo, en un click 🎉</span>
             </div>
         </div>
 
