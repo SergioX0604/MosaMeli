@@ -1230,7 +1230,9 @@ function seleccionarMetodo(metodo) {
 
     const titulo = document.getElementById('titulo-instrucciones');
     const detalle = document.getElementById('detalle-instrucciones');
-    const total = totalCarrito().toFixed(2);
+    const subtotal = totalCarrito();
+    const totalFinal = subtotal + costoDeliverySeleccionado;
+    const total = totalFinal.toFixed(2);
 
     // Aviso de transparencia común
     const avisoConfianza = `
