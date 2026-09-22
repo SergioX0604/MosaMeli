@@ -2193,13 +2193,29 @@
 
         /* ========== CONTENIDO PRINCIPAL ========== */
         .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 30px;
-            padding: 40px 30px;
-            max-width: 1200px;
-            margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 30px;
+        padding: 40px 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Responsive: 2 columnas en tablet */
+    @media (max-width: 1024px) {
+        .footer-content {
+            grid-template-columns: repeat(2, 1fr);
         }
+    }
+
+    /* Responsive: 1 columna en móvil */
+    @media (max-width: 768px) {
+        .footer-content {
+            grid-template-columns: 1fr;
+            gap: 25px;
+            padding: 30px 20px;
+        }
+    }
 
         .footer-column h4 {
             color: white;
@@ -2919,93 +2935,119 @@
         </div>
     </div>
 
-    <!-- Contenido principal del footer -->
-    <div class="footer-content">
+        <!-- Contenido principal del footer -->
+        <div class="footer-content">
 
-        <!-- Columna 1: Contacto -->
-        <div class="footer-column">
-            <h4>Contacto</h4>
-            <ul>
-                <li>
-                    <i class="fab fa-whatsapp"></i>
-                    <a href="https://wa.me/51937309837" target="_blank" rel="noopener">
-                        937 309 837
-                    </a>
-                </li>
-                <li>
-                    <i class="far fa-envelope"></i>
-                    <a href="mailto:contacto@mosameli.com">contacto@mosameli.com</a>
-                </li>
-                <li>
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>Chaclacayo, Lima - Perú</span>
-                </li>
-                <li>
-                    <i class="far fa-clock"></i>
-                    <span>Lun a Dom: 10am - 8pm</span>
-                </li>
-            </ul>
+            <!-- Columna 1: Contacto -->
+            <div class="footer-column">
+                <h4>Contacto</h4>
+                <ul>
+                    <li>
+                        <i class="fab fa-whatsapp"></i>
+                        <a href="https://wa.me/51937309837" target="_blank" rel="noopener">
+                            937 309 837
+                        </a>
+                    </li>
+                    <li>
+                        <i class="far fa-envelope"></i>
+                        <a href="mailto:mosamelicorp@gmail.com">mosamelicorp@gmail.com</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Chaclacayo, Lima - Perú</span>
+                    </li>
+                    <li>
+                        <i class="far fa-clock"></i>
+                        <span>Lun a Dom: 10am - 8pm</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Columna 2: Sobre Nosotros -->
+            <div class="footer-column">
+                <h4>Sobre Nosotros</h4>
+                <ul>
+                    <li>
+                        <i class="fas fa-store"></i>
+                        <a href="index.html">Nuestra tienda</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-gift"></i>
+                        <a href="#" onclick="event.preventDefault(); mostrarToastFooter('Regalo sorpresa en compras mayores a S/150 🎁'); return false;">
+                            Regalo sorpresa
+                        </a>
+                    </li>
+                    <li>
+                        <i class="fas fa-heart"></i>
+                        <a href="#" onclick="event.preventDefault(); mostrarToastFooter('En MosaMeli nos preocupamos por ti y tu familia 💜'); return false;">
+                            Por qué elegirnos
+                        </a>
+                    </li>
+                    <li>
+                        <i class="fas fa-truck"></i>
+                        <a href="#" onclick="event.preventDefault(); abrirMapa(); return false;">
+                            Zonas de delivery
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Columna 3: Ayuda -->
+            <div class="footer-column">
+                <h4>Ayuda</h4>
+                <ul>
+                    <li>
+                        <i class="fas fa-question-circle"></i>
+                        <a href="#" onclick="event.preventDefault(); mostrarAyudaCompra(); return false;">
+                            Cómo comprar
+                        </a>
+                    </li>
+                    <li>
+                        <i class="fas fa-box"></i>
+                        <a href="seguimiento.html">Rastrear mi pedido</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-truck-moving"></i>
+                        <a href="#" onclick="event.preventDefault(); mostrarEnviosShalom(); return false;">
+                            Envíos por Shalom
+                        </a>
+                    </li>
+                    <li>
+                        <i class="fas fa-credit-card"></i>
+                        <a href="#" onclick="event.preventDefault(); mostrarMetodosPago(); return false;">
+                            Métodos de pago
+                        </a>
+                    </li>
+                    <li>
+                        <i class="fas fa-hourglass-half"></i>
+                        <a href="#" onclick="event.preventDefault(); mostrarTiempoEntrega(); return false;">
+                            Tiempo de entrega
+                        </a>
+                    </li>
+                    <li>
+                        <i class="fas fa-comments"></i>
+                        <a href="#" onclick="event.preventDefault(); mostrarPreguntasFrecuentes(); return false;">
+                            Preguntas frecuentes
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Columna 4: Legal -->
+            <div class="footer-column">
+                <h4>Legal</h4>
+                <ul>
+                    <li>
+                        <i class="fas fa-file-contract"></i>
+                        <a href="terminos.html">Términos y condiciones</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-user-shield"></i>
+                        <a href="privacidad.html">Política de privacidad</a>
+                    </li>
+                </ul>
+            </div>
         </div>
-
-        <!-- Columna 2: Sobre nosotros -->
-        <div class="footer-column">
-            <h4>Sobre Nosotros</h4>
-            <ul>
-                <li>
-                    <i class="fas fa-store"></i>
-                    <a href="index.html">Nuestra tienda</a>
-                </li>
-                <li>
-                    <i class="fas fa-gift"></i>
-                    <a href="#" onclick="event.preventDefault(); mostrarToastFooter('Regalo sorpresa en compras mayores a S/150 🎁'); return false;">
-                        Regalo sorpresa
-                    </a>
-                </li>
-                <li>
-                    <i class="fas fa-heart"></i>
-                    <a href="#" onclick="event.preventDefault(); mostrarToastFooter('En MosaMeli nos preocupamos por ti y tu familia 💜'); return false;">
-                        Por qué elegirnos
-                    </a>
-                </li>
-                <li>
-                    <i class="fas fa-truck"></i>
-                    <a href="#" onclick="event.preventDefault(); abrirMapa(); return false;">
-                        Zonas de delivery
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-                <!-- Columna 3: Ayuda -->
-        <div class="footer-column">
-            <h4>Ayuda</h4>
-            <ul>
-                <li>
-                    <i class="fas fa-question-circle"></i>
-                    <a href="#" onclick="event.preventDefault(); mostrarAyudaCompra(); return false;">
-                        Cómo comprar
-                    </a>
-                </li>
-                <li>
-                    <i class="fas fa-box"></i>
-                    <a href="seguimiento.html">Rastrear mi pedido</a>
-                </li>
-                <li>
-                    <i class="fas fa-truck-moving"></i>
-                    <a href="#" onclick="event.preventDefault(); mostrarEnviosShalom(); return false;">
-                        Envíos por Shalom
-                    </a>
-                </li>
-                <li>
-                    <i class="fas fa-credit-card"></i>
-                    <a href="#" onclick="event.preventDefault(); mostrarMetodosPago(); return false;">
-                        Métodos de pago
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-    </div>
 
     <!-- Barra inferior de copyright -->
     <div class="footer-bottom">

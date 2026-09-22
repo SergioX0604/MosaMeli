@@ -2904,6 +2904,157 @@ function mostrarMetodosPago() {
     document.body.appendChild(modal);
 }
 
+// ================== TIEMPO DE ENTREGA ==================
+function mostrarTiempoEntrega() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 520px;">
+            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">⏱️</div>
+                <h2 style="color: #7E57C2; margin: 0 0 8px 0; font-size: 1.3rem;">
+                    Tiempo de Entrega
+                </h2>
+                <div style="width: 50px; height: 3px; background: linear-gradient(90deg, #9B7FD4 0%, #F5A6B8 100%); margin: 0 auto; border-radius: 2px;"></div>
+            </div>
+
+            <div style="background: #F5F0FA; border-radius: 12px; padding: 18px; margin-bottom: 16px; border-left: 4px solid #9B7FD4;">
+                <p style="color: #4A3A5C; font-size: 0.9rem; line-height: 1.6; margin: 0;">
+                    <strong style="color: #7E57C2;">📦 Preparación de tu pedido</strong><br>
+                    Una vez confirmado el pago (máximo 24 horas después de tu compra), preparamos tu pedido con mucho cuidado.
+                </p>
+            </div>
+
+            <div style="background: #FFF8E1; border-radius: 12px; padding: 18px; margin-bottom: 16px; border-left: 4px solid #FFC107;">
+                <p style="color: #4A3A5C; font-size: 0.9rem; line-height: 1.6; margin: 0;">
+                    <strong style="color: #F57C00;">🚚 Entregas en Chaclacayo</strong><br>
+                    Realizamos entregas los <strong>días sábados</strong>. Si tu pedido se confirmó antes del viernes, lo recibirás este sábado. Si no, lo recibirás el sábado siguiente.
+                </p>
+            </div>
+
+            <div style="background: #E8F5E9; border-radius: 12px; padding: 18px; margin-bottom: 16px; border-left: 4px solid #4CAF50;">
+                <p style="color: #4A3A5C; font-size: 0.9rem; line-height: 1.6; margin: 0;">
+                    <strong style="color: #2E7D32;">🚚 Envíos por Shalom (fuera de Chaclacayo)</strong><br>
+                    Los envíos por Shalom llegan en <strong>3 a 5 días hábiles</strong> después de ser despachados. Recibirás tu código de seguimiento por correo.
+                </p>
+            </div>
+
+            <div style="background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%); border-radius: 12px; padding: 15px; text-align: center;">
+                <p style="color: #6A1B9A; font-size: 0.85rem; margin: 0; line-height: 1.5;">
+                    💡 <strong>Tip:</strong> Recibirás un correo con tu código de seguimiento para consultar el estado de tu pedido en cualquier momento.
+                </p>
+            </div>
+
+            <button class="btn-copy" onclick="this.closest('.modal').remove()" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 0.9rem;">
+                ¡Entendido!
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+// ================== PREGUNTAS FRECUENTES ==================
+function mostrarPreguntasFrecuentes() {
+    const faqs = [
+        {
+            pregunta: '¿Cómo puedo hacer un pedido?',
+            respuesta: 'Elige tus productos, agrégalos al carrito, inicia sesión o regístrate, marca tu ubicación en el mapa y elige tu método de pago. ¡Listo!'
+        },
+        {
+            pregunta: '¿Qué métodos de pago aceptan?',
+            respuesta: 'Aceptamos Plin y Transferencia bancaria (Interbank). Yape estará disponible próximamente.'
+        },
+        {
+            pregunta: '¿Cuánto cuesta el delivery?',
+            respuesta: 'El costo depende de tu zona. En Chaclacayo Centro (hasta 2 km) es S/5, y va aumentando según la distancia. Puedes verlo al marcar tu dirección en el mapa.'
+        },
+        {
+            pregunta: '¿Cuándo llega mi pedido?',
+            respuesta: 'En Chaclacayo entregamos los sábados. Fuera de Chaclacayo enviamos por Shalom, que llega en 3-5 días hábiles.'
+        },
+        {
+            pregunta: '¿Puedo recibir un regalo sorpresa?',
+            respuesta: '¡Sí! Si tu compra supera los S/150, incluimos un regalo sorpresa en tu pedido sin costo adicional.'
+        },
+        {
+            pregunta: '¿Cómo hago seguimiento a mi pedido?',
+            respuesta: 'Te enviamos un correo con tu código de seguimiento. También puedes ir a "Rastrear mi pedido" e ingresar tu código.'
+        },
+        {
+            pregunta: '¿Qué pasa si no estoy en casa al momento de la entrega?',
+            respuesta: 'Coordina con nosotros por WhatsApp para reprogramar la entrega o indícanos un lugar alternativo en las notas del pedido.'
+        },
+        {
+            pregunta: '¿Puedo cambiar o cancelar mi pedido?',
+            respuesta: 'Contáctanos por WhatsApp lo antes posible. Si el pedido aún no ha sido enviado, podemos ayudarte.'
+        }
+    ];
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px; max-height: 85vh; overflow-y: auto;">
+            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">❓</div>
+                <h2 style="color: #7E57C2; margin: 0 0 8px 0; font-size: 1.3rem;">
+                    Preguntas Frecuentes
+                </h2>
+                <div style="width: 50px; height: 3px; background: linear-gradient(90deg, #9B7FD4 0%, #F5A6B8 100%); margin: 0 auto; border-radius: 2px;"></div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                ${faqs.map((faq, i) => `
+                    <div class="faq-item" style="background: #F5F0FA; border-radius: 12px; overflow: hidden; border-left: 4px solid #9B7FD4;">
+                        <button onclick="toggleFaq(${i})" style="width: 100%; background: transparent; border: none; padding: 14px 16px; text-align: left; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; color: #4A3A5C; font-size: 0.88rem; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                            <span>${faq.pregunta}</span>
+                            <i class="fas fa-chevron-down" id="faq-arrow-${i}" style="color: #9B7FD4; transition: transform 0.3s; flex-shrink: 0; font-size: 0.8rem;"></i>
+                        </button>
+                        <div id="faq-respuesta-${i}" style="display: none; padding: 0 16px 14px 16px; color: #7A6A8C; font-size: 0.82rem; line-height: 1.6;">
+                            ${faq.respuesta}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div style="background: #FFF8E1; border-radius: 12px; padding: 14px; margin-top: 16px; text-align: center; border-left: 4px solid #FFC107;">
+                <p style="color: #F57C00; font-size: 0.82rem; margin: 0 0 10px 0;">
+                    ¿No encuentras tu respuesta?
+                </p>
+                <a href="https://wa.me/51937309837?text=Hola%20MosaMeli,%20tengo%20una%20consulta" 
+                target="_blank" 
+                rel="noopener"
+                style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: 600; font-size: 0.82rem;">
+                    <i class="fab fa-whatsapp"></i> Escríbenos
+                </a>
+            </div>
+
+            <button class="btn-copy" onclick="this.closest('.modal').remove()" style="width: 100%; margin-top: 16px; padding: 12px; font-size: 0.9rem;">
+                Cerrar
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function toggleFaq(index) {
+    const respuesta = document.getElementById(`faq-respuesta-${index}`);
+    const arrow = document.getElementById(`faq-arrow-${index}`);
+    
+    if (respuesta.style.display === 'none') {
+        respuesta.style.display = 'block';
+        arrow.style.transform = 'rotate(180deg)';
+    } else {
+        respuesta.style.display = 'none';
+        arrow.style.transform = 'rotate(0deg)';
+    }
+}
+
 // Cerrar modales del footer al hacer clic fuera
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal') && e.target.querySelector('.modal-content')) {
