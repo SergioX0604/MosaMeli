@@ -1202,28 +1202,31 @@
         }
 
         /* Botón flotante "Confirmar ubicación" */
-        .btn-confirmar-ubicacion {
-            display: none;
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
-            color: white;
-            border: none;
-            padding: 14px 30px;
-            border-radius: 30px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            box-shadow: 0 8px 24px rgba(76, 175, 80, 0.5);
-            z-index: 500;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s;
-            white-space: nowrap;
-        }
+            .btn-confirmar-ubicacion {
+        display: none;
+        position: relative;
+        bottom: auto;
+        left: auto;
+        transform: none;
+        background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+        color: white;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 30px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(76, 175, 80, 0.5);
+        z-index: 500;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s;
+        white-space: nowrap;
+        width: 100%;
+        margin: 15px 0;
+    }
         .btn-confirmar-ubicacion:hover,
         .btn-confirmar-ubicacion:active {
             transform: translateX(-50%) scale(1.05);

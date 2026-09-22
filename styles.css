@@ -950,8 +950,11 @@ body {
 .btn-reject:hover { background: #D32F2F; }
 /* ==================== MODAL DEL MAPA DE DELIVERY ==================== */
 .map-modal-content {
-    max-width: 700px;
+    max-width: 850px;
     width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 30px;
 }
 
 .map-modal-content h2 {
@@ -978,8 +981,8 @@ body {
 .delivery-legend {
     background: #F5F0FA;
     border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 15px;
+    padding: 18px;
+    margin-bottom: 20px;
 }
 
 .delivery-legend h4 {
@@ -991,9 +994,9 @@ body {
 .legend-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 6px 0;
-    font-size: 0.85rem;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 0.9rem;
     color: #4A3A5C;
 }
 
@@ -1014,8 +1017,9 @@ body {
     background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
     border: 2px solid #4CAF50;
     border-radius: 12px;
-    padding: 20px;
+    padding: 25px;
     text-align: center;
+    margin-top: 20px;
 }
 
 .delivery-result p:first-child {
@@ -1035,13 +1039,15 @@ body {
     background: #4CAF50;
     color: white;
     border: none;
-    padding: 12px 30px;
+    padding: 15px 40px;
     border-radius: 25px;
     font-family: 'Poppins', sans-serif;
     font-weight: 600;
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s;
+    width: 100%;
+    margin-top: 5px;
 }
 
 .btn-confirmar-delivery:hover {
