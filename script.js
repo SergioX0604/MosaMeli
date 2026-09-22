@@ -9,6 +9,21 @@ let categoriasActivas = [];
 let filtroPrecioMax = 300;
 let soloDisponibles = false;
 
+// ================== CONFIGURACIÓN DE HORARIOS Y ENTREGAS ==================
+const CONFIG_ENTREGAS = {
+    // Horario de atención (formato 24h)
+    horarioAtencion: {
+        apertura: 10,  // 10:00 am
+        cierre: 20     // 8:00 pm
+    },
+    
+    // Día de entregas (0=domingo, 1=lunes, ..., 6=sábado)
+    diaDeEntrega: 6,  // Sábado
+    
+    // Días mínimos de preparación
+    diasPreparacion: 2
+};
+
 // ================== CONFIGURACIÓN DE DELIVERY ==================
 const CONFIG_DELIVERY = {
     // ⚠️ Coordenadas desplazadas para proteger la ubicación exacta del negocio
@@ -1435,14 +1450,17 @@ async function confirmarPago() {
         console.error("Error al enviar correo:", e);
     }
 
+    // Obtener información del mensaje según horario
+    const infoEntrega = obtenerMensajeEntrega();
+    
     // Mostrar mensaje de éxito
     const detalle = document.getElementById('detalle-instrucciones');
     detalle.innerHTML = `
         <div style="text-align: center; padding: 30px;">
-            <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
-            <h3 style="color: #7E57C2; margin-bottom: 15px;">¡Pedido confirmado!</h3>
+            <div style="font-size: 4rem; margin-bottom: 20px;">${infoEntrega.emoji}</div>
+            <h3 style="color: #7E57C2; margin-bottom: 15px;">${infoEntrega.titulo}</h3>
             <p style="color: #4A3A5C; line-height: 1.6; margin-bottom: 20px;">
-                Recibirás tu pedido en <strong>2-3 días hábiles</strong>.
+                ${infoEntrega.mensaje}
             </p>
             <div style="background: #F5F0FA; border-radius: 12px; padding: 15px; margin: 20px 0;">
                 <p style="color: #7A6A8C; font-size: 0.85rem; margin-bottom: 5px;">
@@ -2430,6 +2448,9 @@ window.addEventListener('load', async function() {
     loadCart();
     initFilterEvents();
     setTimeout(() => initVolumeControl(), 500);
+    
+    // 🆕 Mostrar aviso si está fuera de horario
+    setTimeout(() => mostrarAvisoHorario(), 800);
 });
 
 window.addEventListener('click', function(event) {
@@ -2463,6 +2484,84 @@ function resetAyudaMapa() {
     localStorage.removeItem('mosameli_mapa_ayuda_vista');
     console.log('✅ Ayuda del mapa reseteada. Recarga la página y abre el mapa.');
 }
+
+// ================== FUNCIONES DE HORARIOS Y ENTREGAS ==================
+
+function estaDentroDeHorario() {
+    const ahora = new Date();
+    const hora = ahora.getHours();
+    return hora >= CONFIG_ENTREGAS.horarioAtencion.apertura && 
+        hora < CONFIG_ENTREGAS.horarioAtencion.cierre;
+}
+
+function obtenerProximoDiaEntrega() {
+    const ahora = new Date();
+    const diaActual = ahora.getDay();
+    const diaEntrega = CONFIG_ENTREGAS.diaDeEntrega;
+    
+    // Calcular días hasta el próximo día de entrega
+    let diasHasta = (diaEntrega - diaActual + 7) % 7;
+    
+    // Si ya pasó la hora de cierre hoy y el día de entrega es hoy, saltar a la próxima semana
+    if (diasHasta === 0 && !estaDentroDeHorario()) {
+        diasHasta = 7;
+    }
+    
+    // Si es hoy pero ya cerró, sumar 7 días
+    if (diasHasta === 0 && ahora.getHours() >= CONFIG_ENTREGAS.horarioAtencion.cierre) {
+        diasHasta = 7;
+    }
+    
+    // Asegurar mínimo de días de preparación
+    if (diasHasta < CONFIG_ENTREGAS.diasPreparacion) {
+        diasHasta += 7;
+    }
+    
+    const proximaEntrega = new Date(ahora);
+    proximaEntrega.setDate(ahora.getDate() + diasHasta);
+    
+    return proximaEntrega;
+}
+
+function formatearFechaEntrega(fecha) {
+    const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    
+    return `${dias[fecha.getDay()]}, ${fecha.getDate()} de ${meses[fecha.getMonth()]}`;
+}
+
+function obtenerMensajeEntrega() {
+    const proximaEntrega = obtenerProximoDiaEntrega();
+    const fechaFormateada = formatearFechaEntrega(proximaEntrega);
+    const dentroDeHorario = estaDentroDeHorario();
+    
+    // Mensaje base SIEMPRE
+    let mensaje = `Te llegará a tu correo registrado el seguimiento de tu pedido.<br><br>
+                📅 <strong>Recibirás tu pedido el ${fechaFormateada}</strong>.`;
+    
+    // Si está fuera de horario, agregar aviso al inicio
+    if (!dentroDeHorario) {
+        mensaje = `Tu pedido será procesado en el próximo horario de atención (10am - 8pm).<br><br>
+                ${mensaje}`;
+    }
+    
+    return {
+        titulo: dentroDeHorario ? '¡Pedido confirmado!' : '¡Pedido registrado!',
+        mensaje: mensaje,
+        emoji: dentroDeHorario ? '🎉' : '📧'
+    };
+}
+
+function mostrarAvisoHorario() {
+    const aviso = document.getElementById('avisoHorario');
+    if (!aviso) return;
+    
+    if (!estaDentroDeHorario()) {
+        aviso.style.display = 'flex';
+    }
+}
+
 // ================== FAVORITOS ==================
 function toggleFavorito(productoId, boton) {
     let favoritos = JSON.parse(localStorage.getItem('mosameli_favoritos') || '[]');

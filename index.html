@@ -1928,39 +1928,73 @@
             }
         }
 
-                /* ==================== BOTÓN DE FAVORITO ==================== */
-        .btn-favorito {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 34px;
-            height: 34px;
-            background: rgba(255, 255, 255, 0.95);
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #FFC107;
-            font-size: 1rem;
-            z-index: 2;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            transition: all 0.3s;
-        }
+                    /* ==================== BOTÓN DE FAVORITO ==================== */
+            .btn-favorito {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 34px;
+                height: 34px;
+                background: rgba(255, 255, 255, 0.95);
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #FFC107;
+                font-size: 1rem;
+                z-index: 2;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                transition: all 0.3s;
+            }
 
-        .btn-favorito:hover {
-            transform: scale(1.15);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-        }
+            .btn-favorito:hover {
+                transform: scale(1.15);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            }
 
-        .btn-favorito:active {
-            transform: scale(0.95);
-        }
+            .btn-favorito:active {
+                transform: scale(0.95);
+            }
 
-        .btn-favorito .fas.fa-star {
-            color: #FFC107;
-        }
+            .btn-favorito .fas.fa-star {
+                color: #FFC107;
+            }
+
+                    /* ==================== AVISO DE HORARIO ==================== */
+            .aviso-horario {
+                background: linear-gradient(135deg, #FFF8E1 0%, #FFE0B2 100%);
+                border-left: 4px solid #FFC107;
+                border-radius: 10px;
+                padding: 10px 15px;
+                margin: 8px 12px 0 12px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 0.78rem;
+                color: #F57C00;
+                font-weight: 500;
+                animation: slideDown 0.5s ease-out;
+            }
+
+            .aviso-horario i {
+                font-size: 1rem;
+                flex-shrink: 0;
+            }
+
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            @media (min-width: 769px) {
+                .aviso-horario {
+                    margin: 8px 0 0 0;
+                    padding: 10px 18px;
+                    font-size: 0.82rem;
+                }
+            }
     </style>
 </head>
 <body>
@@ -1995,6 +2029,12 @@
                 <i class="fas fa-map-marker-alt"></i>
                 <span>Selecciona tu ubicación</span>
                 <i class="fas fa-chevron-down arrow"></i>
+            </div>
+
+            <!-- 🆕 Aviso de horario (solo si está fuera de horario) -->
+            <div id="avisoHorario" class="aviso-horario" style="display:none;">
+                <i class="fas fa-clock"></i>
+                <span>Estamos fuera de horario. Tu pedido se procesará al abrir (10am - 8pm)</span>
             </div>
 
             <div class="user-info" onclick="toggleUserMenu()">
