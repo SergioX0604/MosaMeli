@@ -2718,3 +2718,72 @@ function inicializarScrollCategorias() {
         scroll.style.animation = 'scrollInfinito 30s linear infinite';
     }
 }
+// ================== FUNCIONES DEL FOOTER ==================
+function mostrarToastFooter(mensaje) {
+    showToast(mensaje);
+}
+
+function mostrarAyudaCompra() {
+    // Crear modal de ayuda
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            <h2 style="color: #7E57C2; margin-bottom: 20px;">
+                <i class="fas fa-question-circle"></i> Cómo comprar en MosaMeli
+            </h2>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; gap: 12px; align-items: flex-start;">
+                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">1</div>
+                    <div>
+                        <strong style="color: #4A3A5C; display: block; margin-bottom: 4px;">Elige tus productos</strong>
+                        <p style="color: #7A6A8C; font-size: 0.85rem; margin: 0; line-height: 1.5;">Explora el catálogo y agrega lo que más te guste al carrito.</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: flex-start;">
+                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">2</div>
+                    <div>
+                        <strong style="color: #4A3A5C; display: block; margin-bottom: 4px;">Regístrate o inicia sesión</strong>
+                        <p style="color: #7A6A8C; font-size: 0.85rem; margin: 0; line-height: 1.5;">Necesitas una cuenta para poder procesar tu pedido y enviarte el seguimiento.</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: flex-start;">
+                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">3</div>
+                    <div>
+                        <strong style="color: #4A3A5C; display: block; margin-bottom: 4px;">Elige tu ubicación</strong>
+                        <p style="color: #7A6A8C; font-size: 0.85rem; margin: 0; line-height: 1.5;">Marca tu dirección en el mapa para calcular el costo de delivery.</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: flex-start;">
+                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">4</div>
+                    <div>
+                        <strong style="color: #4A3A5C; display: block; margin-bottom: 4px;">Elige tu método de pago</strong>
+                        <p style="color: #7A6A8C; font-size: 0.85rem; margin: 0; line-height: 1.5;">Plin, Yape o Transferencia bancaria. Verificaremos tu pago en 24h.</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: flex-start;">
+                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">5</div>
+                    <div>
+                        <strong style="color: #4A3A5C; display: block; margin-bottom: 4px;">¡Recibe tu pedido!</strong>
+                        <p style="color: #7A6A8C; font-size: 0.85rem; margin: 0; line-height: 1.5;">Te enviaremos el seguimiento por correo. Entregamos los sábados.</p>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-copy" onclick="this.closest('.modal').remove()" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 0.9rem;">
+                ¡Entendido!
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+// Cerrar modales del footer al hacer clic fuera
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal') && e.target.querySelector('.modal-content')) {
+        if (e.target.innerHTML.includes('Cómo comprar en MosaMeli')) {
+            e.target.remove();
+        }
+    }
+});
