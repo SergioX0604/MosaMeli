@@ -2670,23 +2670,50 @@ function inicializarScrollCategorias() {
     const contenidoOriginal = scroll.innerHTML;
     scroll.innerHTML = contenidoOriginal + contenidoOriginal;
 
+    let timeoutReanudar = null;
+
     // Pausar cuando el usuario interactúa
-    const pausar = () => scroll.classList.add('pausado');
-    const reanudar = () => {
-        setTimeout(() => {
-            scroll.classList.remove('pausado');
-        }, 3000); // Reanudar después de 3 segundos
+    const pausar = () => {
+        if (timeoutReanudar) clearTimeout(timeoutReanudar);
+        scroll.classList.add('pausado');
     };
 
-    // Detectar interacción táctil/mouse
-    scroll.addEventListener('touchstart', pausar);
-    scroll.addEventListener('touchend', reanudar);
+    // Reanudar después de 5 segundos sin interacción
+    const reanudar = () => {
+        if (timeoutReanudar) clearTimeout(timeoutReanudar);
+        timeoutReanudar = setTimeout(() => {
+            scroll.classList.remove('pausado');
+        }, 5000);
+    };
+
+    // ================== EVENTOS TÁCTILES (MÓVIL) ==================
+    scroll.addEventListener('touchstart', pausar, { passive: true });
+    scroll.addEventListener('touchend', reanudar, { passive: true });
+    scroll.addEventListener('touchcancel', reanudar, { passive: true });
+
+    // ================== EVENTOS MOUSE (DESKTOP) ==================
     scroll.addEventListener('mouseenter', pausar);
     scroll.addEventListener('mouseleave', reanudar);
     scroll.addEventListener('mousedown', pausar);
     scroll.addEventListener('mouseup', reanudar);
 
-    // Ajustar animación si es móvil
+    // ================== PAUSAR AL TOCAR UNA CATEGORÍA ==================
+    // Los botones dentro del scroll deben pausar la animación
+    const botonesCategoria = scroll.querySelectorAll('.cat-pill');
+    botonesCategoria.forEach(boton => {
+        boton.addEventListener('touchstart', pausar, { passive: true });
+        boton.addEventListener('click', (e) => {
+            // Al hacer clic, mantener pausado un rato más
+            pausar();
+            // Reanudar después de 6 segundos (el usuario tiene tiempo de ver el filtro)
+            if (timeoutReanudar) clearTimeout(timeoutReanudar);
+            timeoutReanudar = setTimeout(() => {
+                scroll.classList.remove('pausado');
+            }, 6000);
+        });
+    });
+
+    // Ajustar velocidad si es móvil
     if (window.innerWidth <= 768) {
         scroll.style.animation = 'scrollInfinito 30s linear infinite';
     }

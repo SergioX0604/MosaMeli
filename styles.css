@@ -346,8 +346,18 @@ body {
     }
 
     .category-scroll {
-        animation: scrollInfinito 30s linear infinite;
-        gap: 6px;
+    animation: scrollInfinito 30s linear infinite;
+    gap: 6px;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Asegurar que los botones no se muevan al tocar */
+    .cat-pill {
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: manipulation;
     }
 }
 
