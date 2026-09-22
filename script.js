@@ -2779,6 +2779,131 @@ function mostrarAyudaCompra() {
     document.body.appendChild(modal);
 }
 
+function mostrarEnviosShalom() {
+    // Crear modal de envíos por Shalom
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 520px;">
+            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🚚</div>
+                <h2 style="color: #7E57C2; margin: 0 0 8px 0; font-size: 1.3rem;">
+                    Envíos por Shalom
+                </h2>
+                <div style="width: 50px; height: 3px; background: linear-gradient(90deg, #9B7FD4 0%, #F5A6B8 100%); margin: 0 auto; border-radius: 2px;"></div>
+            </div>
+
+            <div style="background: #F5F0FA; border-radius: 12px; padding: 18px; margin-bottom: 16px; border-left: 4px solid #9B7FD4;">
+                <p style="color: #4A3A5C; font-size: 0.9rem; line-height: 1.6; margin: 0;">
+                    <strong style="color: #7E57C2;">📦 Entregas en Chaclacayo</strong><br>
+                    Realizamos entregas directas en nuestra zona de cobertura (hasta 10 km). El costo se calcula automáticamente en el mapa al hacer tu pedido.
+                </p>
+            </div>
+
+            <div style="background: #FFF8E1; border-radius: 12px; padding: 18px; margin-bottom: 16px; border-left: 4px solid #FFC107;">
+                <p style="color: #4A3A5C; font-size: 0.9rem; line-height: 1.6; margin: 0;">
+                    <strong style="color: #F57C00;">🚚 Fuera de Chaclacayo - Envíos por Shalom</strong><br>
+                    Si estás fuera de nuestra zona de cobertura, enviamos tu pedido <strong>por Shalom</strong> a la agencia más cercana a tu domicilio. El envío se paga <strong>al recibir el producto</strong> en la agencia.
+                </p>
+            </div>
+
+            <div style="background: #E8F5E9; border-radius: 12px; padding: 18px; margin-bottom: 16px; border-left: 4px solid #4CAF50;">
+                <p style="color: #4A3A5C; font-size: 0.9rem; line-height: 1.6; margin: 0;">
+                    <strong style="color: #2E7D32;">📍 ¿Cómo funciona?</strong><br>
+                    <strong>1.</strong> Realizas tu pedido normalmente en la web.<br>
+                    <strong>2.</strong> Coordinamos por WhatsApp el envío por Shalom.<br>
+                    <strong>3.</strong> Recoges en la agencia Shalom más cercana.<br>
+                    <strong>4.</strong> Pagas el envío directamente en Shalom.
+                </p>
+            </div>
+
+            <div style="background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%); border-radius: 12px; padding: 15px; text-align: center;">
+                <p style="color: #6A1B9A; font-size: 0.85rem; margin: 0 0 10px 0; font-weight: 600;">
+                    ¿Estás fuera de Chaclacayo?
+                </p>
+                <a href="https://wa.me/51937309837?text=Hola%20MosaMeli,%20estoy%20fuera%20de%20Chaclacayo%20y%20quiero%20consultar%20por%20env%C3%ADo%20por%20Shalom" 
+                target="_blank" 
+                rel="noopener"
+                style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: 700; font-size: 0.88rem; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);">
+                    <i class="fab fa-whatsapp"></i> Consultar por WhatsApp
+                </a>
+            </div>
+
+            <button class="btn-copy" onclick="this.closest('.modal').remove()" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 0.9rem;">
+                ¡Entendido!
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function mostrarMetodosPago() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 520px;">
+            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">💳</div>
+                <h2 style="color: #7E57C2; margin: 0 0 8px 0; font-size: 1.3rem;">
+                    Métodos de Pago
+                </h2>
+                <div style="width: 50px; height: 3px; background: linear-gradient(90deg, #9B7FD4 0%, #F5A6B8 100%); margin: 0 auto; border-radius: 2px;"></div>
+            </div>
+
+            <!-- Plin -->
+            <div style="background: #E0F7FA; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #00B8D4; display: flex; align-items: center; gap: 14px;">
+                <div style="width: 48px; height: 48px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                    <i class="fas fa-mobile-alt" style="color: #00B8D4; font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <strong style="color: #00838F; font-size: 0.95rem; display: block; margin-bottom: 3px;">📱 Plin</strong>
+                    <span style="color: #4A3A5C; font-size: 0.82rem;">Escanea el QR al instante desde tu celular</span>
+                </div>
+            </div>
+
+            <!-- Yape -->
+            <div style="background: #F3E5F5; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #6E2594; display: flex; align-items: center; gap: 14px;">
+                <div style="width: 48px; height: 48px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                    <i class="fas fa-mobile-alt" style="color: #6E2594; font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <strong style="color: #6A1B9A; font-size: 0.95rem; display: block; margin-bottom: 3px;">💜 Yape</strong>
+                    <span style="color: #4A3A5C; font-size: 0.82rem;">Próximamente disponible</span>
+                </div>
+            </div>
+
+            <!-- Transferencia -->
+            <div style="background: #E8F5E9; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #00A651; display: flex; align-items: center; gap: 14px;">
+                <div style="width: 48px; height: 48px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                    <i class="fas fa-university" style="color: #00A651; font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <strong style="color: #2E7D32; font-size: 0.95rem; display: block; margin-bottom: 3px;">🏦 Transferencia Interbank</strong>
+                    <span style="color: #4A3A5C; font-size: 0.82rem;">Depósito o transferencia bancaria</span>
+                </div>
+            </div>
+
+            <!-- Aviso -->
+            <div style="background: #FFF8E1; border-radius: 12px; padding: 14px; border-left: 4px solid #FFC107; text-align: center;">
+                <p style="color: #F57C00; font-size: 0.82rem; margin: 0; line-height: 1.5;">
+                    <i class="fas fa-clock"></i> Verificamos tu pago en un plazo máximo de <strong>24 horas</strong>. Recibirás el seguimiento por correo.
+                </p>
+            </div>
+
+            <button class="btn-copy" onclick="this.closest('.modal').remove()" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 0.9rem;">
+                ¡Entendido!
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
 // Cerrar modales del footer al hacer clic fuera
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal') && e.target.querySelector('.modal-content')) {
