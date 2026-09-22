@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - MosaMeli</title>
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #FFD1DC 0%, #D1C4E9 50%, #FFF8E1 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .perfil-container {
+            max-width: 900px;
+            margin: 20px auto;
+        }
+
+        /* ========== HEADER DEL PERFIL ========== */
+        .perfil-header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 15px 40px rgba(155, 127, 212, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .perfil-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(155, 127, 212, 0.4);
+            text-transform: uppercase;
+        }
+
+        .perfil-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .perfil-info h1 {
+            color: #4A3A5C;
+            font-size: 1.6rem;
+            margin: 0 0 6px 0;
+            font-weight: 700;
+            text-transform: capitalize;
+        }
+
+        .perfil-info .email {
+            color: #7A6A8C;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .perfil-info .email i {
+            color: #9B7FD4;
+        }
+
+        .btn-volver {
+            background: #F5F0FA;
+            color: #7E57C2;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .btn-volver:hover {
+            background: #9B7FD4;
+            color: white;
+        }
+
+        /* ========== TABS ========== */
+        .perfil-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding: 5px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .perfil-tabs::-webkit-scrollbar { display: none; }
+
+        .tab-btn {
+            background: white;
+            border: 2px solid #EDE4F5;
+            color: #7A6A8C;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .tab-btn i {
+            font-size: 0.95rem;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+        }
+
+        /* ========== CONTENIDO ========== */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== PEDIDOS ========== */
+        .pedido-item {
+            background: white;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(155, 127, 212, 0.1);
+            border-left: 4px solid #9B7FD4;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pedido-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(155, 127, 212, 0.2);
+        }
+
+        .pedido-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pedido-codigo {
+            color: #7E57C2;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .pedido-fecha {
+            color: #7A6A8C;
+            font-size: 0.75rem;
+            margin-top: 3px;
+        }
+
+        .pedido-total {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #E57373;
+        }
+
+        .pedido-estado {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .estado-recibido { background: #FFF8E1; color: #F57C00; }
+        .estado-verificado { background: #E8F5E9; color: #2E7D32; }
+        .estado-preparacion { background: #E3F2FD; color: #1565C0; }
+        .estado-camino { background: #F3E5F5; color: #6A1B9A; }
+        .estado-entregado { background: #E8F5E9; color: #1B5E20; }
+
+        /* ========== RESEÑAS ========== */
+        .resena-item {
+            background: white;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(155, 127, 212, 0.1);
+            border-left: 4px solid #FFC107;
+        }
+
+        .resena-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .resena-producto {
+            color: #7E57C2;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .resena-stars {
+            color: #FFC107;
+            font-size: 1rem;
+        }
+
+        .resena-texto {
+            color: #4A3A5C;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .resena-fecha {
+            color: #B0A5BD;
+            font-size: 0.72rem;
+        }
+
+        /* ========== FAVORITOS ========== */
+        .favoritos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+        }
+
+        .favorito-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(155, 127, 212, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .favorito-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(155, 127, 212, 0.2);
+        }
+
+        .favorito-card img {
+            width: 100%;
+            height: 130px;
+            object-fit: cover;
+        }
+
+        .favorito-info {
+            padding: 12px;
+        }
+
+        .favorito-info h4 {
+            color: #4A3A5C;
+            font-size: 0.82rem;
+            margin: 0 0 6px 0;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .favorito-precio {
+            color: #7E57C2;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* ========== ESTADOS VACÍOS ========== */
+        .empty-state {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 25px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(155, 127, 212, 0.1);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #D0C4D8;
+            margin-bottom: 15px;
+        }
+
+        .empty-state h3 {
+            color: #4A3A5C;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: #7A6A8C;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .empty-state .btn-action {
+            background: linear-gradient(135deg, #9B7FD4 0%, #F5A6B8 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .empty-state .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(155, 127, 212, 0.4);
+        }
+
+        /* ========== LOADING ========== */
+        .loading {
+            text-align: center;
+            padding: 50px 20px;
+            color: #7A6A8C;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            color: #9B7FD4;
+            margin-bottom: 15px;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 600px) {
+            .perfil-container { margin: 10px auto; }
+            .perfil-header { padding: 20px; gap: 15px; }
+            .perfil-avatar { width: 65px; height: 65px; font-size: 1.6rem; }
+            .perfil-info h1 { font-size: 1.3rem; }
+            .perfil-info .email { font-size: 0.8rem; }
+            .btn-volver { padding: 8px 16px; font-size: 0.78rem; }
+            
+            .favoritos-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .favorito-card img { height: 110px; }
+            .favorito-info { padding: 10px; }
+            .favorito-info h4 { font-size: 0.75rem; }
+            .favorito-precio { font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="perfil-container">
+
+        <!-- HEADER DEL PERFIL -->
+        <div class="perfil-header">
+            <div class="perfil-avatar" id="perfilAvatar">?</div>
+            <div class="perfil-info">
+                <h1 id="perfilNombre">Cargando...</h1>
+                <div class="email">
+                    <i class="far fa-envelope"></i>
+                    <span id="perfilEmail">...</span>
+                </div>
+            </div>
+            <a href="index.html" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver a la tienda
+            </a>
+        </div>
+
+        <!-- TABS -->
+        <div class="perfil-tabs">
+            <button class="tab-btn active" onclick="cambiarTab('pedidos', this)">
+                <i class="fas fa-box"></i> Mis pedidos
+            </button>
+            <button class="tab-btn" onclick="cambiarTab('resenas', this)">
+                <i class="fas fa-star"></i> Mis reseñas
+            </button>
+            <button class="tab-btn" onclick="cambiarTab('favoritos', this)">
+                <i class="fas fa-heart"></i> Favoritos
+            </button>
+        </div>
+
+        <!-- CONTENIDO DE TABS -->
+        <div id="tab-pedidos" class="tab-content active">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando pedidos...</p>
+            </div>
+        </div>
+
+        <div id="tab-resenas" class="tab-content">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando reseñas...</p>
+            </div>
+        </div>
+
+        <div id="tab-favoritos" class="tab-content">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando favoritos...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="mi-perfil.js"></script>
+</body>
+</html>

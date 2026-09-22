@@ -123,8 +123,11 @@ function renderProductos() {
     } else title.textContent = 'Varios productos';
     count.textContent = `${productosFiltrados.length} productos`;
 
-    grid.innerHTML = productosFiltrados.map(p => `
+        grid.innerHTML = productosFiltrados.map(p => `
         <div class="product-card">
+            <button class="btn-favorito" onclick="event.stopPropagation(); toggleFavorito(${p.id}, this)" title="Añadir a favoritos">
+                <i class="far fa-star"></i>
+            </button>
             <img src="${p.imagen}" class="product-image" onclick="abrirProducto(${p.id})" style="cursor:pointer;">
             <div class="product-info">
                 <h3>${p.nombre}</h3>
@@ -137,6 +140,9 @@ function renderProductos() {
             </div>
         </div>
     `).join('');
+
+    // Marcar los que ya son favoritos
+    actualizarEstrellasFavoritos();
 
     if (productosFiltrados.length === 0) grid.innerHTML = '<p style="text-align:center; padding:50px; grid-column: 1/-1;">No se encontraron productos 😔</p>';
 }
@@ -2456,4 +2462,32 @@ document.addEventListener('click', (e) => {
 function resetAyudaMapa() {
     localStorage.removeItem('mosameli_mapa_ayuda_vista');
     console.log('✅ Ayuda del mapa reseteada. Recarga la página y abre el mapa.');
+}
+// ================== FAVORITOS ==================
+function toggleFavorito(productoId, boton) {
+    let favoritos = JSON.parse(localStorage.getItem('mosameli_favoritos') || '[]');
+    const index = favoritos.indexOf(productoId);
+    
+    if (index > -1) {
+        favoritos.splice(index, 1);
+        boton.querySelector('i').className = 'far fa-star';
+        showToast('💔 Eliminado de favoritos');
+    } else {
+        favoritos.push(productoId);
+        boton.querySelector('i').className = 'fas fa-star';
+        showToast('⭐ Añadido a favoritos');
+    }
+    
+    localStorage.setItem('mosameli_favoritos', JSON.stringify(favoritos));
+}
+
+function actualizarEstrellasFavoritos() {
+    const favoritos = JSON.parse(localStorage.getItem('mosameli_favoritos') || '[]');
+    document.querySelectorAll('.btn-favorito').forEach(btn => {
+        const onclick = btn.getAttribute('onclick');
+        const match = onclick.match(/toggleFavorito\((\d+)/);
+        if (match && favoritos.includes(parseInt(match[1]))) {
+            btn.querySelector('i').className = 'fas fa-star';
+        }
+    });
 }
