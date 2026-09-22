@@ -1995,6 +1995,46 @@
                     font-size: 0.82rem;
                 }
             }
+
+                    /* ==================== MENSAJE DE BIENVENIDA ==================== */
+        .mensaje-bienvenida {
+            background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%);
+            border-left: 4px solid #9C27B0;
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin: 8px 12px 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.78rem;
+            color: #6A1B9A;
+            font-weight: 500;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        .mensaje-bienvenida i {
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 769px) {
+            .mensaje-bienvenida {
+                margin: 8px 0 0 0;
+                padding: 10px 18px;
+                font-size: 0.82rem;
+            }
+        }
+
+        /* ==================== TRANSICIÓN DE SALIDA ==================== */
+        .aviso-horario.saliendo,
+        .mensaje-bienvenida.saliendo {
+            animation: slideUp 0.5s ease-in forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
     </style>
 </head>
 <body>
@@ -2035,6 +2075,12 @@
             <div id="avisoHorario" class="aviso-horario" style="display:none;">
                 <i class="fas fa-clock"></i>
                 <span>Estamos fuera de horario. Tu pedido se procesará al abrir (10am - 8pm)</span>
+            </div>
+
+            <!-- 🆕 Mensaje de bienvenida -->
+            <div id="mensajeBienvenida" class="mensaje-bienvenida" style="display:none;">
+                <i class="fas fa-sparkles"></i>
+                <span>¡Bienvenido a MosaMeli! Tu mundo, en un click 🎉</span>
             </div>
 
             <div class="user-info" onclick="toggleUserMenu()">

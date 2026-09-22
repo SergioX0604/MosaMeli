@@ -2449,8 +2449,11 @@ window.addEventListener('load', async function() {
     initFilterEvents();
     setTimeout(() => initVolumeControl(), 500);
     
-    // 🆕 Mostrar aviso si está fuera de horario
-    setTimeout(() => mostrarAvisoHorario(), 800);
+    // 🆕 Mostrar mensaje de bienvenida (siempre, se oculta solo)
+    setTimeout(() => mostrarMensajeBienvenida(), 500);
+    
+    // 🆕 Mostrar aviso si está fuera de horario (también se oculta solo)
+    setTimeout(() => mostrarAvisoHorario(), 900);
 });
 
 window.addEventListener('click', function(event) {
@@ -2557,9 +2560,36 @@ function mostrarAvisoHorario() {
     const aviso = document.getElementById('avisoHorario');
     if (!aviso) return;
     
+    // Mostrar el aviso si estamos fuera de horario
     if (!estaDentroDeHorario()) {
         aviso.style.display = 'flex';
+        
+        // Ocultar automáticamente después de 8 segundos
+        setTimeout(() => {
+            aviso.classList.add('saliendo');
+            setTimeout(() => {
+                aviso.style.display = 'none';
+                aviso.classList.remove('saliendo');
+            }, 500);
+        }, 8000);
     }
+}
+
+function mostrarMensajeBienvenida() {
+    const mensaje = document.getElementById('mensajeBienvenida');
+    if (!mensaje) return;
+    
+    // Mostrar siempre al entrar
+    mensaje.style.display = 'flex';
+    
+    // Ocultar automáticamente después de 5 segundos
+    setTimeout(() => {
+        mensaje.classList.add('saliendo');
+        setTimeout(() => {
+            mensaje.style.display = 'none';
+            mensaje.classList.remove('saliendo');
+        }, 500);
+    }, 5000);
 }
 
 // ================== FAVORITOS ==================
