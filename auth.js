@@ -7,7 +7,6 @@ async function checkLoginStatus() {
     const userName = document.getElementById('userName');
     const menuUserName = document.getElementById('menuUserName');
     const menuUserEmail = document.getElementById('menuUserEmail');
-    const menuMisPedidos = document.getElementById('menuMisPedidos');
     const menuMiPerfil = document.getElementById('menuMiPerfil');
     const menuLogin = document.getElementById('menuLogin');
     const menuAdmin = document.getElementById('menuAdmin');
@@ -33,7 +32,6 @@ async function checkLoginStatus() {
         if (menuUserEmail) menuUserEmail.textContent = user.email;
 
         // Mostrar opciones de usuario logueado
-        if (menuMisPedidos) menuMisPedidos.style.display = 'flex';
         if (menuMiPerfil) menuMiPerfil.style.display = 'flex';
         if (menuLogout) menuLogout.style.display = 'flex';
         if (menuLogin) menuLogin.style.display = 'none';
@@ -47,8 +45,6 @@ async function checkLoginStatus() {
         if (userName) userName.textContent = 'Invitado';
         if (menuUserName) menuUserName.textContent = 'Invitado';
         if (menuUserEmail) menuUserEmail.textContent = 'Inicia sesión para continuar';
-        
-        if (menuMisPedidos) menuMisPedidos.style.display = 'none';
         if (menuMiPerfil) menuMiPerfil.style.display = 'none';
         if (menuLogout) menuLogout.style.display = 'none';
         if (menuLogin) menuLogin.style.display = 'flex';
