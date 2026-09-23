@@ -1599,9 +1599,8 @@ function cerrarMapa() {
 
 // Detectar si es móvil
 function esDispositivoMovil() {
-    return window.innerWidth <= 768 || 
-        ('ontouchstart' in window) || 
-        (navigator.maxTouchPoints > 0);
+    // Solo por ancho de ventana (más confiable)
+    return window.innerWidth <= 768;
 }
 
 function initMapa() {
@@ -1676,6 +1675,17 @@ function initMapa() {
             const lng = e.latlng.lng;
             direccionTextoActual = '';
             document.getElementById('direccionSeleccionada').style.display = 'none';
+            
+            // ✅ Limpiar TODO antes de colocar el nuevo marcador
+            if (marcadorCliente) {
+                mapaDelivery.removeLayer(marcadorCliente);
+                marcadorCliente = null;
+            }
+            if (routingControl) {
+                mapaDelivery.removeLayer(routingControl);
+                routingControl = null;
+            }
+            
             colocarMarcador(lat, lng, false);
         });
     }
@@ -1959,8 +1969,16 @@ function usarMiUbicacion() {
 function colocarMarcador(lat, lng, esAutomatico = false) {
     const origen = CONFIG_DELIVERY.origen;
     
+    // ✅ Eliminar marcador anterior si existe
     if (marcadorCliente) {
         mapaDelivery.removeLayer(marcadorCliente);
+        marcadorCliente = null;
+    }
+    
+    // ✅ Eliminar ruta anterior si existe
+    if (routingControl) {
+        mapaDelivery.removeLayer(routingControl);
+        routingControl = null;
     }
     
     const iconoCliente = L.divIcon({
@@ -2087,6 +2105,12 @@ async function procesarUbicacion(lat, lng, esAutomatico) {
 // ================== RUTA REAL CON OSRM (#5) ==================
 async function obtenerRutaReal(lat1, lng1, lat2, lng2) {
     try {
+        // ✅ Eliminar SIEMPRE la ruta anterior antes de crear la nueva
+        if (routingControl) {
+            mapaDelivery.removeLayer(routingControl);
+            routingControl = null;
+        }
+        
         // OSRM público (gratis)
         const url = `https://router.project-osrm.org/route/v1/driving/${lng1},${lat1};${lng2},${lat2}?overview=full&geometries=geojson`;
         
@@ -2101,11 +2125,6 @@ async function obtenerRutaReal(lat1, lng1, lat2, lng2) {
         const distanciaKm = ruta.distance / 1000;
         const tiempoMin = Math.round(ruta.duration / 60);
         
-        // Dibujar ruta en el mapa
-        if (routingControl) {
-            mapaDelivery.removeLayer(routingControl);
-        }
-        
         const coordenadas = ruta.geometry.coordinates.map(c => [c[1], c[0]]);
         
         routingControl = L.polyline(coordenadas, {
@@ -2115,8 +2134,10 @@ async function obtenerRutaReal(lat1, lng1, lat2, lng2) {
             smoothFactor: 1
         }).addTo(mapaDelivery);
         
-        // Ajustar vista para mostrar toda la ruta
-        mapaDelivery.fitBounds(routingControl.getBounds(), { padding: [30, 30] });
+        // Solo ajustar vista en móvil (donde el pin es central)
+        if (esDispositivoMovil()) {
+            mapaDelivery.fitBounds(routingControl.getBounds(), { padding: [30, 30] });
+        }
         
         return {
             distancia: distanciaKm,
