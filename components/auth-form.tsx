@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { rememberAuthDestination } from "@/lib/auth-redirect";
 import { loginSchema, signUpSchema } from "@/lib/validation";
 
 type AuthFormProps = { nextPath: string; initialMessage?: { type: "error" | "success"; text: string } | null };
@@ -71,9 +72,12 @@ export function AuthForm({ nextPath, initialMessage }: AuthFormProps) {
     setBusy(true);
     try {
       const supabase = createSupabaseBrowserClient();
+      rememberAuthDestination(safeNext());
+      // redirectTo sin query string: GoTrue lo compara con la lista permitida
+      // y el destino viaja en una cookie (ver lib/auth-redirect.ts).
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext())}` },
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
       if (error) throw new Error(error.message);
     } catch (error) {

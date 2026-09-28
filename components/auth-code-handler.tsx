@@ -17,6 +17,10 @@ export function AuthCodeHandler() {
   const pathname = usePathname();
 
   useEffect(() => {
+    // /auth/callback tiene su propio cierre de flujo; si los dos intendieran
+    // intercambiar el mismo code, el segundo fallaría y echaría la sesión.
+    if (pathname.startsWith("/auth/callback")) return;
+
     const code = searchParams.get("code");
     if (searchParams.get("error")) {
       router.replace("/login?error=oauth");

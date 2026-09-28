@@ -68,12 +68,34 @@ test("filtrar por categoría no repite el splash", async ({ page }) => {
 });
 
 test("un ?code= de OAuth inválido devuelve al login con aviso", async ({ page }) => {
-  // Supabase cae al Site URL con ?code=... si /auth/callback no está autorizada.
-  // El manejador intenta el intercambio y, si falla, avisa en el login.
-  await page.goto("/?code=codigo-invalido-de-prueba");
+  // tanto en /auth/callback como si Supabase cae al Site URL con ?code=...
+  await page.goto("/auth/callback?code=codigo-invalido");
   await expect(page).toHaveURL(/\/login\?error=oauth/);
   await expect(page.getByRole("heading", { name: "Inicia sesión" })).toBeVisible();
   await expect(page.getByRole("status")).toContainText(/No pudimos completar el acceso con Google/i);
+
+  await page.goto("/?code=codigo-invalido");
+  await expect(page).toHaveURL(/\/login\?error=oauth/);
+});
+
+test("el callback de Google muestra el estado de cierre", async ({ page }) => {
+  await page.goto("/auth/callback");
+  await expect(page.getByRole("heading", { name: /Cerrando tu acceso/i })).toBeVisible();
+});
+
+test("el code de OAuth se procesa en el navegador, no en el servidor", async ({ page }) => {
+  // Con un code sin verifier, @supabase/auth-js falla antes de llamar a la API.
+  // Si el intercambio se hiciera en un Route Handler, el servidor lo intentaría
+  // (y sin cookies del flujo no encontraría el verifier).
+  let serverAttempts = 0;
+  await page.route("**/auth/v1/token**", async (route) => {
+    serverAttempts += 1;
+    await route.continue();
+  });
+
+  await page.goto("/auth/callback?code=codigo-invalido");
+  await expect(page).toHaveURL(/\/login\?error=oauth/);
+  expect(serverAttempts).toBe(0);
 });
 
 test("el buscador no aparece fuera del catálogo", async ({ page }) => {

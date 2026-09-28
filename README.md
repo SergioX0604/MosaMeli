@@ -37,7 +37,7 @@ https://www.mosameli.com/auth/callback
 http://localhost:3000/auth/callback
 ```
 
-Como respaldo, `components/auth-code-handler.tsx` completa el intercambio si la respuesta de Google llega a `/?code=...`.
+El cierre del flujo OAuth ocurre en el navegador: `/auth/callback` es una página (no un Route Handler) que llama a `exchangeCodeForSession` desde el mismo contexto que generó el verifier PKCE. El destino post-login viaja en la cookie `mosameli_auth_next`, porque GoTrue compara el `redirectTo` con la lista autorizada y un query string extra puede hacer que caiga al Site URL. Si aun así el code llega a `/?code=...`, `components/auth-code-handler.tsx` lo completa.
 
 ## Reglas de negocio
 
