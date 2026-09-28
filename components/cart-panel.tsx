@@ -3,11 +3,13 @@
 
 import Link from "next/link";
 import { useCartStore } from "@/lib/cart-store";
+import { GIFT_THRESHOLD, giftProgress } from "@/lib/delivery";
 import { cartSubtotal, formatMoney } from "@/lib/money";
 
 export function CartPanel() {
   const { items, remove, setQuantity, clear } = useCartStore();
   const subtotal = cartSubtotal(items);
+  const gift = giftProgress(subtotal);
 
   if (!items.length) {
     return (
@@ -49,6 +51,13 @@ export function CartPanel() {
           <div className="flex justify-between"><span className="text-[var(--muted)]">Subtotal</span><strong>{formatMoney(subtotal)}</strong></div>
           <div className="flex justify-between"><span className="text-[var(--muted)]">Delivery</span><span>Se calcula al finalizar</span></div>
           <div className="mt-3 flex justify-between border-t border-[var(--border)] pt-3 text-base"><strong>Total estimado</strong><strong>{formatMoney(subtotal)}</strong></div>
+        </div>
+        <div className={`gift-box mt-4 ${gift.qualifies ? "qualified" : ""}`}>
+          <p className="gift-box-title">{gift.qualifies ? "🎉 ¡Tu pedido incluye regalo sorpresa!" : "🎁 Te falta poco para tu regalo sorpresa"}</p>
+          <p className="gift-box-text">{gift.qualifies ? "Se agrega automáticamente al confirmar el pedido." : `Agrega ${formatMoney(gift.missing)} más y lo desbloqueas. El monto mínimo es S/ ${GIFT_THRESHOLD}.`}</p>
+          <div className="gift-progress" role="progressbar" aria-label="Progreso para el regalo sorpresa" aria-valuemin={0} aria-valuemax={GIFT_THRESHOLD} aria-valuenow={Math.round(gift.total)}>
+            <span style={{ width: `${Math.round(gift.ratio * 100)}%` }} />
+          </div>
         </div>
         <Link href="/checkout" className="btn btn-primary mt-5 w-full">Finalizar compra</Link>
         <button type="button" className="btn btn-quiet mt-2 w-full text-sm" onClick={clear}>Vaciar carrito</button>

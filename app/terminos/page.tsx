@@ -15,7 +15,7 @@ export default function TermsPage() {
         <h2 className="text-xl font-black">3. Cambios y cancelaciones</h2>
         <p className="text-[var(--muted)]">Puedes solicitar cambios o cancelaciones antes de que el pedido sea despachado. Contáctanos por WhatsApp con tu código de seguimiento.</p>
         <h2 className="text-xl font-black">4. Regalo sorpresa</h2>
-        <p className="text-[var(--muted)]">Los pedidos que alcancen el monto publicado pueden incluir un regalo sorpresa sujeto a disponibilidad y a las reglas mostradas durante el checkout.</p>
+        <p className="text-[var(--muted)]">Los pedidos cuyo subtotal de productos sea de S/ 150 o más incluyen un regalo sorpresa de selección limitada, sujeto a disponibilidad. El monto se calcula sobre los productos y no incluye el costo de delivery.</p>
         <h2 className="text-xl font-black">5. Responsabilidad del usuario</h2>
         <p className="text-[var(--muted)]">El usuario debe proporcionar información veraz y actualizar sus datos de entrega. MosaMeli no se responsabiliza por direcciones incorrectas o pedidos fuera del horario coordinado.</p>
         <h2 className="text-xl font-black">6. Contacto</h2>

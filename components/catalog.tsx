@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/product-card";
+import { useCartStore } from "@/lib/cart-store";
+import { GIFT_THRESHOLD, giftProgress } from "@/lib/delivery";
+import { cartSubtotal, formatMoney } from "@/lib/money";
 
 const PAGE_SIZE = 8;
 
@@ -27,6 +30,8 @@ export function Catalog({ products }: { products: Product[] }) {
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
   const [sort, setSort] = useState("relevancia");
   const [page, setPage] = useState(1);
+  const cartItems = useCartStore((state) => state.items);
+  const gift = giftProgress(cartSubtotal(cartItems));
 
   const categories = useMemo(() => {
     const counts = new Map<string, number>();
@@ -116,7 +121,15 @@ export function Catalog({ products }: { products: Product[] }) {
           <div className="flex items-center gap-2 text-sm text-[var(--muted)]"><span className="text-[var(--primary)]">◉</span><span aria-hidden="true" className="tracking-tight text-amber-500">★★★★☆</span><span>4 estrellas o más</span></div>
         </div>
 
-        <div className="promo-card"><span className="promo-label">Sorpresa diaria</span><h3>¡Todo pedido lleva regalo sorpresa!</h3><p>Empacado con amor y artículos de selección limitada.</p></div>
+        <div className="promo-card">
+          <span className="promo-label">Regalo sorpresa</span>
+          <h3>{gift.qualifies ? "🎉 ¡Tu carrito ya califica!" : `Desde S/ ${GIFT_THRESHOLD} te llevas regalo`}</h3>
+          <p>{gift.qualifies ? "Tu pedido incluye un regalo sorpresa de selección limitada." : `Te faltan ${formatMoney(gift.missing)} para desbloquearlo.`}</p>
+          <div className="gift-progress" role="progressbar" aria-label="Progreso para el regalo sorpresa" aria-valuemin={0} aria-valuemax={GIFT_THRESHOLD} aria-valuenow={Math.round(gift.total)}>
+            <span style={{ width: `${Math.round(gift.ratio * 100)}%` }} />
+          </div>
+          <p className="promo-total">{formatMoney(gift.total)} <span>/ S/ {GIFT_THRESHOLD}</span></p>
+        </div>
       </aside>
 
       <div className="catalog-results">

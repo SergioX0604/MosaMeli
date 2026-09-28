@@ -1,3 +1,5 @@
+import { toNumber } from "@/lib/money";
+
 export const DELIVERY_ORIGIN = {
   lat: -11.9726,
   lng: -76.779,
@@ -11,7 +13,21 @@ export const DELIVERY_ZONES = [
 ] as const;
 
 export const MAX_DELIVERY_KM = 10;
+
+// Regalo sorpresa: aplica cuando el subtotal de productos (sin delivery)
+// llega a S/ 150. Mismo criterio que usa el RPC crear_pedido.
 export const GIFT_THRESHOLD = 150;
+
+export function giftProgress(subtotal: number) {
+  const total = toNumber(subtotal);
+  const qualifies = total >= GIFT_THRESHOLD;
+  return {
+    qualifies,
+    total,
+    missing: qualifies ? 0 : Math.round((GIFT_THRESHOLD - total) * 100) / 100,
+    ratio: Math.min(1, total / GIFT_THRESHOLD),
+  };
+}
 
 export function haversineKm(
   lat1: number,

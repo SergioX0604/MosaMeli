@@ -336,6 +336,7 @@ textarea {
 }
 
 .brand-name {
+  display: block;
   color: #3b1e8f;
   font-size: 1.6rem;
   font-weight: 900;
@@ -343,6 +344,7 @@ textarea {
 }
 
 .brand-tagline {
+  display: block;
   margin-top: 0.25rem;
   color: #be185d;
   font-size: 0.58rem;
@@ -670,6 +672,62 @@ textarea {
   line-height: 1.5;
 }
 
+.gift-progress {
+  height: 7px;
+  margin-top: 0.75rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f3e8ff;
+}
+
+.gift-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7c3aed, #ec4899);
+  transition: width 240ms ease;
+}
+
+.promo-total {
+  margin-top: 0.4rem;
+  color: #6d28d9 !important;
+  font-size: 0.74rem !important;
+  font-weight: 900;
+}
+
+.promo-total span {
+  color: #a396b8;
+  font-weight: 700;
+}
+
+.gift-box {
+  display: block;
+  border: 1px solid #f5d0a9;
+  border-radius: 16px;
+  background: #fffbeb;
+  padding: 0.85rem 1rem;
+  color: #92400e;
+  font-size: 0.85rem;
+}
+
+.gift-box.qualified {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.gift-box-title {
+  display: block;
+  font-weight: 900;
+}
+
+.gift-box-text {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
 .catalog-results {
   min-width: 0;
 }
@@ -733,6 +791,7 @@ textarea {
 }
 
 .product-card {
+  position: relative;
   display: flex;
   min-width: 0;
   flex-direction: column;

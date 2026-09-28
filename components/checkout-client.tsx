@@ -6,7 +6,7 @@ import { createOrderAction, type CreateOrderResult } from "@/app/checkout/action
 import { DeliveryMap } from "@/components/delivery-map";
 import { PaymentInstructions } from "@/components/payment-instructions";
 import { useCartStore } from "@/lib/cart-store";
-import { DELIVERY_ORIGIN, GIFT_THRESHOLD, haversineKm, isDeliverable, zoneForDistance } from "@/lib/delivery";
+import { DELIVERY_ORIGIN, giftProgress, haversineKm, isDeliverable, zoneForDistance } from "@/lib/delivery";
 import { cartSubtotal, formatMoney } from "@/lib/money";
 
 const paymentMethods = [
@@ -34,6 +34,7 @@ export function CheckoutClient() {
   const deliveryCost = deliverable ? zone.costo : 0;
   const subtotal = cartSubtotal(items);
   const total = subtotal + deliveryCost;
+  const gift = giftProgress(subtotal);
 
   const handlePositionChange = useCallback((lat: number, lng: number) => {
     setPosition({ lat, lng });
@@ -162,7 +163,7 @@ export function CheckoutClient() {
           {items.map((line) => <div key={line.product.id} className="flex justify-between gap-3"><span className="min-w-0 truncate">{line.quantity}× {line.product.nombre}</span><strong>{formatMoney(line.product.precio * line.quantity)}</strong></div>)}
         </div>
         <div className="mt-4 space-y-2 text-sm"><div className="flex justify-between"><span className="text-[var(--muted)]">Subtotal</span><strong>{formatMoney(subtotal)}</strong></div><div className="flex justify-between"><span className="text-[var(--muted)]">Delivery</span><strong>{deliverable ? formatMoney(deliveryCost) : "—"}</strong></div><div className="mt-3 flex justify-between border-t border-[var(--border)] pt-3 text-base"><strong>Total estimado</strong><strong>{formatMoney(total)}</strong></div></div>
-        {total >= GIFT_THRESHOLD ? <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">🎉 Tu pedido incluye regalo sorpresa.</p> : null}
+        {gift.qualifies ? <p className="gift-box qualified mt-4"><span className="gift-box-title">🎉 Tu pedido incluye regalo sorpresa.</span></p> : <p className="gift-box mt-4"><span className="gift-box-title">🎁 Te faltan {formatMoney(gift.missing)} para tu regalo sorpresa</span><span className="gift-box-text">El monto mínimo se calcula sobre los productos, sin delivery.</span></p>}
         <button className="btn btn-primary mt-5 w-full" type="submit" disabled={pending || !deliverable}>{pending ? "Creando pedido…" : "Confirmar pedido"}</button>
         <p className="mt-3 text-xs leading-relaxed text-[var(--muted)]">El servidor volverá a calcular precio, stock, delivery y total antes de guardar el pedido.</p>
       </aside>
