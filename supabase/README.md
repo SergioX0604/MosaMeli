@@ -5,12 +5,13 @@
 1. Haz una copia de seguridad de la base de datos.
 2. En Supabase SQL Editor, ejecuta `migrations/202609260001_p0_security.sql`.
 3. Ejecuta también `migrations/202609260002_regalo_subtotal.sql` para que el regalo sorpresa se calcule sobre el subtotal de productos (S/ 150) y coincida con lo que muestra la interfaz.
-4. Revisa que el correo del bootstrap sea el de tu cuenta administrativa.
-5. Configura el claim `app_metadata.role = "admin"`; no se debe autorizar administradores comparando correos en el frontend.
-6. Despliega las funciones:
+4. Ejecuta `migrations/202609260003_pago_declarado.sql`: agrega la columna `pago_declarado` y el RPC `declarar_pago`, que entrega el código de seguimiento solo cuando el cliente declara el pago. Si aún no la aplicas, la web sigue funcionando (el botón "Ya hice el pago" valida con una lectura), pero el panel de admin no mostrará la fecha de declaración.
+5. Revisa que el correo del bootstrap sea el de tu cuenta administrativa.
+6. Configura el claim `app_metadata.role = "admin"`; no se debe autorizar administradores comparando correos en el frontend.
+7. Despliega las funciones:
    - `functions/enviar-confirmacion`
    - `functions/notificar-estado`
-7. Configura en las funciones: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `EMAIL_FROM` y `SITE_URL`.
+8. Configura en las funciones: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `EMAIL_FROM` y `SITE_URL`.
 
 `SUPABASE_SERVICE_ROLE_KEY` solo debe existir en los secretos de Supabase Edge Functions. Nunca debe aparecer en variables `NEXT_PUBLIC_*` ni en el repositorio.
 

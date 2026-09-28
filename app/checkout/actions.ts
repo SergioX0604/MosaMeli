@@ -8,10 +8,16 @@ export type CreateOrderResult = {
   ok: boolean;
   message?: string;
   orderId?: number;
-  trackingToken?: string;
-  trackingCode?: string;
   total?: number;
   notificationPending?: boolean;
+};
+
+export type DeclarePaymentResult = {
+  ok: boolean;
+  message?: string;
+  trackingCode?: string;
+  trackingToken?: string;
+  total?: number;
 };
 
 // El RPC lanza códigos internos; se traducen antes de mostrarlos al cliente.
@@ -29,6 +35,9 @@ const RPC_ERRORS: Record<string, string> = {
   STOCK_INSUFICIENTE: "No hay stock suficiente para uno de los productos.",
   CARRITO_VACIO: "El carrito está vacío.",
   FUERA_DE_COBERTURA: "Tu ubicación está fuera de la zona de delivery. Contáctanos por WhatsApp.",
+  PEDIDO_NO_ENCONTRADO: "No encontramos ese pedido en tu cuenta.",
+  PEDIDO_YA_VERIFICADO: "El pago de este pedido ya fue verificado.",
+  PAGO_YA_DECLARADO: "Ya registraste el pago de este pedido.",
 };
 
 function friendlyError(message: string): string {
@@ -81,12 +90,66 @@ export async function createOrderAction(input: unknown): Promise<CreateOrderResu
 
   revalidatePath("/mi-perfil");
   revalidatePath("/mis-pedidos");
+  // El codigo de seguimiento NO se devuelve aqui: se entrega mas tarde, cuando
+  // el cliente declara el pago (ver declararPagoAction).
   return {
     ok: true,
     orderId: Number(result.id),
-    trackingToken: result.tracking_token,
-    trackingCode: result.codigo_seguimiento,
     total: Number(result.total ?? 0),
     notificationPending,
+  };
+}
+
+/**
+ * El cliente pulsa "Ya hice el pago" y recien ahi se le entrega el codigo de
+ * seguimiento. El pedido se busca por id en el servidor: nunca se acepta el
+ * codigo ni el token desde el navegador.
+ */
+export async function declararPagoAction(orderId: number): Promise<DeclarePaymentResult> {
+  const id = Number(orderId);
+  if (!Number.isInteger(id) || id <= 0) return { ok: false, message: "Pedido inválido" };
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Debes iniciar sesión para registrar el pago" };
+
+  const { data, error } = await supabase.rpc("declarar_pago", { p_pedido_id: id });
+  if (!error) {
+    const result = Array.isArray(data) ? data[0] : data;
+    if (result) {
+      return {
+        ok: true,
+        trackingCode: result.codigo_seguimiento,
+        trackingToken: result.tracking_token,
+        total: Number(result.total ?? 0),
+      };
+    }
+  }
+
+  // Si la migracion 202609260003 aun no esta aplicada se resuelve con una
+  // lectura (RLS ya limita la fila al usuario). El mismo camino cubre el doble
+  // clic, que el RPC reporta como PAGO_YA_DECLARADO.
+  const message = error?.message ?? "";
+  const missingFunction = error?.code === "PGRST202" || error?.code === "42883" || /declarar_pago/i.test(message);
+  const alreadyDeclared = /PAGO_YA_DECLARADO/.test(message);
+  if (!missingFunction && !alreadyDeclared) {
+    return { ok: false, message: friendlyError(message) };
+  }
+
+  const { data: order, error: readError } = await supabase
+    .from("pedidos")
+    .select("id,codigo_seguimiento,tracking_token,total,estado")
+    .eq("id", id)
+    .maybeSingle();
+  if (readError || !order) {
+    return { ok: false, message: "No encontramos ese pedido en tu cuenta." };
+  }
+  return {
+    ok: true,
+    trackingCode: order.codigo_seguimiento,
+    trackingToken: order.tracking_token ?? undefined,
+    total: Number(order.total ?? 0),
   };
 }

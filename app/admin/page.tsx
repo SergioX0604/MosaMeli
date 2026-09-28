@@ -5,6 +5,7 @@ import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { hasSupabaseConfig } from "@/lib/env";
 import { toNumber } from "@/lib/money";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { selectPedidos } from "@/lib/orders";
 import type { Order, Product, Review } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Panel de administración", robots: { index: false, follow: false } };
@@ -21,12 +22,12 @@ export default async function AdminPage() {
   const supabase = await createSupabaseServerClient();
   const [productsResult, ordersResult, reviewsResult] = await Promise.all([
     supabase.from("productos").select("id,nombre,categoria,precio,precio_original,imagen,stock").order("id"),
-    supabase.from("pedidos").select("id,items,total,metodo_pago,estado,codigo_seguimiento,tracking_token,cliente_nombre,cliente_email,direccion_cliente,notas_delivery,fecha").order("fecha", { ascending: false }).limit(200),
+    selectPedidos(supabase, "id,items,total,metodo_pago,estado,codigo_seguimiento,tracking_token,cliente_nombre,cliente_email,direccion_cliente,notas_delivery,fecha", { orderBy: "fecha", limit: 200 }),
     supabase.from("resenas").select("id,producto_id,usuario_id,usuario_nombre,calificacion,comentario,aprobada,fecha,productos(nombre)").eq("aprobada", false).order("fecha", { ascending: false }).limit(100),
   ]);
 
   const products: Product[] = (productsResult.data ?? []).map((product) => ({ ...product, precio: toNumber(product.precio), stock: toNumber(product.stock) })) as Product[];
-  const orders: Order[] = (ordersResult.data ?? []).map((order) => ({ ...order, total: toNumber(order.total) })) as Order[];
+  const orders: Order[] = (ordersResult.data as Order[]).map((order) => ({ ...order, total: toNumber(order.total) })) as Order[];
   const reviews: Review[] = (reviewsResult.data ?? []) as Review[];
 
   return (

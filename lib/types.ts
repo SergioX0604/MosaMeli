@@ -51,6 +51,7 @@ export type Order = {
   direccion_cliente?: string;
   notas_delivery?: string | null;
   tiene_regalo?: boolean;
+  pago_declarado?: string | null;
   fecha: string;
   fecha_pago_verificado?: string | null;
   fecha_preparacion?: string | null;

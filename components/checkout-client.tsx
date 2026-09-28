@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { createOrderAction, type CreateOrderResult } from "@/app/checkout/actions";
+import { createOrderAction, declararPagoAction, type CreateOrderResult, type DeclarePaymentResult } from "@/app/checkout/actions";
 import { DeliveryMap } from "@/components/delivery-map";
 import { PaymentInstructions } from "@/components/payment-instructions";
 import { useCartStore } from "@/lib/cart-store";
@@ -23,6 +23,9 @@ export function CheckoutClient() {
   const [payment, setPayment] = useState<(typeof paymentMethods)[number]["value"]>("plin");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<CreateOrderResult | null>(null);
+  const [declared, setDeclared] = useState<DeclarePaymentResult | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentPending, setPaymentPending] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const distance = useMemo(
@@ -86,21 +89,61 @@ export function CheckoutClient() {
     });
   }
 
+  async function declarePayment() {
+    if (!success?.orderId) return;
+    setPaymentPending(true);
+    setPaymentError(null);
+    try {
+      const result = await declararPagoAction(success.orderId);
+      if (!result.ok) {
+        setPaymentError(result.message ?? "No pudimos registrar tu pago");
+        return;
+      }
+      setDeclared(result);
+    } catch {
+      setPaymentError("No pudimos registrar tu pago. Inténtalo de nuevo en un momento.");
+    } finally {
+      setPaymentPending(false);
+    }
+  }
+
   if (success?.ok) {
     return (
       <div className="surface mx-auto max-w-2xl p-6 text-center md:p-10">
         <div className="text-5xl" aria-hidden="true">🎉</div>
         <h1 className="mt-4 text-3xl font-black">Pedido confirmado</h1>
-        <p className="mt-2 text-[var(--muted)]">Guardamos tu pedido. Realiza el pago con los datos que aparecen debajo y espera la verificación.</p>
+        <p className="mx-auto mt-2 max-w-lg text-[var(--muted)]">
+          Guardamos tu pedido. Realiza el pago con los datos que aparecen abajo y, cuando lo hagas, presiona
+          <strong className="text-[var(--text)]"> Ya hice el pago </strong>
+          para recibir tu código de seguimiento.
+        </p>
+
         <div className="mt-6 rounded-2xl bg-[var(--brand-50)] p-5">
-          <p className="text-sm text-[var(--muted)]">Total final confirmado: {formatMoney(success.total ?? 0)}</p>
-          <p className="mt-3 text-sm text-[var(--muted)]">Código de seguimiento</p>
-          <p className="mt-1 text-2xl font-black tracking-wider text-[var(--primary-dark)]">{success.trackingCode}</p>
-          {success.trackingToken ? (
-            <Link className="btn btn-primary mt-4" href={`/seguimiento/${success.trackingToken}`}>Ver seguimiento seguro</Link>
-          ) : null}
+          <p className="text-sm text-[var(--muted)]">Total a pagar: <strong className="text-[var(--text)]">{formatMoney(success.total ?? 0)}</strong></p>
+          <p className="mt-1 text-sm text-[var(--muted)]">N.º de pedido: <strong className="text-[var(--text)]">#{success.orderId}</strong></p>
         </div>
+
         <PaymentInstructions method={payment} total={success.total ?? 0} />
+
+        {declared ? (
+          <div className="mt-6 rounded-2xl border border-[#a7f3d0] bg-[#ecfdf5] p-5" role="status">
+            <p className="text-sm font-bold text-[#065f46]">Registramos tu pago. Este es tu código de seguimiento:</p>
+            <p className="mt-2 text-2xl font-black tracking-wider text-[#065f46]">{declared.trackingCode}</p>
+            <p className="mt-2 text-xs text-[#047857]">Guárdalo: con él puedes consultar el estado de tu pedido cuando quieras.</p>
+            {declared.trackingToken ? (
+              <Link className="btn btn-primary mt-4" href={`/seguimiento/${declared.trackingToken}`}>Ver seguimiento seguro</Link>
+            ) : null}
+          </div>
+        ) : (
+          <div className="mt-6">
+            {paymentError ? <div className="alert alert-error" role="alert">{paymentError}</div> : null}
+            <button type="button" className="btn btn-primary w-full text-base" disabled={paymentPending} onClick={declarePayment}>
+              {paymentPending ? "Registrando tu pago…" : "Ya hice el pago"}
+            </button>
+            <p className="mt-2 text-xs text-[var(--muted)]">Presiona este botón después de realizar el pago para obtener tu código de seguimiento.</p>
+          </div>
+        )}
+
         {success.notificationPending ? <p className="alert alert-info mt-5 text-left">El pedido se guardó, pero la notificación por correo está pendiente. Puedes revisar el estado desde tu perfil.</p> : null}
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link className="btn btn-secondary" href="/mi-perfil">Ver mis pedidos</Link>
