@@ -43,6 +43,9 @@ export function SiteHeader({ user }: SiteHeaderProps) {
   const cartCount = items.reduce((total, line) => total + line.quantity, 0);
   const displayName = user?.user_metadata?.username || user?.email?.split("@")[0] || "Invitado";
   const activeCategory = searchParams.get("categoria") ?? "todos";
+  // El buscador solo tiene sentido en el catálogo; en el resto de páginas
+  // ocupa su lugar un espaciador para mantener las acciones a la derecha.
+  const showSearch = pathname === "/";
 
   useEffect(() => {
     setOwner(user?.id ?? null);
@@ -91,13 +94,6 @@ export function SiteHeader({ user }: SiteHeaderProps) {
 
   return (
     <>
-      <div className="announcement-bar">
-        <div className="announcement-inner container-shell">
-          <span><strong>GRATIS</strong> · Envío gratis en compras mayores a S/ 99 · ¡Descubre ofertas relámpago de temporada!</span>
-          <div className="announcement-links"><span>♧ Soporte 24/7</span><span>♢ Garantía Segura</span></div>
-        </div>
-      </div>
-
       <header className="site-header-main sticky top-0 z-40">
         <div className="header-main-row container-shell">
           <Link href="/" className="brand-lockup" aria-label="MosaMeli, inicio">
@@ -105,12 +101,14 @@ export function SiteHeader({ user }: SiteHeaderProps) {
             <span><span className="brand-name">MosaMeli</span><span className="brand-tagline">Tu mundo en un click</span></span>
           </Link>
 
-          <form className="header-search-form" onSubmit={submitSearch} role="search">
-            <span aria-hidden="true" className="text-[var(--muted)]">⌕</span>
-            <label className="sr-only" htmlFor="header-search">Buscar productos</label>
-            <input id="header-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="¿Qué estás buscando? (ej: zapatillas, lámpara, accesorios)" />
-            <button type="submit">Buscar</button>
-          </form>
+          {showSearch ? (
+            <form className="header-search-form" onSubmit={submitSearch} role="search">
+              <span aria-hidden="true" className="text-[var(--muted)]">⌕</span>
+              <label className="sr-only" htmlFor="header-search">Buscar productos</label>
+              <input id="header-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="¿Qué estás buscando? (ej: zapatillas, lámpara, accesorios)" />
+              <button type="submit">Buscar</button>
+            </form>
+          ) : <div className="header-spacer" aria-hidden="true" />}
 
           <div className="header-actions">
             <Link href="/checkout" className="location-pill" aria-label="Seleccionar ubicación de entrega"><span aria-hidden="true">⌖</span><span>Selecciona tu ubicaci...</span><span aria-hidden="true">⌄</span></Link>

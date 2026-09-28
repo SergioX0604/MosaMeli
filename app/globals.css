@@ -276,31 +276,6 @@ textarea {
 }
 
 /* Catálogo y header visual MosaMeli */
-.announcement-bar {
-  background: linear-gradient(90deg, #fce7f3 0%, #f3e8ff 48%, #ede9fe 100%);
-  color: #3b2a5c;
-  font-size: 0.78rem;
-}
-
-.announcement-inner {
-  display: flex;
-  min-height: 34px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.announcement-inner strong {
-  color: #be185d;
-}
-
-.announcement-links {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  white-space: nowrap;
-}
-
 .site-header-main {
   border-bottom: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.94);
@@ -312,6 +287,10 @@ textarea {
   min-height: 86px;
   align-items: center;
   gap: 1.25rem;
+}
+
+.header-spacer {
+  flex: 1;
 }
 
 .brand-lockup {
@@ -581,7 +560,8 @@ textarea {
 
 .filters-panel {
   position: sticky;
-  top: 108px;
+  /* debajo del header sticky (fila principal + nav de categorías) */
+  top: 158px;
   padding: 1.25rem;
 }
 
@@ -1101,10 +1081,6 @@ textarea {
 }
 
 @media (max-width: 640px) {
-  .announcement-links {
-    display: none;
-  }
-
   .brand-lockup {
     min-width: auto;
   }
