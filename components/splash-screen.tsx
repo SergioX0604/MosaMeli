@@ -1,28 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { markSplashSeen } from "@/lib/splash";
+
+const EXIT_DELAY = 450;
 
 export function SplashScreen({ nextPath = "/" }: { nextPath?: string }) {
   const router = useRouter();
   const [leaving, setLeaving] = useState(false);
+  const exitTimer = useRef<number | null>(null);
 
-  useEffect(() => {
-    const secure = window.location.protocol === "https:" ? "; Secure" : "";
-    document.cookie = `mosameli_splash_v2=1; Max-Age=86400; Path=/; SameSite=Lax${secure}`;
-
-    const timer = window.setTimeout(() => {
-      setLeaving(true);
-      router.replace(nextPath);
-    }, 2600);
-
-    return () => window.clearTimeout(timer);
+  const leave = useCallback(() => {
+    setLeaving(true);
+    if (exitTimer.current) window.clearTimeout(exitTimer.current);
+    exitTimer.current = window.setTimeout(() => router.replace(nextPath), EXIT_DELAY);
   }, [nextPath, router]);
 
-  function skip() {
-    setLeaving(true);
-    router.replace(nextPath);
-  }
+  useEffect(() => {
+    markSplashSeen();
+
+    const timer = window.setTimeout(() => leave(), 2600);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (exitTimer.current) window.clearTimeout(exitTimer.current);
+    };
+  }, [leave]);
 
   return (
     <main className="fixed inset-0 z-[100] grid place-items-center overflow-hidden bg-[#241b35] text-white">
@@ -36,7 +40,7 @@ export function SplashScreen({ nextPath = "/" }: { nextPath?: string }) {
         <div className="mt-10 h-1.5 w-48 overflow-hidden rounded-full bg-white/15" role="progressbar" aria-label="Cargando MosaMeli" aria-busy="true">
           <div className="h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)]" />
         </div>
-        <button type="button" className="mt-8 rounded-full border border-white/25 px-5 py-2 text-sm font-bold text-white/80 transition hover:border-white hover:bg-white/10" onClick={skip}>
+        <button type="button" className="mt-8 rounded-full border border-white/25 px-5 py-2 text-sm font-bold text-white/80 transition hover:border-white hover:bg-white/10" onClick={leave}>
           Saltar intro ➜
         </button>
       </div>

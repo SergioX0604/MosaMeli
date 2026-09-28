@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Catalog } from "@/components/catalog";
+import { SplashEntryMarker } from "@/components/splash-entry-marker";
+import { SPLASH_COOKIE } from "@/lib/splash";
 import { hasSupabaseConfig } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toNumber } from "@/lib/money";
@@ -10,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const cookieStore = await cookies();
-  if (!cookieStore.get("mosameli_splash_v2")?.value) redirect("/splash");
+  if (!cookieStore.get(SPLASH_COOKIE)?.value) redirect("/splash");
 
   let products: Product[] = [];
   let loadError = false;
@@ -50,6 +52,7 @@ export default async function HomePage() {
 
   return (
     <div className="page-shell container-shell">
+      <SplashEntryMarker />
       {loadError ? <div className="alert alert-error mb-5" role="alert">No se pudo conectar con el catálogo. Intenta nuevamente en unos minutos.</div> : null}
       {!hasSupabaseConfig() && !loadError ? <div className="alert alert-info mb-5">Configura <code>.env.local</code> con las variables de Supabase para cargar el catálogo.</div> : null}
       {products.length ? <Catalog products={products} /> : hasSupabaseConfig() && !loadError ? <div className="surface px-6 py-12 text-center"><p className="text-3xl" aria-hidden="true">📦</p><h2 className="mt-3 font-black">El catálogo está vacío</h2><p className="mt-1 text-sm text-[var(--muted)]">Los productos aparecerán aquí cuando estén publicados.</p></div> : null}

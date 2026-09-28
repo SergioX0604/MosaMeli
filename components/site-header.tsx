@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { useCartStore } from "@/lib/cart-store";
 import { useFavoritesStore } from "@/lib/favorites-store";
+import { markSplashSeen } from "@/lib/splash";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isAdmin } from "@/lib/roles";
 
@@ -28,6 +29,7 @@ const categories = [
 
 export function SiteHeader({ user }: SiteHeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -73,8 +75,15 @@ export function SiteHeader({ user }: SiteHeaderProps) {
     }
   }
 
+  // Mientras el usuario ya está en el catálogo, filtrar o buscar no debe
+  // repetir la intro: se renueva la marca para que / no rediriga a /splash.
+  function keepSplashHidden() {
+    if (pathname === "/") markSplashSeen();
+  }
+
   function submitSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    keepSplashHidden();
     const query = search.trim();
     router.push(query ? `/?q=${encodeURIComponent(query)}#catalogo` : "/#catalogo");
   }
@@ -131,7 +140,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
             {categories.map(([label, icon]) => {
               const key = label === "Todo" ? "todos" : label.toLowerCase().replace("ó", "o").replace("í", "i");
               const active = activeCategory === key;
-              return <Link key={label} className={`category-nav-link ${active ? "active" : ""}`} href={key === "todos" ? "/#catalogo" : `/?categoria=${encodeURIComponent(key)}#catalogo`}><span aria-hidden="true">{icon}</span>{label}</Link>;
+              return <Link key={label} className={`category-nav-link ${active ? "active" : ""}`} href={key === "todos" ? "/#catalogo" : `/?categoria=${encodeURIComponent(key)}#catalogo`} onClick={keepSplashHidden}><span aria-hidden="true">{icon}</span>{label}</Link>;
             })}
           </div>
         </nav>
