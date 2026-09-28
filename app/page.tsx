@@ -1,3 +1,5 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Catalog } from "@/components/catalog";
 import { hasSupabaseConfig } from "@/lib/env";
@@ -8,6 +10,11 @@ import type { Product } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
+  const cookieStore = await cookies();
+  if (!cookieStore.get("mosameli_splash_v2")?.value) {
+    redirect("/splash");
+  }
+
   let products: Product[] = [];
   let loadError = false;
 

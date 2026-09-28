@@ -36,4 +36,4 @@ El checkout no acepta precios ni totales desde el navegador: envía únicamente 
 - `supabase/functions/`: notificaciones por correo.
 - `tests/`: pruebas unitarias y E2E.
 
-Los archivos HTML/JS antiguos se conservaron en `legacy/` como referencia de la migración y no forman parte de la nueva aplicación.
+Los archivos HTML/JS antiguos se conservaron en `_legacy_archive/` como referencia de la migración y no forman parte de la nueva aplicación.

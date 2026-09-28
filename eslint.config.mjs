@@ -10,6 +10,7 @@ export default defineConfig([
     "node_modules/**",
     "public/**",
     "legacy/**",
+    "_legacy_archive/**",
     "*.html",
     "*.js",
   ]),
