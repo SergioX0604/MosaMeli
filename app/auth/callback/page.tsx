@@ -25,23 +25,31 @@ function CallbackInner() {
     const destination = readAuthDestination();
     clearAuthDestination();
 
+    const fail = (motivo: string) => {
+      router.replace(`/login?error=oauth&motivo=${encodeURIComponent(motivo.slice(0, 120))}`);
+    };
+
     if (!code) {
-      router.replace("/login?error=oauth");
+      fail(searchParams.get("error_description") ?? searchParams.get("error") ?? "no llego el codigo");
       return;
     }
 
     const supabase = createSupabaseBrowserClient();
     void supabase.auth
       .exchangeCodeForSession(code)
-      .then(({ error }) => {
+      .then(({ data, error }) => {
         if (error) {
-          router.replace("/login?error=oauth");
+          fail(error.message);
+          return;
+        }
+        if (!data.session) {
+          fail("la respuesta no traia sesion");
           return;
         }
         router.replace(destination);
         router.refresh();
       })
-      .catch(() => router.replace("/login?error=oauth"));
+      .catch((cause: unknown) => fail(cause instanceof Error ? cause.message : "fallo inesperado"));
   }, [router, searchParams]);
 
   return (
