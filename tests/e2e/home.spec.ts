@@ -1,30 +1,25 @@
 import { test, expect, type Page } from "@playwright/test";
 
-const SPLASH_COOKIE = "mosameli_splash_v2";
+const splashHeading = (page: Page) => page.getByRole("heading", { name: "MosaMeli" });
+const catalogHeading = (page: Page) => page.getByRole("heading", { name: /productos/i }).first();
 
-test.beforeEach(async ({ page }) => {
-  await page.context().addCookies([
-    { name: SPLASH_COOKIE, value: "1", url: "http://127.0.0.1:3000" },
-  ]);
-});
-
-// El catálogo borra la marca del splash al mostrarse, así que esperamos a que
-// la cookie desaparezca antes de simular una nueva entrada.
-async function expectSplashCleared(page: Page) {
-  await expect
-    .poll(async () => (await page.context().cookies("http://127.0.0.1:3000")).some((cookie) => cookie.name === SPLASH_COOKIE))
-    .toBe(false);
+/** Entra al catálogo como lo haría una persona: carga real y salto de la intro. */
+async function openCatalog(page: Page) {
+  await page.goto("/");
+  if (await splashHeading(page).isVisible().catch(() => false)) {
+    await page.getByRole("link", { name: /Saltar intro/i }).click();
+  }
+  await expect(catalogHeading(page)).toBeVisible();
 }
 
 test("la portada muestra la tienda y el catálogo", async ({ page }) => {
-  await page.goto("/");
+  await openCatalog(page);
   await expect(page).toHaveTitle(/MosaMeli/);
-  await expect(page.getByRole("heading", { name: "Todos los productos" })).toBeVisible();
   await expect(page.getByRole("link", { name: /Carrito/i })).toBeVisible();
 });
 
 test("el buscador tiene una acción accessible", async ({ page }) => {
-  await page.goto("/");
+  await openCatalog(page);
   const search = page.locator("#header-search");
   await expect(search).toBeVisible();
   await search.fill("hogar");
@@ -32,38 +27,45 @@ test("el buscador tiene una acción accessible", async ({ page }) => {
   await expect(page.getByRole("status").filter({ hasText: /producto/i })).toBeVisible();
 });
 
-test("el splash aparece en cada entrada al catálogo y se puede saltar", async ({ page }) => {
-  await page.context().clearCookies();
+test("el splash aparece al entrar al catálogo y se puede saltar", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "MosaMeli" })).toBeVisible();
-  await page.getByRole("button", { name: /Saltar intro/i }).click();
-  await expect(page.getByRole("heading", { name: /productos/i }).first()).toBeVisible();
+  await expect(splashHeading(page)).toBeVisible();
+  await page.getByRole("link", { name: /Saltar intro/i }).click();
+  await expect(catalogHeading(page)).toBeVisible();
 });
 
 test("recargar el catálogo vuelve a mostrar el splash", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: /productos/i }).first()).toBeVisible();
-  await expectSplashCleared(page);
+  await openCatalog(page);
   await page.reload();
-  await expect(page.getByRole("heading", { name: "MosaMeli" })).toBeVisible();
+  await expect(splashHeading(page)).toBeVisible();
 });
 
-test("volver desde otra página muestra el splash", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: /productos/i }).first()).toBeVisible();
-  await expectSplashCleared(page);
+test("ir al catálogo desde otra página no repite el splash", async ({ page }) => {
+  await openCatalog(page);
   await page.getByRole("link", { name: /Carrito/i }).click();
   await expect(page.getByRole("heading", { name: "Tu carrito", exact: true })).toBeVisible();
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "MosaMeli" })).toBeVisible();
+  // navegación interna: el catálogo entra directo, sin intro
+  await page.getByRole("link", { name: "MosaMeli, inicio" }).click();
+  await expect(page).toHaveURL(/\/$|\/\?/);
+  await expect(catalogHeading(page)).toBeVisible();
+  await expect(splashHeading(page)).toBeHidden();
+});
+
+test("la barra de categorías solo existe en el catálogo", async ({ page }) => {
+  await openCatalog(page);
+  await expect(page.locator(".category-nav")).toBeVisible();
+
+  for (const ruta of ["/login", "/carrito", "/favoritos", "/mis-pedidos"]) {
+    await page.goto(ruta);
+    await expect(page.locator(".category-nav")).toHaveCount(0);
+  }
 });
 
 test("filtrar por categoría no repite el splash", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: /productos/i })).toBeVisible();
+  await openCatalog(page);
   await page.getByRole("link", { name: /Hogar/i }).first().click();
   await expect(page).toHaveURL(/categoria=hogar/);
-  await expect(page.getByRole("heading", { name: "MosaMeli" })).toBeHidden();
+  await expect(splashHeading(page)).toBeHidden();
   await expect(page.getByRole("heading", { name: /productos|Hogar/i }).first()).toBeVisible();
 });
 

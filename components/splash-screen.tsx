@@ -1,9 +1,9 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { markSplashSeen } from "@/lib/splash";
 
 const EXIT_DELAY = 450;
 
@@ -19,8 +19,6 @@ export function SplashScreen({ nextPath = "/" }: { nextPath?: string }) {
   }, [nextPath, router]);
 
   useEffect(() => {
-    markSplashSeen();
-
     const timer = window.setTimeout(() => leave(), 2600);
 
     return () => {
@@ -41,9 +39,16 @@ export function SplashScreen({ nextPath = "/" }: { nextPath?: string }) {
         <div className="mt-10 h-1.5 w-48 overflow-hidden rounded-full bg-white/15" role="progressbar" aria-label="Cargando MosaMeli" aria-busy="true">
           <div className="h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)]" />
         </div>
-        <button type="button" className="mt-8 rounded-full border border-white/25 px-5 py-2 text-sm font-bold text-white/80 transition hover:border-white hover:bg-white/10" onClick={leave}>
+        <Link
+          href={nextPath}
+          className="mt-8 rounded-full border border-white/25 px-5 py-2 text-sm font-bold text-white/80 transition hover:border-white hover:bg-white/10"
+          onClick={(event) => {
+            event.preventDefault();
+            leave();
+          }}
+        >
           Saltar intro ➜
-        </button>
+        </Link>
       </div>
     </main>
   );

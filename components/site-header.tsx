@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { useCartStore } from "@/lib/cart-store";
 import { useFavoritesStore } from "@/lib/favorites-store";
-import { markSplashSeen } from "@/lib/splash";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isAdmin } from "@/lib/roles";
 
@@ -43,9 +42,11 @@ export function SiteHeader({ user }: SiteHeaderProps) {
   const cartCount = items.reduce((total, line) => total + line.quantity, 0);
   const displayName = user?.user_metadata?.username || user?.email?.split("@")[0] || "Invitado";
   const activeCategory = searchParams.get("categoria") ?? "todos";
-  // El buscador solo tiene sentido en el catálogo; en el resto de páginas
-  // ocupa su lugar un espaciador para mantener las acciones a la derecha.
-  const showSearch = pathname === "/";
+  // El buscador y la barra de categorías solo tienen sentido en el catálogo.
+  // En el resto de páginas el buscador se sustituye por un espaciador para
+  // mantener las acciones a la derecha.
+  const isCatalog = pathname === "/";
+  const showSearch = isCatalog;
 
   useEffect(() => {
     setOwner(user?.id ?? null);
@@ -79,15 +80,8 @@ export function SiteHeader({ user }: SiteHeaderProps) {
     }
   }
 
-  // Mientras el usuario ya está en el catálogo, filtrar o buscar no debe
-  // repetir la intro: se renueva la marca para que / no rediriga a /splash.
-  function keepSplashHidden() {
-    if (pathname === "/") markSplashSeen();
-  }
-
   function submitSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    keepSplashHidden();
     const query = search.trim();
     router.push(query ? `/?q=${encodeURIComponent(query)}#catalogo` : "/#catalogo");
   }
@@ -134,15 +128,17 @@ export function SiteHeader({ user }: SiteHeaderProps) {
             ) : <Link href="/login" className="user-pill"><span className="user-avatar" aria-hidden="true">♙</span><span>Ingresar</span></Link>}
           </div>
         </div>
-        <nav className="category-nav" aria-label="Categorías">
-          <div className="category-nav-inner container-shell">
-            {categories.map(([label, icon]) => {
-              const key = label === "Todo" ? "todos" : label.toLowerCase().replace("ó", "o").replace("í", "i");
-              const active = activeCategory === key;
-              return <Link key={label} className={`category-nav-link ${active ? "active" : ""}`} href={key === "todos" ? "/#catalogo" : `/?categoria=${encodeURIComponent(key)}#catalogo`} onClick={keepSplashHidden}><span aria-hidden="true">{icon}</span>{label}</Link>;
-            })}
-          </div>
-        </nav>
+        {isCatalog ? (
+          <nav className="category-nav" aria-label="Categorías">
+            <div className="category-nav-inner container-shell">
+              {categories.map(([label, icon]) => {
+                const key = label === "Todo" ? "todos" : label.toLowerCase().replace("ó", "o").replace("í", "i");
+                const active = activeCategory === key;
+                return <Link key={label} className={`category-nav-link ${active ? "active" : ""}`} href={key === "todos" ? "/#catalogo" : `/?categoria=${encodeURIComponent(key)}#catalogo`}><span aria-hidden="true">{icon}</span>{label}</Link>;
+              })}
+            </div>
+          </nav>
+        ) : null}
       </header>
     </>
   );
