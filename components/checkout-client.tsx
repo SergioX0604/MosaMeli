@@ -66,7 +66,7 @@ export function CheckoutClient() {
     }
 
     const payload = {
-      items: items.map((line) => ({ id: line.product.id, quantity: line.quantity })),
+      items: items.map((line) => ({ id: line.product.id, cantidad: line.quantity })),
       metodo_pago: payment,
       direccion: address.trim(),
       lat: position.lat,

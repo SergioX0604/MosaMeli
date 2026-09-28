@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { AuthCodeHandler } from "@/components/auth-code-handler";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +55,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <a className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-3" href="#contenido">
           Saltar al contenido
         </a>
+        <Suspense fallback={null}>
+          <AuthCodeHandler />
+        </Suspense>
         <SiteHeader user={user} />
         <main id="contenido">{children}</main>
         <SiteFooter />

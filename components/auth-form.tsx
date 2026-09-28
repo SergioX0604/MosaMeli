@@ -6,15 +6,15 @@ import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { loginSchema, signUpSchema } from "@/lib/validation";
 
-type AuthFormProps = { nextPath: string };
+type AuthFormProps = { nextPath: string; initialMessage?: { type: "error" | "success"; text: string } | null };
 
-export function AuthForm({ nextPath }: AuthFormProps) {
+export function AuthForm({ nextPath, initialMessage }: AuthFormProps) {
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "register" | "recover">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(initialMessage ?? null);
   const [busy, setBusy] = useState(false);
 
   function safeNext() {

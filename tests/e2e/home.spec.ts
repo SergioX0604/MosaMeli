@@ -66,3 +66,19 @@ test("filtrar por categoría no repite el splash", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "MosaMeli" })).toBeHidden();
   await expect(page.getByRole("heading", { name: /productos|Hogar/i }).first()).toBeVisible();
 });
+
+test("un ?code= de OAuth inválido devuelve al login con aviso", async ({ page }) => {
+  // Supabase cae al Site URL con ?code=... si /auth/callback no está autorizada.
+  // El manejador intenta el intercambio y, si falla, avisa en el login.
+  await page.goto("/?code=codigo-invalido-de-prueba");
+  await expect(page).toHaveURL(/\/login\?error=oauth/);
+  await expect(page.getByRole("heading", { name: "Inicia sesión" })).toBeVisible();
+  await expect(page.getByRole("status")).toContainText(/No pudimos completar el acceso con Google/i);
+});
+
+test("el buscador no aparece fuera del catálogo", async ({ page }) => {
+  await page.goto("/login");
+  await expect(page.locator("#header-search")).toHaveCount(0);
+  await page.goto("/carrito");
+  await expect(page.locator("#header-search")).toHaveCount(0);
+});

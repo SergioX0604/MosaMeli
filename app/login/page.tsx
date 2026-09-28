@@ -6,7 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 export const metadata: Metadata = { title: "Iniciar sesión", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-type LoginPageProps = { searchParams: Promise<{ next?: string; action?: string }> };
+type LoginPageProps = { searchParams: Promise<{ next?: string; action?: string; error?: string }> };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
@@ -14,9 +14,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   if (user) redirect("/");
 
   const nextPath = params.next?.startsWith("/") && !params.next.startsWith("//") ? params.next : "/";
+  const initialMessage = params.error === "oauth"
+    ? { type: "error" as const, text: "No pudimos completar el acceso con Google. Intenta de nuevo o usa tu correo y contraseña." }
+    : null;
+
   return (
     <div className="page-shell container-shell">
-      <AuthForm nextPath={nextPath} />
+      <AuthForm nextPath={nextPath} initialMessage={initialMessage} />
     </div>
   );
 }

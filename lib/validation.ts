@@ -18,9 +18,11 @@ export const signUpSchema = z.object({
     .max(128, "La contraseña es demasiado larga"),
 });
 
+// El RPC crear_pedido lee el array con jsonb_to_recordset(..., cantidad integer),
+// por eso la clave debe ser `cantidad` y no `quantity`.
 export const orderItemSchema = z.object({
   id: z.number().int().positive(),
-  quantity: z.number().int().positive().max(99),
+  cantidad: z.number().int().positive().max(99),
 });
 
 export const createOrderSchema = z.object({

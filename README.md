@@ -27,6 +27,18 @@ Las migraciones están en `supabase/migrations/`: `202609260001_p0_security.sql`
 
 El checkout no acepta precios ni totales desde el navegador: envía únicamente IDs, cantidades, ubicación y método de pago. El servidor vuelve a calcular y validar todo antes de crear el pedido.
 
+### Google OAuth
+
+En Supabase → Authentication → URL Configuration agrega estas Redirect URLs. Si faltan, Supabase devuelve el callback al Site URL y el usuario queda sin sesión:
+
+```
+https://mosameli.com/auth/callback
+https://www.mosameli.com/auth/callback
+http://localhost:3000/auth/callback
+```
+
+Como respaldo, `components/auth-code-handler.tsx` completa el intercambio si la respuesta de Google llega a `/?code=...`.
+
 ## Reglas de negocio
 
 - **Regalo sorpresa**: se incluye cuando el subtotal de productos llega a S/ 150 (`GIFT_THRESHOLD` en `lib/delivery.ts`). El catálogo muestra el badge, el carrito y el checkout indican cuánto falta, y el RPC `crear_pedido` guarda `tiene_regalo` con el mismo criterio.
