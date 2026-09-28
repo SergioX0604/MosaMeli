@@ -42,7 +42,8 @@ El cierre del flujo OAuth ocurre en el navegador: `/auth/callback` es una págin
 ## Reglas de negocio
 
 - **Regalo sorpresa**: se incluye cuando el subtotal de productos llega a S/ 150 (`GIFT_THRESHOLD` en `lib/delivery.ts`). El catálogo muestra el badge, el carrito y el checkout indican cuánto falta, y el RPC `crear_pedido` guarda `tiene_regalo` con el mismo criterio.
-- **Splash**: la intro se reproduce en cada entrada al catálogo (recarga o volver desde otra página). Al mostrarse, el catálogo borra la marca `mosameli_splash_v2`; las navegaciones internas del catálogo (filtros y búsqueda del header) la renuevan para no interrumpir al filtrar.
+- **Barra de categorías y buscador**: el header los muestra solo en el catálogo (`/`). En el resto de páginas quedan el logo, la ubicación, favoritos, carrito y usuario.
+- **Splash**: la intro se reproduce solo al entrar de verdad al catálogo, es decir, con una carga real de la página (URL directa, F5, enlace externo o pestaña nueva). Las navegaciones internas —carrito, perfil, logo, categorías, buscador— no la lanzan. El redirect se resuelve en `proxy.ts` para responder con un 307 real; con `redirect()` desde la página Next devolvía un 200 con meta-refresh.
 
 ## Estructura
 
