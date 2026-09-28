@@ -13,6 +13,13 @@
    - `functions/notificar-estado`
 8. Configura en las funciones: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `EMAIL_FROM` y `SITE_URL`.
 
+## Correos
+
+- `functions/_shared/email.ts` concentra la identidad visual (cabecera con logo, botón, barra de progreso de 5 pasos, pie con datos de contacto) y los textos de cada estado. Los dos correos la comparten para que se vean de la misma marca.
+- `enviar-confirmacion` y `notificar-estado` exponen `construirConfirmacion` y `construirAviso`, funciones puras que devuelven `{ subject, html }`. Para revisar un correo sin desplegar, transpílalas y llama a esos builders con datos de ejemplo; así se inspecciona el HTML final.
+- El correo de confirmación no incluye el código de seguimiento: el cliente lo recibe al presionar "Ya hice el pago".
+- Al cambiar un estado desde el panel, `notificar-estado` manda el correo con el tono del estado, la barra de progreso y el enlace de seguimiento. Si el pedido está `cancelado`, no incluye botón de seguimiento.
+
 `SUPABASE_SERVICE_ROLE_KEY` solo debe existir en los secretos de Supabase Edge Functions. Nunca debe aparecer en variables `NEXT_PUBLIC_*` ni en el repositorio.
 
 ## Variables del frontend

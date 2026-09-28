@@ -30,5 +30,31 @@ export default async function TrackingPage({ searchParams }: TrackingPageProps) 
     );
     if (revealed?.tracking_token) redirect(`/seguimiento/${revealed.tracking_token}`);
   }
-  return <div className="page-shell container-shell space-y-6"><div><h1 className="text-3xl font-black">Seguimiento de pedido</h1><p className="mt-1 text-sm text-[var(--muted)]">Consulta el estado con el código seguro recibido por correo.</p></div>{params.codigo && !user ? <p className="alert alert-info">Inicia sesión para consultar pedidos asociados a tu cuenta o usa el código seguro recibido por correo.</p> : null}<TrackingLookup /></div>;
+  return (
+    <div className="page-shell container-shell space-y-6">
+      <div className="surface p-6 md:p-8">
+        <h1 className="text-3xl font-black">Sigue tu pedido</h1>
+        <p className="mt-2 max-w-2xl text-[var(--muted)]">
+          Te explicamos en qué punto va tu compra, paso a paso y con la fecha de cada avance. Solo necesitas el código que te
+          mostramos después de registrar tu pago.
+        </p>
+        <ol className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
+          <li className="rounded-2xl bg-[var(--brand-50)] p-4">
+            <p className="font-black text-[var(--text)]">1. Paga tu pedido</p>
+            <p className="mt-1 text-[var(--muted)]">Con Plin, Yape o transferencia, usando los datos de la tienda.</p>
+          </li>
+          <li className="rounded-2xl bg-[var(--brand-50)] p-4">
+            <p className="font-black text-[var(--text)]">2. Presiona “Ya hice el pago”</p>
+            <p className="mt-1 text-[var(--muted)]">En el checkout o en Mis pedidos. Ahí te damos tu código.</p>
+          </li>
+          <li className="rounded-2xl bg-[var(--brand-50)] p-4">
+            <p className="font-black text-[var(--text)]">3. Pega el código aquí</p>
+            <p className="mt-1 text-[var(--muted)]">Y verás cada etapa: pago, preparación, envío y entrega.</p>
+          </li>
+        </ol>
+      </div>
+      {params.codigo && !user ? <p className="alert alert-info">Inicia sesión para consultar los pedidos asociados a tu cuenta, o pega aquí el código que te dimos al confirmar el pago.</p> : null}
+      <TrackingLookup />
+    </div>
+  );
 }
