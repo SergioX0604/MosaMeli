@@ -12,6 +12,8 @@ export type Product = {
   video_url?: string | null;
   marca?: string | null;
   garantia?: string | null;
+  rating?: number | null;
+  review_count?: number | null;
 };
 
 export type CartLine = {

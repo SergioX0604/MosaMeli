@@ -1,119 +1,135 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/product-card";
 
+const PAGE_SIZE = 8;
+
+function normalizeCategory(value: string): string {
+  return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function displayCategory(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export function Catalog({ products }: { products: Product[] }) {
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("todos");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const [activeCategories, setActiveCategories] = useState<string[]>(() => {
+    const value = searchParams.get("categoria");
+    return value && value !== "todos" ? [value] : [];
+  });
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
+  const [sort, setSort] = useState("relevancia");
+  const [page, setPage] = useState(1);
 
-  const categories = useMemo(
-    () => ["todos", ...Array.from(new Set(products.map((product) => product.categoria).filter(Boolean)))],
-    [products],
-  );
-  const priceLimit = useMemo(
-    () => Math.max(300, ...products.map((product) => Number(product.precio) || 0)),
-    [products],
-  );
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const product of products) counts.set(product.categoria, (counts.get(product.categoria) ?? 0) + 1);
+    return Array.from(counts.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [products]);
+  const priceLimit = Math.max(300, ...products.map((product) => Number(product.precio) || 0));
   const effectiveMaxPrice = maxPrice ?? priceLimit;
+
+  useEffect(() => {
+    // Sincroniza el catálogo con los filtros que llegan desde el header.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setQuery(searchParams.get("q") ?? "");
+    const category = searchParams.get("categoria");
+    setActiveCategories(category && category !== "todos" ? [category] : []);
+  }, [searchParams]);
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return products.filter((product) => {
-      const matchesQuery = !normalizedQuery || [product.nombre, product.categoria]
-        .filter(Boolean)
+    const result = products.filter((product) => {
+      const matchesQuery = !normalizedQuery || [product.nombre, product.categoria, product.marca]
+        .filter((value): value is string => typeof value === "string")
         .some((value) => value.toLowerCase().includes(normalizedQuery));
-      const matchesCategory = category === "todos" || product.categoria === category;
+      const matchesCategory = activeCategories.length === 0 || activeCategories.includes(normalizeCategory(product.categoria));
       const matchesStock = !onlyAvailable || product.stock > 0;
       const matchesPrice = Number(product.precio) <= effectiveMaxPrice;
       return matchesQuery && matchesCategory && matchesStock && matchesPrice;
     });
-  }, [category, effectiveMaxPrice, onlyAvailable, products, query]);
+    return result.sort((a, b) => {
+      if (sort === "precio-asc") return Number(a.precio) - Number(b.precio);
+      if (sort === "precio-desc") return Number(b.precio) - Number(a.precio);
+      if (sort === "nombre") return a.nombre.localeCompare(b.nombre);
+      return a.id - b.id;
+    });
+  }, [activeCategories, effectiveMaxPrice, onlyAvailable, products, query, sort]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const visibleProducts = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const hasFilters = Boolean(query || activeCategories.length || onlyAvailable || maxPrice !== undefined);
+
+  function toggleCategory(category: string) {
+    setActiveCategories((current) => current.includes(category) ? current.filter((item) => item !== category) : [...current, category]);
+    setPage(1);
+  }
+
+  function clearFilters() {
+    setQuery("");
+    setActiveCategories([]);
+    setOnlyAvailable(false);
+    setMaxPrice(undefined);
+    setPage(1);
+    router.replace("/#catalogo");
+  }
 
   return (
-    <section id="catalogo" className="space-y-5">
-      <div className="surface p-4 md:p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
-          <div className="flex-1">
-            <label className="form-label" htmlFor="catalogo-busqueda">Buscar productos</label>
-            <input
-              id="catalogo-busqueda"
-              className="form-input"
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Ej:audífonos, hogar, mascotas"
-            />
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:w-[430px]">
-            <div>
-              <label className="form-label" htmlFor="precio-maximo">Precio máximo: S/ {effectiveMaxPrice}</label>
-              <input
-                id="precio-maximo"
-                type="range"
-                min="0"
-                max={priceLimit}
-                step="1"
-                value={effectiveMaxPrice}
-                onChange={(event) => setMaxPrice(Number(event.target.value))}
-                className="w-full accent-[var(--primary)]"
-              />
-            </div>
-            <label className="mt-6 flex items-center gap-2 text-sm font-semibold text-[var(--muted)]">
-              <input
-                type="checkbox"
-                checked={onlyAvailable}
-                onChange={(event) => setOnlyAvailable(event.target.checked)}
-                className="h-4 w-4 accent-[var(--primary)]"
-              />
-              Solo disponibles
-            </label>
+    <section id="catalogo" className="catalog-layout">
+      <aside className="filters-panel surface" aria-label="Filtros del catálogo">
+        <div className="filters-heading"><h2><span aria-hidden="true">☷</span> Filtros</h2>{hasFilters ? <button type="button" className="clear-filter-button" onClick={clearFilters}>Borrar todo</button> : null}</div>
+
+        <div className="filter-section">
+          <h3>Categorías</h3>
+          <div className="space-y-0.5">
+            {categories.map(([category, count]) => {
+              const key = normalizeCategory(category);
+              const checked = activeCategories.includes(key);
+              return <div className="filter-category-row" key={category}><label><input type="checkbox" checked={checked} onChange={() => toggleCategory(key)} />{displayCategory(category)}</label><span className="filter-count">{count}</span></div>;
+            })}
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2" aria-label="Filtrar por categoría">
-          {categories.map((item) => (
-            <button
-              key={item}
-              type="button"
-              className={`rounded-full border px-3 py-2 text-sm font-bold transition ${category === item ? "border-transparent bg-[var(--primary)] text-white" : "border-[var(--border)] bg-white text-[var(--muted)] hover:border-[var(--primary)]"}`}
-              aria-pressed={category === item}
-              onClick={() => setCategory(item)}
-            >
-              {item === "todos" ? "Todos" : item}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-[var(--muted)]" role="status" aria-live="polite">
-          {filtered.length} producto{filtered.length === 1 ? "" : "s"} encontrado{filtered.length === 1 ? "" : "s"}
-        </p>
-        {(query || category !== "todos" || onlyAvailable || maxPrice !== undefined) ? (
-          <button
-            type="button"
-            className="btn btn-quiet min-h-9 px-3 text-sm"
-            onClick={() => { setQuery(""); setCategory("todos"); setOnlyAvailable(false); setMaxPrice(undefined); }}
-          >
-            Limpiar filtros
-          </button>
-        ) : null}
-      </div>
+        <div className="filter-section">
+          <h3>Precio</h3>
+          <div className="mb-2 flex items-center justify-between gap-2"><span className="text-xs font-bold text-[var(--primary)]">Máximo: S/ {effectiveMaxPrice}</span><span className="text-xs text-[var(--muted)]">S/ {priceLimit}</span></div>
+          <input aria-label="Precio máximo" type="range" min="0" max={priceLimit} step="1" value={effectiveMaxPrice} onChange={(event) => { setMaxPrice(Number(event.target.value)); setPage(1); }} className="w-full accent-[var(--primary)]" />
+          <div className="filter-price-labels"><span>S/ 0</span><span>S/ {priceLimit}</span></div>
+        </div>
 
-      {filtered.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((product) => <ProductCard key={product.id} product={product} />)}
+        <div className="filter-section">
+          <h3>Disponibilidad</h3>
+          <div className="filter-category-row"><label><input type="checkbox" className="filter-check" checked={onlyAvailable} onChange={(event) => { setOnlyAvailable(event.target.checked); setPage(1); }} />En stock ahora</label></div>
+          <div className="filter-category-row"><label><input type="checkbox" className="filter-check" checked readOnly />Envío inmediato</label></div>
         </div>
-      ) : (
-        <div className="surface px-6 py-12 text-center">
-          <p className="text-3xl" aria-hidden="true">🔍</p>
-          <h2 className="mt-3 font-black">No encontramos productos</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">Prueba con otra búsqueda o limpia los filtros.</p>
+
+        <div className="filter-section">
+          <h3>Calificación</h3>
+          <div className="flex items-center gap-2 text-sm text-[var(--muted)]"><span className="text-[var(--primary)]">◉</span><span aria-hidden="true" className="tracking-tight text-amber-500">★★★★☆</span><span>4 estrellas o más</span></div>
         </div>
-      )}
+
+        <div className="promo-card"><span className="promo-label">Sorpresa diaria</span><h3>¡Todo pedido lleva regalo sorpresa!</h3><p>Empacado con amor y artículos de selección limitada.</p></div>
+      </aside>
+
+      <div className="catalog-results">
+        <div className="catalog-mobile-search"><label className="form-label" htmlFor="catalogo-busqueda">Buscar productos</label><input id="catalogo-busqueda" className="form-input" type="search" value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Ej: audífonos, hogar, mascotas" /></div>
+        <div className="catalog-toolbar surface">
+          <div className="catalog-title-row"><h1>{activeCategories.length ? displayCategory(activeCategories[0]) : "Todos los productos"}</h1><span className="catalog-count" role="status" aria-live="polite">{filtered.length} productos</span></div>
+          <label className="catalog-sort">Ordenar:<select value={sort} onChange={(event) => { setSort(event.target.value); setPage(1); }} aria-label="Ordenar productos"><option value="relevancia">Relevancia</option><option value="precio-asc">Precio: menor a mayor</option><option value="precio-desc">Precio: mayor a menor</option><option value="nombre">Nombre</option></select></label>
+        </div>
+
+        {visibleProducts.length ? <div className="product-grid">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <div className="surface px-6 py-12 text-center"><p className="text-3xl" aria-hidden="true">🔍</p><h2 className="mt-3 font-black">No encontramos productos</h2><p className="mt-1 text-sm text-[var(--muted)]">Prueba con otra búsqueda o limpia los filtros.</p></div>}
+
+        {filtered.length > PAGE_SIZE ? <div className="pagination"><span className="pagination-info">Mostrando {visibleProducts.length} de {filtered.length} productos</span><div className="pagination-buttons"><button type="button" className="pagination-button" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Anterior</button>{Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => <button key={number} type="button" className={`pagination-button ${number === currentPage ? "active" : ""}`} onClick={() => setPage(number)} aria-current={number === currentPage ? "page" : undefined}>{number}</button>)}<button type="button" className="pagination-button" disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>Siguiente</button></div></div> : null}
+      </div>
     </section>
   );
 }

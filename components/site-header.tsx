@@ -1,36 +1,70 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { useCartStore } from "@/lib/cart-store";
+import { useFavoritesStore } from "@/lib/favorites-store";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isAdmin } from "@/lib/roles";
 
-type SiteHeaderProps = {
-  user: User | null;
-};
+type SiteHeaderProps = { user: User | null };
+
+const categories = [
+  ["Todo", "🛍️"],
+  ["Hogar", "🏠"],
+  ["Vestuario", "👕"],
+  ["Juegos", "🎮"],
+  ["Electrónica", "💻"],
+  ["Mascotas", "🐾"],
+  ["Belleza", "💄"],
+  ["Deportes", "🏃"],
+  ["Cocina", "🍳"],
+  ["Herramientas", "🔧"],
+  ["Baño", "🛁"],
+  ["Oficina", "💼"],
+] as const;
 
 export function SiteHeader({ user }: SiteHeaderProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const items = useCartStore((state) => state.items);
   const setOwner = useCartStore((state) => state.setOwner);
-  const clear = useCartStore((state) => state.clear);
-  const count = items.reduce((total, line) => total + line.quantity, 0);
+  const clearCart = useCartStore((state) => state.clear);
+  const favoriteIds = useFavoritesStore((state) => state.ids);
+  const cartCount = items.reduce((total, line) => total + line.quantity, 0);
+  const displayName = user?.user_metadata?.username || user?.email?.split("@")[0] || "Invitado";
+  const activeCategory = searchParams.get("categoria") ?? "todos";
 
   useEffect(() => {
     setOwner(user?.id ?? null);
   }, [setOwner, user?.id]);
+
+  useEffect(() => {
+    // La búsqueda puede cambiar mediante el router sin remontar el header.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSearch(searchParams.get("q") ?? "");
+  }, [searchParams]);
+
+  useEffect(() => {
+    function closeOnOutsideClick(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener("click", closeOnOutsideClick);
+    return () => document.removeEventListener("click", closeOnOutsideClick);
+  }, []);
 
   async function handleLogout() {
     setBusy(true);
     try {
       const supabase = createSupabaseBrowserClient();
       await supabase.auth.signOut();
-      clear();
+      clearCart();
       setMenuOpen(false);
       router.push("/");
       router.refresh();
@@ -39,90 +73,69 @@ export function SiteHeader({ user }: SiteHeaderProps) {
     }
   }
 
+  function submitSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const query = search.trim();
+    router.push(query ? `/?q=${encodeURIComponent(query)}#catalogo` : "/#catalogo");
+  }
+
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-white/90 backdrop-blur-xl">
-      <div className="container-shell flex min-h-[72px] items-center justify-between gap-4">
-        <Link href="/" className="flex shrink-0 items-center gap-2 font-black tracking-tight text-[var(--primary-dark)]">
-          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] text-lg text-white">
-            M
-          </span>
-          <span className="hidden sm:inline">MosaMeli</span>
-        </Link>
-
-        <nav aria-label="Navegación principal" className="hidden items-center gap-1 md:flex">
-          <Link className="rounded-full px-3 py-2 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--brand-50)] hover:text-[var(--primary-dark)]" href="/#catalogo">
-            Catálogo
-          </Link>
-          <Link className="rounded-full px-3 py-2 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--brand-50)] hover:text-[var(--primary-dark)]" href="/seguimiento">
-            Seguir pedido
-          </Link>
-          {user ? (
-            <>
-              <Link className="rounded-full px-3 py-2 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--brand-50)] hover:text-[var(--primary-dark)]" href="/mi-perfil">
-                Mi perfil
-              </Link>
-              <Link className="rounded-full px-3 py-2 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--brand-50)] hover:text-[var(--primary-dark)]" href="/favoritos">
-                Favoritos
-              </Link>
-            </>
-          ) : null}
-          {isAdmin(user) ? (
-            <Link className="rounded-full px-3 py-2 text-sm font-semibold text-[var(--primary-dark)] hover:bg-[var(--brand-50)]" href="/admin">
-              Admin
-            </Link>
-          ) : null}
-        </nav>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href="/checkout"
-            className="relative grid h-11 w-11 place-items-center rounded-full border border-[var(--border)] bg-white text-lg hover:border-[var(--primary)]"
-            aria-label={`Carrito con ${count} productos`}
-          >
-            🛒
-            {count > 0 ? (
-              <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-[var(--primary)] px-1 text-[0.7rem] font-bold text-white">
-                {count}
-              </span>
-            ) : null}
-          </Link>
-
-          {user ? (
-            <div className="relative">
-              <button
-                type="button"
-                className="flex min-h-11 items-center gap-2 rounded-full border border-[var(--border)] bg-white px-3 text-sm font-bold text-[var(--primary-dark)]"
-                aria-expanded={menuOpen}
-                aria-haspopup="menu"
-                onClick={() => setMenuOpen((open) => !open)}
-              >
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-[var(--brand-100)] text-xs">
-                  {(user.email ?? "U").slice(0, 1).toUpperCase()}
-                </span>
-                <span className="hidden max-w-28 truncate sm:inline">{user.email}</span>
-                <span aria-hidden="true">▾</span>
-              </button>
-              {menuOpen ? (
-                <div role="menu" className="absolute right-0 top-14 w-56 rounded-2xl border border-[var(--border)] bg-white p-2 shadow-xl">
-                  <Link role="menuitem" href="/mi-perfil" onClick={() => setMenuOpen(false)} className="block rounded-xl px-3 py-2 text-sm font-semibold hover:bg-[var(--brand-50)]">
-                    Mi perfil
-                  </Link>
-                  <Link role="menuitem" href="/seguimiento" onClick={() => setMenuOpen(false)} className="block rounded-xl px-3 py-2 text-sm font-semibold hover:bg-[var(--brand-50)]">
-                    Mis pedidos
-                  </Link>
-                  <button role="menuitem" type="button" disabled={busy} onClick={handleLogout} className="block w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-[var(--danger)] hover:bg-red-50 disabled:opacity-50">
-                    {busy ? "Cerrando…" : "Cerrar sesión"}
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <Link href="/login" className="btn btn-primary min-h-11 px-4 text-sm">
-              Ingresar
-            </Link>
-          )}
+    <>
+      <div className="announcement-bar">
+        <div className="announcement-inner container-shell">
+          <span><strong>GRATIS</strong> · Envío gratis en compras mayores a S/ 99 · ¡Descubre ofertas relámpago de temporada!</span>
+          <div className="announcement-links"><span>♧ Soporte 24/7</span><span>♢ Garantía Segura</span></div>
         </div>
       </div>
-    </header>
+
+      <header className="site-header-main sticky top-0 z-40">
+        <div className="header-main-row container-shell">
+          <Link href="/" className="brand-lockup" aria-label="MosaMeli, inicio">
+            <span className="brand-mark">✦</span>
+            <span><span className="brand-name">MosaMeli</span><span className="brand-tagline">Tu mundo en un click</span></span>
+          </Link>
+
+          <form className="header-search-form" onSubmit={submitSearch} role="search">
+            <span aria-hidden="true" className="text-[var(--muted)]">⌕</span>
+            <label className="sr-only" htmlFor="header-search">Buscar productos</label>
+            <input id="header-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="¿Qué estás buscando? (ej: zapatillas, lámpara, accesorios)" />
+            <button type="submit">Buscar</button>
+          </form>
+
+          <div className="header-actions">
+            <Link href="/checkout" className="location-pill" aria-label="Seleccionar ubicación de entrega"><span aria-hidden="true">⌖</span><span>Selecciona tu ubicaci...</span><span aria-hidden="true">⌄</span></Link>
+            <Link href="/favoritos" className="header-icon-button" aria-label={`Favoritos, ${favoriteIds.length} productos`}><span aria-hidden="true">♡</span>{favoriteIds.length ? <span className="cart-count">{favoriteIds.length}</span> : null}</Link>
+            <Link href="/carrito" className="header-icon-button" aria-label={`Carrito con ${cartCount} productos`}><span aria-hidden="true">🛒</span>{cartCount ? <span className="cart-count">{cartCount}</span> : null}</Link>
+            {user ? (
+              <div className="relative" ref={menuRef}>
+                <button type="button" className="user-pill" aria-expanded={menuOpen} aria-haspopup="menu" onClick={() => setMenuOpen((open) => !open)}>
+                  <span className="user-avatar" aria-hidden="true">{displayName.slice(0, 1).toUpperCase()}</span><span className="max-w-24 truncate">{displayName}</span><span aria-hidden="true">⌄</span>
+                </button>
+                {menuOpen ? (
+                  <div className="user-menu" role="menu">
+                    <div className="user-menu-header"><span className="user-avatar" aria-hidden="true">♙</span><span><strong className="block text-[#2f1b63]">{displayName}</strong><small className="text-[#8a7a9d]">{user.email}</small></span></div>
+                    <Link role="menuitem" className="user-menu-item" href="/mi-perfil" onClick={() => setMenuOpen(false)}>♙ <span>Mi perfil</span></Link>
+                    <Link role="menuitem" className="user-menu-item" href="/seguimiento" onClick={() => setMenuOpen(false)}>▣ <span>Rastrear mi pedido</span></Link>
+                    <a role="menuitem" className="user-menu-item" href="https://wa.me/51937309837" target="_blank" rel="noopener noreferrer">◌ <span>Contáctanos</span></a>
+                    {isAdmin(user) ? <Link role="menuitem" className="user-menu-item" href="/admin" onClick={() => setMenuOpen(false)}>⚙ <span>Panel de Admin</span><span className="ml-auto rounded-full bg-[#fce7f3] px-2 py-0.5 text-[0.62rem] text-[#be185d]">Pro</span></Link> : null}
+                    <div className="my-2 border-t border-[#f0e9f7]" />
+                    <button role="menuitem" type="button" className="user-menu-item danger" disabled={busy} onClick={handleLogout}>{busy ? "Cerrando…" : "→  Cerrar sesión"}</button>
+                  </div>
+                ) : null}
+              </div>
+            ) : <Link href="/login" className="user-pill"><span className="user-avatar" aria-hidden="true">♙</span><span>Ingresar</span></Link>}
+          </div>
+        </div>
+        <nav className="category-nav" aria-label="Categorías">
+          <div className="category-nav-inner container-shell">
+            {categories.map(([label, icon]) => {
+              const key = label === "Todo" ? "todos" : label.toLowerCase().replace("ó", "o").replace("í", "i");
+              const active = activeCategory === key;
+              return <Link key={label} className={`category-nav-link ${active ? "active" : ""}`} href={key === "todos" ? "/#catalogo" : `/?categoria=${encodeURIComponent(key)}#catalogo`}><span aria-hidden="true">{icon}</span>{label}</Link>;
+            })}
+          </div>
+        </nav>
+      </header>
+    </>
   );
 }
