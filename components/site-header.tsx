@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -100,7 +101,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
       <header className="site-header-main sticky top-0 z-40">
         <div className="header-main-row container-shell">
           <Link href="/" className="brand-lockup" aria-label="MosaMeli, inicio">
-            <span className="brand-mark">✦</span>
+            <span className="brand-mark"><img src="/img/logo-icon.png" alt="" width={52} height={52} /></span>
             <span><span className="brand-name">MosaMeli</span><span className="brand-tagline">Tu mundo en un click</span></span>
           </Link>
 

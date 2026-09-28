@@ -11,6 +11,7 @@ export default defineConfig([
     "public/**",
     "legacy/**",
     "_legacy_archive/**",
+    "scripts/**",
     "*.html",
     "*.js",
   ]),

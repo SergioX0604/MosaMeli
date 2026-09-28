@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   if (hasSupabaseConfig()) {
     const supabase = await createSupabaseServerClient();
     const { data } = await supabase.from("productos").select("nombre,descripcion").eq("id", Number(id)).maybeSingle();
-    if (data) return { title: data.nombre, description: data.descripcion ?? undefined, openGraph: { images: ["/img/logo-mosameli.png"] } };
+    if (data) return { title: data.nombre, description: data.descripcion ?? undefined, openGraph: { images: [{ url: "/img/logo-og.jpg", width: 1200, height: 630, alt: data.nombre }] } };
   }
   return { title: `Producto ${id}` };
 }

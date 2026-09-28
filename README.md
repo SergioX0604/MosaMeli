@@ -37,6 +37,8 @@ El checkout no acepta precios ni totales desde el navegador: envía únicamente 
 - `app/`: rutas y Server Actions de Next.js.
 - `components/`: componentes de interfaz reutilizables.
 - `lib/`: Supabase, autenticación, validaciones, carrito y delivery.
+- `public/img/`: logo, favicons e imagen social.
+- `scripts/build-logo-assets.js`: regenera `logo-icon.png` y `logo-og.jpg` desde el logo original.
 - `supabase/migrations/`: esquema, RLS y funciones SQL.
 - `supabase/functions/`: notificaciones por correo.
 - `tests/`: pruebas unitarias y E2E.

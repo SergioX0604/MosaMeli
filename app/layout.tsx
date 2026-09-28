@@ -15,10 +15,18 @@ export const metadata: Metadata = {
   description:
     "Tienda online de productos para el hogar, baño, vestuario, juegos, electrónica y mascotas.",
   applicationName: "MosaMeli",
-  manifest: "/site.webmanifest",
+  manifest: "/img/site.webmanifest",
   icons: {
-    icon: "/img/favicon.ico",
-    apple: "/img/apple-touch-icon.png",
+    icon: [
+      { url: "/img/favicon.ico", sizes: "any" },
+      { url: "/img/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/img/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [{ url: "/img/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    other: [
+      { url: "/img/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/img/android-chrome-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
   },
   openGraph: {
     type: "website",
@@ -26,7 +34,13 @@ export const metadata: Metadata = {
     siteName: "MosaMeli",
     title: "MosaMeli - Tu mundo en un click",
     description: "Productos seleccionados para casa, familia y mascotas.",
-    images: ["/img/logo-mosameli.png"],
+    images: [{ url: "/img/logo-og.jpg", width: 1200, height: 630, alt: "MosaMeli - Tu mundo en un click" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MosaMeli - Tu mundo en un click",
+    description: "Productos seleccionados para casa, familia y mascotas.",
+    images: ["/img/logo-og.jpg"],
   },
 };
 

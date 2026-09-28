@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -85,8 +86,11 @@ export function AuthForm({ nextPath }: AuthFormProps) {
 
   return (
     <div className="surface mx-auto max-w-md p-6 md:p-8">
-      <h1 className="text-2xl font-black">{title}</h1>
-      <p className="mt-2 text-sm text-[var(--muted)]">Accede a tus pedidos, reseñas y datos de entrega.</p>
+      <div className="flex justify-center">
+        <img src="/img/logo-icon.png" alt="MosaMeli" width={64} height={64} className="h-16 w-16 rounded-2xl border border-[var(--border)] object-cover shadow-[0_8px_20px_rgba(124,58,237,0.12)]" />
+      </div>
+      <h1 className="mt-4 text-center text-2xl font-black">{title}</h1>
+      <p className="mt-2 text-center text-sm text-[var(--muted)]">Accede a tus pedidos, reseñas y datos de entrega.</p>
 
       {message ? <div className={`alert mt-4 ${message.type === "error" ? "alert-error" : "alert-success"}`} role="status">{message.text}</div> : null}
 
