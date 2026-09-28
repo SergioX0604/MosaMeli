@@ -17,7 +17,8 @@ export function ProductCard({ product }: { product: Product }) {
   const [message, setMessage] = useState("");
   const gift = giftProgress(cartSubtotal(cartItems));
   const original = Number(product.precio_original ?? 0);
-  const discount = original > product.precio ? Math.round((1 - product.precio / original) * 100) : 0;
+  const hasDiscount = original > product.precio;
+  const summary = product.descripcion?.trim() || product.marca?.trim() || "";
 
   function addProduct() {
     if (product.stock <= 0) {
@@ -31,18 +32,54 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <article className="product-card">
+      <div className="product-flags">
+        {gift.qualifies ? (
+          <span className="product-badge gift">🎁 Regalo sorpresa</span>
+        ) : hasDiscount ? (
+          <span className="product-badge discount">Oferta</span>
+        ) : (
+          <span />
+        )}
+        <button
+          type="button"
+          className="product-favorite"
+          aria-label={favorite ? `Quitar ${product.nombre} de favoritos` : `Añadir ${product.nombre} a favoritos`}
+          aria-pressed={favorite}
+          onClick={() => toggleFavorite(product.id)}
+        >
+          {favorite ? "♥" : "♡"}
+        </button>
+      </div>
+
       <Link href={`/producto/${product.id}`} className="product-media" aria-label={`Ver ${product.nombre}`}>
         <img src={product.imagen} alt={product.nombre} loading="lazy" decoding="async" />
-        {gift.qualifies ? <span className="product-badge gift">🎁 Regalo sorpresa</span> : discount > 0 ? <span className="product-badge">-{discount}% dto</span> : null}
       </Link>
-      <button type="button" className="product-favorite" aria-label={favorite ? `Quitar ${product.nombre} de favoritos` : `Añadir ${product.nombre} a favoritos`} aria-pressed={favorite} onClick={() => toggleFavorite(product.id)}>{favorite ? "♥" : "♡"}</button>
+
       <div className="product-body">
-        {product.rating ? <div className="product-rating" aria-label={`Calificación ${product.rating} de 5`}><span className="star" aria-hidden="true">★</span><strong>{product.rating}</strong><span>({product.review_count ?? 0})</span></div> : null}
-        <Link href={`/producto/${product.id}`} className="product-name hover:text-[var(--primary)]">{product.nombre}</Link>
-        <p className="product-description">{product.descripcion || product.marca || "Producto seleccionado para ti"}</p>
+        {product.rating ? (
+          <div className="product-rating" aria-label={`Calificación ${product.rating} de 5`}>
+            <span className="star" aria-hidden="true">★</span>
+            <strong>{product.rating}</strong>
+            <span>({product.review_count ?? 0})</span>
+          </div>
+        ) : null}
+        <Link href={`/producto/${product.id}`} className="product-name">{product.nombre}</Link>
+        <p className="product-description">{summary}</p>
         <div className="product-price-row">
-          <span><span className="product-price-label">Precio</span><span className="product-price">{formatMoney(product.precio)}</span></span>
-          <button type="button" className="product-cart-button" onClick={addProduct} disabled={product.stock <= 0} aria-label={`Agregar ${product.nombre} al carrito`} title={product.stock > 0 ? "Agregar al carrito" : "Producto agotado"}>🛒</button>
+          <span className="product-price-stack">
+            {hasDiscount ? <span className="product-price-old">{formatMoney(original)}</span> : null}
+            <span className="product-price">{formatMoney(product.precio)}</span>
+          </span>
+          <button
+            type="button"
+            className="product-cart-button"
+            onClick={addProduct}
+            disabled={product.stock <= 0}
+            aria-label={`Agregar ${product.nombre} al carrito`}
+            title={product.stock > 0 ? "Agregar al carrito" : "Producto agotado"}
+          >
+            🛒
+          </button>
         </div>
         <p className="product-feedback" role="status" aria-live="polite">{message}</p>
       </div>

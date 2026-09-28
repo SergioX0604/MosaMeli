@@ -13,18 +13,18 @@ import { isAdmin } from "@/lib/roles";
 type SiteHeaderProps = { user: User | null };
 
 const categories = [
-  ["Todo", "🛍️"],
-  ["Hogar", "🏠"],
-  ["Vestuario", "👕"],
-  ["Juegos", "🎮"],
-  ["Electrónica", "💻"],
-  ["Mascotas", "🐾"],
-  ["Belleza", "💄"],
-  ["Deportes", "🏃"],
-  ["Cocina", "🍳"],
-  ["Herramientas", "🔧"],
-  ["Baño", "🛁"],
-  ["Oficina", "💼"],
+  ["Todo", "🛍️", "solid"],
+  ["Hogar", "🏠", "pink"],
+  ["Vestuario", "👕", "lilac"],
+  ["Juegos", "🎮", "blue"],
+  ["Electrónica", "💻", "sun"],
+  ["Mascotas", "🐾", "mint"],
+  ["Belleza", "💄", "rose"],
+  ["Deportes", "🏃", "peach"],
+  ["Cocina", "🍳", "pink"],
+  ["Herramientas", "🔧", "lilac"],
+  ["Baño", "🛁", "blue"],
+  ["Oficina", "💼", "sun"],
 ] as const;
 
 export function SiteHeader({ user }: SiteHeaderProps) {
@@ -107,7 +107,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
           <div className="header-actions">
             <Link href="/checkout" className="location-pill" aria-label="Seleccionar ubicación de entrega"><span aria-hidden="true">⌖</span><span>Selecciona tu ubicaci...</span><span aria-hidden="true">⌄</span></Link>
             <Link href="/favoritos" className="header-icon-button" aria-label={`Favoritos, ${favoriteIds.length} productos`}><span aria-hidden="true">♡</span>{favoriteIds.length ? <span className="cart-count">{favoriteIds.length}</span> : null}</Link>
-            <Link href="/carrito" className="header-icon-button" aria-label={`Carrito con ${cartCount} productos`}><span aria-hidden="true">🛒</span>{cartCount ? <span className="cart-count">{cartCount}</span> : null}</Link>
+            <Link href="/carrito" className="header-icon-button filled" aria-label={`Carrito con ${cartCount} productos`}><span aria-hidden="true">🛒</span>{cartCount ? <span className="cart-count">{cartCount}</span> : null}</Link>
             {user ? (
               <div className="relative" ref={menuRef}>
                 <button type="button" className="user-pill" aria-expanded={menuOpen} aria-haspopup="menu" onClick={() => setMenuOpen((open) => !open)}>
@@ -131,10 +131,10 @@ export function SiteHeader({ user }: SiteHeaderProps) {
         {isCatalog ? (
           <nav className="category-nav" aria-label="Categorías">
             <div className="category-nav-inner container-shell">
-              {categories.map(([label, icon]) => {
+              {categories.map(([label, icon, tone]) => {
                 const key = label === "Todo" ? "todos" : label.toLowerCase().replace("ó", "o").replace("í", "i");
                 const active = activeCategory === key;
-                return <Link key={label} className={`category-nav-link ${active ? "active" : ""}`} href={key === "todos" ? "/#catalogo" : `/?categoria=${encodeURIComponent(key)}#catalogo`}><span aria-hidden="true">{icon}</span>{label}</Link>;
+                return <Link key={label} className={`category-nav-link tone-${tone} ${active ? "active" : ""}`} href={key === "todos" ? "/#catalogo" : `/?categoria=${encodeURIComponent(key)}#catalogo`}><span aria-hidden="true">{icon}</span>{label}</Link>;
               })}
             </div>
           </nav>

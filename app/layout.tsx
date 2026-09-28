@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
+import { Poppins } from "next/font/google";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { AuthCodeHandler } from "@/components/auth-code-handler";
 import "./globals.css";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-poppins",
+  display: "swap",
+});
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +58,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const user = await getCurrentUser().catch(() => null);
 
   return (
-    <html lang="es">
+    <html lang="es" className={poppins.variable}>
       <body>
         <a className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-3" href="#contenido">
           Saltar al contenido

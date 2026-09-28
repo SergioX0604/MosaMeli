@@ -90,10 +90,10 @@ export function Catalog({ products }: { products: Product[] }) {
   return (
     <section id="catalogo" className="catalog-layout">
       <aside className="filters-panel surface" aria-label="Filtros del catálogo">
-        <div className="filters-heading"><h2><span aria-hidden="true">☷</span> Filtros</h2>{hasFilters ? <button type="button" className="clear-filter-button" onClick={clearFilters}>Borrar todo</button> : null}</div>
+        <div className="filters-heading"><h2>Filtros</h2>{hasFilters ? <button type="button" className="clear-filter-button" onClick={clearFilters}>Limpiar</button> : null}</div>
 
         <div className="filter-section">
-          <h3>Categorías</h3>
+          <h3>Categoría</h3>
           <div className="space-y-0.5">
             {categories.map(([category, count]) => {
               const key = normalizeCategory(category);
@@ -104,16 +104,15 @@ export function Catalog({ products }: { products: Product[] }) {
         </div>
 
         <div className="filter-section">
-          <h3>Precio</h3>
-          <div className="mb-2 flex items-center justify-between gap-2"><span className="text-xs font-bold text-[var(--primary)]">Máximo: S/ {effectiveMaxPrice}</span><span className="text-xs text-[var(--muted)]">S/ {priceLimit}</span></div>
+          <h3>Rango de Precio</h3>
+          <div className="mb-2 flex items-center justify-between gap-2"><span className="price-chip">Hasta S/ {priceLimit}</span><span className="text-xs text-[var(--muted)]">Máximo: S/ {effectiveMaxPrice}</span></div>
           <input aria-label="Precio máximo" type="range" min="0" max={priceLimit} step="1" value={effectiveMaxPrice} onChange={(event) => { setMaxPrice(Number(event.target.value)); setPage(1); }} className="w-full accent-[var(--primary)]" />
-          <div className="filter-price-labels"><span>S/ 0</span><span>S/ {priceLimit}</span></div>
+          <div className="filter-price-labels"><span>S/ 0.00</span><span>S/ {priceLimit}.00</span></div>
         </div>
 
         <div className="filter-section">
           <h3>Disponibilidad</h3>
-          <div className="filter-category-row"><label><input type="checkbox" className="filter-check" checked={onlyAvailable} onChange={(event) => { setOnlyAvailable(event.target.checked); setPage(1); }} />En stock ahora</label></div>
-          <div className="filter-category-row"><label><input type="checkbox" className="filter-check" checked readOnly />Envío inmediato</label></div>
+          <div className="filter-category-row"><label>En stock inmediato <input type="checkbox" className="filter-check" checked={onlyAvailable} onChange={(event) => { setOnlyAvailable(event.target.checked); setPage(1); }} /></label></div>
         </div>
 
         <div className="filter-section">
@@ -141,7 +140,7 @@ export function Catalog({ products }: { products: Product[] }) {
 
         {visibleProducts.length ? <div className="product-grid">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <div className="surface px-6 py-12 text-center"><p className="text-3xl" aria-hidden="true">🔍</p><h2 className="mt-3 font-black">No encontramos productos</h2><p className="mt-1 text-sm text-[var(--muted)]">Prueba con otra búsqueda o limpia los filtros.</p></div>}
 
-        {filtered.length > PAGE_SIZE ? <div className="pagination"><span className="pagination-info">Mostrando {visibleProducts.length} de {filtered.length} productos</span><div className="pagination-buttons"><button type="button" className="pagination-button" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Anterior</button>{Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => <button key={number} type="button" className={`pagination-button ${number === currentPage ? "active" : ""}`} onClick={() => setPage(number)} aria-current={number === currentPage ? "page" : undefined}>{number}</button>)}<button type="button" className="pagination-button" disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>Siguiente</button></div></div> : null}
+        {filtered.length > PAGE_SIZE ? <div className="pagination"><span className="pagination-info">Mostrando {visibleProducts.length} de {filtered.length} productos</span><div className="pagination-buttons"><button type="button" className="pagination-button" aria-label="Anterior" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>‹</button>{Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => <button key={number} type="button" className={`pagination-button ${number === currentPage ? "active" : ""}`} onClick={() => setPage(number)} aria-current={number === currentPage ? "page" : undefined}>{number}</button>)}<button type="button" className="pagination-button" aria-label="Siguiente" disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>›</button></div></div> : null}
       </div>
     </section>
   );
