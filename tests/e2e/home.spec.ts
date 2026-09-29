@@ -106,3 +106,32 @@ test("el buscador no aparece fuera del catálogo", async ({ page }) => {
   await page.goto("/carrito");
   await expect(page.locator("#header-search")).toHaveCount(0);
 });
+
+test("cada enlace del pie lleva a su propia página", async ({ page }) => {
+  const destinos: Record<string, RegExp> = {
+    "Rastrear mi pedido": /\/seguimiento$/,
+    "Preguntas Frecuentes": /\/preguntas-frecuentes$/,
+    "Términos y Condiciones": /\/terminos$/,
+    "Políticas de Privacidad": /\/privacidad$/,
+  };
+
+  for (const [nombre, url] of Object.entries(destinos)) {
+    await page.goto("/carrito");
+    await page.getByRole("contentinfo").getByRole("link", { name: nombre }).click();
+    await expect(page).toHaveURL(url);
+  }
+});
+
+test("las preguntas frecuentes explican cómo conseguir el código y las zonas", async ({ page }) => {
+  await page.goto("/preguntas-frecuentes");
+  await expect(page.getByRole("heading", { name: "Preguntas frecuentes" })).toBeVisible();
+
+  const zonas = page.locator("details", { hasText: "delivery y cuánto cuesta" });
+  await expect(zonas).toBeVisible();
+  // Las zonas y el umbral del regalo vienen de lib/delivery.ts, no de texto fijo.
+  await expect(zonas).toContainText("Chaclacayo Centro");
+  await expect(zonas).toContainText("Zona 4");
+
+  const gift = page.locator("details", { hasText: "regalo sorpresa" });
+  await expect(gift).toContainText("150");
+});

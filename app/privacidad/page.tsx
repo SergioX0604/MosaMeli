@@ -20,7 +20,7 @@ export default function PrivacyPage() {
         <h2 className="text-xl font-black">5. Seguridad</h2>
         <p className="text-[var(--muted)]"> Aplicamos medidas técnicas y organizativas razonables. El acceso administrativo y las operaciones sensibles deben realizarse mediante controles de servidor y políticas de autorización.</p>
         <h2 className="text-xl font-black">6. Derechos y contacto</h2>
-        <p className="text-[var(--muted)]">Puedes solicitar acceso, corrección o eliminación de tus datos escribiendo a mosamelicorp@gmail.com o contacting-nos por WhatsApp al 937 309 837.</p>
+        <p className="text-[var(--muted)]">Puedes solicitar acceso, corrección o eliminación de tus datos escribiendo a mosamelicorp@gmail.com o escríbenos por WhatsApp al 937 309 837.</p>
       </div>
     </article>
   );

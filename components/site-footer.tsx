@@ -14,7 +14,7 @@ export function SiteFooter() {
         </div>
         <nav className="site-footer-links" aria-label="Enlaces legales">
           <Link href="/seguimiento">Rastrear mi pedido</Link>
-          <Link href="/privacidad">Preguntas Frecuentes</Link>
+          <Link href="/preguntas-frecuentes">Preguntas Frecuentes</Link>
           <Link href="/terminos">Términos y Condiciones</Link>
           <Link href="/privacidad">Políticas de Privacidad</Link>
           <a href="https://wa.me/51937309837" target="_blank" rel="noopener noreferrer">Libro de Reclamaciones</a>
