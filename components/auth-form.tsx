@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { rememberAuthDestination } from "@/lib/auth-redirect";
@@ -11,6 +11,7 @@ type AuthFormProps = { nextPath: string; initialMessage?: { type: "error" | "suc
 
 export function AuthForm({ nextPath, initialMessage }: AuthFormProps) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [mode, setMode] = useState<"login" | "register" | "recover">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,6 +21,18 @@ export function AuthForm({ nextPath, initialMessage }: AuthFormProps) {
 
   function safeNext() {
     return nextPath.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/";
+  }
+
+  /**
+   * Navega y refresca en la misma transición: el header es un componente de
+   * servidor, así que sin el refresh seguiría mostrando "Ingresar" hasta la
+   * siguiente navegación.
+   */
+  function irA(destino: string) {
+    startTransition(() => {
+      router.replace(destino);
+      router.refresh();
+    });
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -33,8 +46,7 @@ export function AuthForm({ nextPath, initialMessage }: AuthFormProps) {
         if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Revisa tus datos");
         const { error } = await supabase.auth.signInWithPassword(parsed.data);
         if (error) throw new Error("Correo o contraseña incorrectos");
-        router.push(safeNext());
-        router.refresh();
+        irA(safeNext());
         return;
       }
       if (mode === "register") {
@@ -47,8 +59,7 @@ export function AuthForm({ nextPath, initialMessage }: AuthFormProps) {
         });
         if (error) throw new Error(error.message);
         if (data.session) {
-          router.push(safeNext());
-          router.refresh();
+          irA(safeNext());
         } else {
           setMessage({ type: "success", text: "Cuenta creada. Revisa tu correo para confirmar tu cuenta." });
         }

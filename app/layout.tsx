@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { AuthCodeHandler } from "@/components/auth-code-handler";
+import { SessionRefresh } from "@/components/session-refresh";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -66,6 +67,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <Suspense fallback={null}>
           <AuthCodeHandler />
         </Suspense>
+        <SessionRefresh usuarioEnServidor={user?.id ?? null} />
         <SiteHeader user={user} />
         <main id="contenido">{children}</main>
         <SiteFooter />

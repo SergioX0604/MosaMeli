@@ -73,7 +73,9 @@ export function SiteHeader({ user }: SiteHeaderProps) {
       await supabase.auth.signOut();
       clearCart();
       setMenuOpen(false);
-      router.push("/");
+      // El refresh hace que el header vuelva al estado de invitado sin esperar
+      // a la siguiente navegación.
+      router.replace("/");
       router.refresh();
     } finally {
       setBusy(false);

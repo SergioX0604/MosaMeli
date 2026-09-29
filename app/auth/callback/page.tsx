@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { clearAuthDestination, readAuthDestination } from "@/lib/auth-redirect";
@@ -16,6 +16,7 @@ function CallbackInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const started = useRef(false);
+  const [, startTransition] = useTransition();
 
   useEffect(() => {
     if (started.current) return;
@@ -46,8 +47,12 @@ function CallbackInner() {
           fail("la respuesta no traia sesion");
           return;
         }
-        router.replace(destination);
-        router.refresh();
+        // replace + refresh en la misma transición: el header es un componente
+        // de servidor y sin el refresh no mostraría el nombre del usuario.
+        startTransition(() => {
+          router.replace(destination);
+          router.refresh();
+        });
       })
       .catch((cause: unknown) => fail(cause instanceof Error ? cause.message : "fallo inesperado"));
   }, [router, searchParams]);
