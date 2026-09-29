@@ -15,8 +15,10 @@
 
 ## Correos
 
-- `functions/_shared/email.ts` concentra la identidad visual (cabecera con logo, botón, barra de progreso de 5 pasos, pie con datos de contacto) y los textos de cada estado. Los dos correos la comparten para que se vean de la misma marca.
+- `functions/_shared/email.ts` concentra la identidad visual (cabecera con logo y barra de color, botón, chips, miniaturas de producto, barra de progreso de 5 pasos, pie con datos de contacto) y los textos de cada estado. Los dos correos la comparten para que se vean de la misma marca.
 - `enviar-confirmacion` y `notificar-estado` exponen `construirConfirmacion` y `construirAviso`, funciones puras que devuelven `{ subject, html }`. Para revisar un correo sin desplegar, transpílalas y llama a esos builders con datos de ejemplo; así se inspecciona el HTML final.
+- El correo de confirmación busca las fotos de los productos en `productos.imagen` (el pedido solo guarda id, nombre, precio y cantidad). Si un producto no tiene imagen, la miniatura cae a una Pastilla con emoji.
+- **Cambiar el diseño de los correos no cambia nada en la web**: hay que redesplegar las funciones. Sin eso, Supabase sigue sirviendo la versión anterior aunque el código esté en `main`.
 - El correo de confirmación no incluye el código de seguimiento: el cliente lo recibe al presionar "Ya hice el pago".
 - Al cambiar un estado desde el panel, `notificar-estado` manda el correo con el tono del estado, la barra de progreso y el enlace de seguimiento. Si el pedido está `cancelado`, no incluye botón de seguimiento.
 

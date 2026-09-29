@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.117.2";
 import { corsHeaders, json } from "../_shared/http.ts";
-import { boton, correoShell, escapeHtml, metodoPago, primerNombre } from "../_shared/email.ts";
+import { boton, chip, correoShell, escapeHtml, metodoPago, miniatura, paso, primerNombre } from "../_shared/email.ts";
 
 type Item = { id?: number; nombre?: string; precio?: number; cantidad?: number };
 
@@ -12,95 +12,110 @@ type Confirmacion = {
   pago: string;
   direccion: string | null;
   tieneRegalo: boolean;
+  /** Imagen de cada producto indexada por id, para las miniaturas. */
+  fotos: Record<string, string>;
 };
 
 function soles(valor: number): string {
   return `S/ ${valor.toFixed(2)}`;
 }
 
-function itemsTabla(items: Item[]): string {
-  return items
-    .map((item) => {
-      const cantidad = Number(item.cantidad ?? 1);
-      const unitario = Number(item.precio ?? 0);
-      return `<tr>
-        <td style="padding:10px 0;border-bottom:1px solid #f4eefb;color:#34244f;font-size:15px">${escapeHtml(item.nombre ?? "Producto")}</td>
-        <td style="padding:10px 0;border-bottom:1px solid #f4eefb;color:#6d5a80;font-size:14px;text-align:center;white-space:nowrap">×${cantidad}</td>
-        <td style="padding:10px 0;border-bottom:1px solid #f4eefb;color:#2b1b45;font-size:15px;font-weight:700;text-align:right;white-space:nowrap">${soles(unitario * cantidad)}</td>
-      </tr>`;
-    })
-    .join("");
-}
-
-function lineaResumen(etiqueta: string, valor: string, fuerte = false): string {
-  const color = fuerte ? "#2b1b45" : "#6d5a80";
+function filaItem(siteUrl: string, item: Item, foto: string | undefined): string {
+  const cantidad = Number(item.cantidad ?? 1);
+  const unitario = Number(item.precio ?? 0);
+  const nombre = String(item.nombre ?? "Producto");
   return `<tr>
-    <td style="padding:4px 0;font-size:${fuerte ? "17px" : "14px"};font-weight:${fuerte ? "700" : "400"};color:${color}">${escapeHtml(etiqueta)}</td>
-    <td style="padding:4px 0;font-size:${fuerte ? "17px" : "14px"};font-weight:${fuerte ? "800" : "600"};color:${color};text-align:right;white-space:nowrap">${escapeHtml(valor)}</td>
+    ${miniatura(siteUrl, foto, nombre)}
+    <td valign="middle" style="padding:12px 0;border-bottom:1px solid #f4eefb">
+      <p style="margin:0;font-size:15px;font-weight:700;color:#2b1b45;line-height:1.35">${escapeHtml(nombre)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#8b7aa6">${soles(unitario)} c/u${cantidad > 1 ? ` · ${cantidad} unidades` : ""}</p>
+    </td>
+    <td valign="middle" align="right" style="padding:12px 0;border-bottom:1px solid #f4eefb;font-size:15px;font-weight:800;color:#2b1b45;white-space:nowrap">${soles(unitario * cantidad)}</td>
   </tr>`;
 }
 
-function paso(numero: number, titulo: string, detalle: string, fondo: string, color: string): string {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 12px"><tr>
-    <td width="34" valign="top" style="padding:2px 0"><span style="display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;border-radius:999px;background:${fondo};color:${color};font-size:13px;font-weight:800">${numero}</span></td>
-    <td valign="top" style="padding:0 0 0 10px">
-      <p style="margin:2px 0 0;font-size:15px;font-weight:700;color:#2b1b45">${escapeHtml(titulo)}</p>
-      <p style="margin:3px 0 0;font-size:14px;line-height:1.5;color:#5b4a70">${escapeHtml(detalle)}</p>
-    </td>
-  </tr></table>`;
+function totalFila(etiqueta: string, valor: string, fuerte = false): string {
+  const color = fuerte ? "#2b1b45" : "#6d5a80";
+  return `<tr>
+    <td style="padding:5px 0;font-size:${fuerte ? "17px" : "14px"};font-weight:${fuerte ? "700" : "400"};color:${color}">${escapeHtml(etiqueta)}</td>
+    <td style="padding:5px 0;font-size:${fuerte ? "17px" : "14px"};font-weight:${fuerte ? "800" : "600"};color:${color};text-align:right;white-space:nowrap">${escapeHtml(valor)}</td>
+  </tr>`;
 }
 
 /** Arma el correo de confirmacion de pedido. Sin efectos: se puede previsualizar. */
 export function construirConfirmacion(args: Confirmacion): { subject: string; html: string } {
-  const { siteUrl, items, total, pago, direccion, tieneRegalo } = args;
+  const { siteUrl, items, total, pago, direccion, tieneRegalo, fotos } = args;
   const nombre = primerNombre(args.nombre ?? "cliente");
   const metodo = metodoPago(pago);
   const subtotal = items.reduce((suma, item) => suma + Number(item.precio ?? 0) * Number(item.cantidad ?? 1), 0);
   const delivery = Math.max(0, total - subtotal);
-
-  const giftHtml = tieneRegalo
-    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0 0"><tr><td style="padding:14px 16px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:14px">
-        <p style="margin:0;font-size:15px;font-weight:700;color:#065f46">🎁 Tu pedido incluye un regalo sorpresa</p>
-        <p style="margin:4px 0 0;font-size:13px;color:#047857">Lo separamos al momento de empacar y va incluido sin costo adicional.</p>
-      </td></tr></table>`
-    : "";
-
-  const direccionHtml = direccion
-    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0 0"><tr><td style="padding:16px;background:#f7f2fb;border-radius:14px">
-        <p style="margin:0 0 6px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#9b8bb4;font-weight:700">Entregamos en</p>
-        <p style="margin:0;font-size:15px;line-height:1.5;color:#34244f">${escapeHtml(direccion)}</p>
-      </td></tr></table>`
-    : "";
+  const unidades = items.reduce((suma, item) => suma + Number(item.cantidad ?? 1), 0);
 
   const html = correoShell({
     siteUrl,
     preheader: `${nombre}, recibimos tu pedido por ${soles(total)}. Solo falta que confirmes el pago para obtener tu código de seguimiento.`,
     titulo: "¡Gracias por tu compra!",
     cuerpo: `
-<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4b3a63">Hola ${escapeHtml(nombre)}, ya tenemos tu pedido anotado. Te contamos aquí todo para que la compra termine sin sorpresas.</p>
-
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 18px"><tr><td style="padding:18px;background:#faf5ff;border:1px solid #f0e7fb;border-radius:16px">
-  <p style="margin:0 0 10px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#9b8bb4;font-weight:700">Resumen del pedido</p>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${itemsTabla(items)}</table>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:12px">
-    ${lineaResumen("Subtotal de productos", soles(subtotal))}
-    ${delivery > 0 ? lineaResumen("Delivery", soles(delivery)) : ""}
-    ${lineaResumen("Total a pagar", soles(total), true)}
-  </table>
-  <p style="margin:12px 0 0;padding-top:12px;border-top:1px solid #f0e7fb;font-size:13px;color:#6d5a80">Pagarás con <strong style="color:#4b3a63">${escapeHtml(metodo)}</strong></p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+  <div style="width:66px;height:66px;line-height:66px;border-radius:999px;background:linear-gradient(135deg,#f3e8ff,#fce7f3);font-size:32px">🎉</div>
+  <h1 style="margin:16px 0 0;font-family:inherit;font-size:24px;line-height:1.25;color:#2b1b45">¡Gracias por tu compra, ${escapeHtml(nombre)}!</h1>
+  <p style="margin:8px 0 0;font-family:inherit;font-size:15px;line-height:1.6;color:#5b4a70">Ya tenemos tu pedido anotado. Te contamos aquí todo para que la compra termine sin sorpresas.</p>
 </td></tr></table>
 
-${giftHtml}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 0"><tr><td style="padding:20px;background:#faf5ff;border:1px solid #f0e7fb;border-radius:18px">
+  <p style="margin:0 0 4px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#9b8bb4;font-weight:800">Tu pedido</p>
+  <p style="margin:0 0 14px;font-size:13px;color:#7c6b93">${unidades} ${unidades === 1 ? "producto" : "productos"} · ${metodo}</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+    ${items.map((item) => filaItem(siteUrl, item, item.id != null ? fotos[String(item.id)] : undefined)).join("")}
+  </table>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:14px">
+    ${totalFila("Subtotal de productos", soles(subtotal))}
+    ${delivery > 0 ? totalFila("Delivery", soles(delivery)) : ""}
+  </table>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px">
+    <tr><td height="1" style="height:1px;line-height:1px;font-size:0;background:#e9d5ff">&nbsp;</td></tr>
+  </table>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:10px">
+    ${totalFila("Total a pagar", soles(total), true)}
+  </table>
+</td></tr></table>
 
-${direccionHtml}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0 0"><tr><td>
+  ${chip(`Pagarás con ${metodo}`, "#ede9fe", "#5b21b6")}
+  ${tieneRegalo ? chip("🎁 Incluye regalo sorpresa", "#ecfdf5", "#065f46") : ""}
+  ${direccion ? chip("📍 Entrega a domicilio", "#fdf2f8", "#9d174d") : ""}
+</td></tr></table>
 
-<p style="margin:26px 0 14px;font-size:17px;font-weight:800;color:#2b1b45">¿Qué sigue ahora? Son 3 pasos</p>
-${paso(1, `Paga con ${metodo}`, `Transfiere ${soles(total)} usando los datos que ya están en la pantalla del pedido.`, "#ede9fe", "#6d28d9")}
-${paso(2, "Presiona “Ya hice el pago”", "Vuelve a Mis pedidos, busca tu pedido y confirma el pago con un clic. Así lo revisamos más rápido.", "#fce7f3", "#be185d")}
-${paso(3, "Recibes tu código de seguimiento", "Te mostramos tu código único y te escribimos por correo cada vez que el pedido avance.", "#fef3c7", "#b45309")}
+${
+  direccion
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0 0"><tr><td style="padding:16px 18px;background:#f7f2fb;border-radius:16px">
+        <p style="margin:0 0 4px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#9b8bb4;font-weight:800">Entregamos en</p>
+        <p style="margin:0;font-size:15px;line-height:1.5;color:#34244f">${escapeHtml(direccion)}</p>
+      </td></tr></table>`
+    : ""
+}
+
+${
+  tieneRegalo
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0 0"><tr><td style="padding:16px 18px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:16px">
+        <p style="margin:0;font-size:15px;font-weight:700;color:#065f46">🎁 Hay una sorpresa esperándote</p>
+        <p style="margin:5px 0 0;font-size:13px;line-height:1.5;color:#047857">Alcanzaste el monto para el regalo sorpresa. Lo separamos al empacar tu pedido y va incluido sin costo adicional.</p>
+      </td></tr></table>`
+    : ""
+}
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0"><tr><td style="padding:20px 18px;background:linear-gradient(135deg,#faf5ff,#fdf2f8);border-radius:18px">
+  <p style="margin:0 0 16px;font-size:17px;font-weight:800;color:#2b1b45">¿Qué sigue ahora? Son 3 pasos</p>
+  ${paso(1, `Paga con ${metodo}`, `Transfiere ${soles(total)} usando los datos que ya están en la pantalla del pedido.`, "#ede9fe", "#6d28d9")}
+  ${paso(2, "Presiona “Ya hice el pago”", "Vuelve a Mis pedidos, busca tu pedido y confirma el pago con un clic. Así lo revisamos más rápido.", "#fce7f3", "#be185d")}
+  ${paso(3, "Recibes tu código de seguimiento", "Te mostramos tu código único y te escribimos por correo cada vez que el pedido avance.", "#fef3c7", "#b45309", true)}
+</td></tr></table>
 
 ${boton("Ir a Mis pedidos", `${siteUrl}/mi-perfil`)}
-<p style="margin:18px 0 0;font-size:13px;line-height:1.5;color:#8b7aa6;text-align:center">Cuando confirmemos tu pago, el pedido pasa a preparación y te avisamos.</p>`,
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 0"><tr><td align="center">
+  <p style="margin:0;font-size:13px;line-height:1.6;color:#8b7aa6">Confirmamos tu pago y el pedido pasa a preparación.<br>Te avisamos por correo en cada cambio de estado.</p>
+</td></tr></table>`,
   });
 
   return { subject: "MosaMeli: recibimos tu pedido ✨", html };
@@ -138,14 +153,27 @@ Deno.serve(async (request: Request) => {
     if (orderError || !order) return json({ error: "Pedido no encontrado" }, 404);
 
     const siteUrl = (Deno.env.get("SITE_URL") ?? "https://mosameli.com").replace(/\/$/, "");
+    const items = (Array.isArray(order.items) ? order.items : []) as Item[];
+
+    // Las imágenes no se guardan en el pedido: se consultan para el correo.
+    const ids = items.map((item) => Number(item.id)).filter((id) => Number.isInteger(id) && id > 0);
+    const fotos: Record<string, string> = {};
+    if (ids.length) {
+      const { data: productos } = await admin.from("productos").select("id,imagen").in("id", ids);
+      for (const producto of (productos ?? []) as Array<{ id: number; imagen?: string | null }>) {
+        if (producto.imagen) fotos[String(producto.id)] = producto.imagen;
+      }
+    }
+
     const correo = construirConfirmacion({
       siteUrl,
       nombre: order.cliente_nombre,
-      items: (Array.isArray(order.items) ? order.items : []) as Item[],
+      items,
       total: Number(order.total ?? 0),
       pago: String(order.metodo_pago ?? ""),
       direccion: order.direccion_cliente,
       tieneRegalo: Boolean(order.tiene_regalo),
+      fotos,
     });
 
     const response = await fetch("https://api.resend.com/emails", {
