@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import {
   useCallback,
@@ -28,6 +29,7 @@ import {
   zoneForDistance,
 } from "@/lib/delivery";
 import { cartSubtotal, formatMoney } from "@/lib/money";
+import type { CartLine } from "@/lib/types";
 
 const paymentMethods = [
   {
@@ -67,6 +69,7 @@ export function CheckoutClient() {
     useState<(typeof paymentMethods)[number]["value"]>("plin");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<CreateOrderResult | null>(null);
+  const [submittedItems, setSubmittedItems] = useState<CartLine[]>([]);
   const [declared, setDeclared] = useState<DeclarePaymentResult | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [paymentPending, setPaymentPending] = useState(false);
@@ -173,6 +176,9 @@ export function CheckoutClient() {
         setError(result.message ?? "No pudimos confirmar el pedido");
         return;
       }
+      setSubmittedItems(
+        items.map((line) => ({ ...line, product: { ...line.product } })),
+      );
       clear();
       idempotencyKeyRef.current = null;
       window.sessionStorage.removeItem(CHECKOUT_KEY);
@@ -201,121 +207,295 @@ export function CheckoutClient() {
   }
 
   if (success?.ok) {
+    const confirmedTotal = Number(success.total ?? 0);
+    const confirmedDelivery = Number(success.deliveryCost ?? 0);
+    const confirmedSubtotal = Math.max(0, confirmedTotal - confirmedDelivery);
+    const reservationTime = success.reservationExpiresAt
+      ? new Date(success.reservationExpiresAt).toLocaleTimeString("es-PE", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null;
+
     return (
-      <div className="surface mx-auto max-w-2xl p-6 text-center md:p-10">
-        <div className="text-5xl" aria-hidden="true">
-          {declared ? "✅" : "🧾"}
-        </div>
-        <h1 className="mt-4 text-3xl font-black">
-          {declared
-            ? "Aviso de pago recibido"
-            : "Pedido registrado · pago pendiente"}
-        </h1>
-        <p className="mx-auto mt-2 max-w-lg text-[var(--muted)]">
-          {declared ? (
-            <>
-              Recibimos tu aviso. El administrador verificará el abono antes de
-              cambiar el estado a{" "}
-              <strong className="text-[var(--text)]">Pago verificado</strong> y
-              continuar con el despacho.
-            </>
-          ) : (
-            <>
-              Tu pedido todavía no está pagado. Realiza el pago con los datos
-              que aparecen abajo y luego presiona{" "}
-              <strong className="text-[var(--text)]">Ya hice el pago</strong>.
-            </>
-          )}
-        </p>
-
-        <div className="mt-6 rounded-2xl bg-[var(--brand-50)] p-5">
-          <p className="text-sm text-[var(--muted)]">
-            Total a pagar:{" "}
-            <strong className="text-[var(--text)]">
-              {formatMoney(success.total ?? 0)}
-            </strong>
-          </p>
-          <p className="mt-1 text-sm text-[var(--muted)]">
-            N.º de pedido:{" "}
-            <strong className="text-[var(--text)]">#{success.orderId}</strong>
-          </p>
-          {success.reservationExpiresAt ? (
-            <p className="mt-1 text-xs text-[var(--muted)]">
-              Tu stock queda reservado hasta las{" "}
-              {new Date(success.reservationExpiresAt).toLocaleTimeString(
-                "es-PE",
-                { hour: "2-digit", minute: "2-digit" },
-              )}
-              .
+      <div className="checkout-success-page">
+        <div
+          className="purchase-progress checkout-success-progress"
+          aria-label="Progreso de compra"
+        >
+          <div className="complete">
+            <span>✓</span>
+            <p>
+              <strong>Carrito</strong>
+              <small>Productos revisados</small>
             </p>
+          </div>
+          <i />
+          <div className="complete">
+            <span>✓</span>
+            <p>
+              <strong>Envío</strong>
+              <small>Ubicación confirmada</small>
+            </p>
+          </div>
+          <i />
+          <div className={declared ? "complete" : "active"}>
+            <span>{declared ? "✓" : "3"}</span>
+            <p>
+              <strong>Confirmación</strong>
+              <small>{declared ? "Aviso recibido" : "Pago pendiente"}</small>
+            </p>
+          </div>
+        </div>
+
+        <section
+          className={`checkout-success-hero ${declared ? "is-declared" : ""}`}
+        >
+          <div className="checkout-success-icon" aria-hidden="true">
+            {declared ? "✓" : "⌁"}
+          </div>
+          <h1>
+            {declared
+              ? "Aviso de pago recibido"
+              : "Pedido registrado · pago pendiente"}
+          </h1>
+          <p>
+            {declared ? (
+              <>
+                Recibimos tu aviso. El administrador verificará el abono antes
+                de cambiar el estado a <strong>Pago verificado</strong> y
+                continuar con el despacho.
+              </>
+            ) : (
+              <>
+                Guardamos tu pedido. Realiza el pago con los datos indicados y
+                luego presiona <strong>“Ya hice el pago”</strong> para
+                avisarnos.
+              </>
+            )}
+          </p>
+          {reservationTime && !declared ? (
+            <span className="reservation-pill">
+              <b aria-hidden="true">◷</b> Tu stock queda reservado hasta las{" "}
+              {reservationTime}
+            </span>
           ) : null}
-        </div>
+        </section>
 
-        {!declared ? (
-          <PaymentInstructions method={payment} total={success.total ?? 0} />
-        ) : null}
-
-        {declared ? (
-          <div
-            className="mt-6 rounded-2xl border border-[#a7f3d0] bg-[#ecfdf5] p-5"
-            role="status"
-          >
-            <p className="text-sm font-bold text-[#065f46]">
-              Su pedido fue recibido y se procederá con el proceso de despacho
-              después de verificar el pago.
-            </p>
-            <p className="mt-2 text-2xl font-black tracking-wider text-[#065f46]">
-              {declared.trackingCode}
-            </p>
-            <p className="mt-2 text-xs text-[#047857]">
-              Guárdalo: con él puedes consultar el estado de tu pedido cuando
-              quieras.
-            </p>
-            {declared.notificationPending ? (
-              <p className="alert alert-info mt-4 text-left">
-                Tu aviso quedó registrado, pero el correo está pendiente de
-                reintento. Puedes consultar el estado desde tu perfil.
-              </p>
-            ) : null}
-            {declared.trackingToken ? (
-              <Link
-                className="btn btn-primary mt-4"
-                href={`/seguimiento/${declared.trackingToken}`}
-              >
-                Ver seguimiento seguro
-              </Link>
-            ) : null}
-          </div>
-        ) : (
-          <div className="mt-6">
-            {paymentError ? (
-              <div className="alert alert-error" role="alert">
-                {paymentError}
+        <div className="checkout-success-layout">
+          <div className="checkout-success-main">
+            <section className="checkout-ticket-card">
+              <header>
+                <div>
+                  <small>Detalles del pedido</small>
+                  <h2>
+                    Pedido #{success.orderId}{" "}
+                    <span>
+                      {declared ? "Pago informado" : "Pendiente de pago"}
+                    </span>
+                  </h2>
+                </div>
+                <div>
+                  <small>Total a pagar</small>
+                  <strong>{formatMoney(confirmedTotal)}</strong>
+                </div>
+              </header>
+              <div className="checkout-ticket-summary">
+                <p>
+                  Resumen de artículos (
+                  {submittedItems.reduce((sum, line) => sum + line.quantity, 0)}{" "}
+                  {submittedItems.reduce(
+                    (sum, line) => sum + line.quantity,
+                    0,
+                  ) === 1
+                    ? "producto"
+                    : "productos"}
+                  )
+                </p>
+                <div className="checkout-ticket-items">
+                  {submittedItems.map((line) => (
+                    <article key={line.product.id}>
+                      <img
+                        src={line.product.imagen}
+                        alt={line.product.nombre}
+                      />
+                      <div>
+                        <strong>{line.product.nombre}</strong>
+                        <small>
+                          {line.product.categoria} · Cantidad: {line.quantity}
+                        </small>
+                      </div>
+                      <b>{formatMoney(line.product.precio * line.quantity)}</b>
+                    </article>
+                  ))}
+                </div>
               </div>
-            ) : null}
-            <button
-              type="button"
-              className="btn btn-primary w-full text-base"
-              disabled={paymentPending}
-              onClick={declarePayment}
-            >
-              {paymentPending ? "Registrando tu pago…" : "Ya hice el pago"}
-            </button>
-            <p className="mt-2 text-xs text-[var(--muted)]">
-              Presiona este botón después de realizar el pago para obtener tu
-              código de seguimiento.
-            </p>
-          </div>
-        )}
+              <div className="checkout-ticket-totals">
+                <p>
+                  <span>Subtotal</span>
+                  <strong>{formatMoney(confirmedSubtotal)}</strong>
+                </p>
+                <p>
+                  <span>Delivery</span>
+                  <strong>{formatMoney(confirmedDelivery)}</strong>
+                </p>
+              </div>
+              <p className="checkout-delivery-line">
+                <span aria-hidden="true">▱</span>
+                <strong>Entrega en:</strong> {address}
+              </p>
+            </section>
 
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link className="btn btn-secondary" href="/mi-perfil">
-            Ver mis pedidos
-          </Link>
-          <Link className="btn btn-primary" href="/">
-            Seguir comprando
-          </Link>
+            {!declared ? (
+              <section className="checkout-payment-steps">
+                <h2>
+                  <span aria-hidden="true">☷</span> ¿Cómo realizar tu pago con{" "}
+                  {payment === "transferencia"
+                    ? "transferencia"
+                    : payment === "plin"
+                      ? "Plin"
+                      : "Yape"}
+                  ?
+                </h2>
+                <ol>
+                  <li>
+                    <span>1</span>
+                    <p>
+                      <strong>Abre tu aplicación bancaria</strong>
+                      <small>
+                        Ingresa a tu billetera digital o banca móvil habitual.
+                      </small>
+                    </p>
+                  </li>
+                  <li>
+                    <span>2</span>
+                    <p>
+                      <strong>
+                        {payment === "transferencia"
+                          ? "Copia los datos bancarios"
+                          : "Escanea el código QR"}
+                      </strong>
+                      <small>
+                        Usa la información mostrada y revisa el nombre del
+                        titular.
+                      </small>
+                    </p>
+                  </li>
+                  <li>
+                    <span>3</span>
+                    <p>
+                      <strong>Confirma el importe exacto</strong>
+                      <small>
+                        El monto a transferir debe ser{" "}
+                        {formatMoney(confirmedTotal)}.
+                      </small>
+                    </p>
+                  </li>
+                </ol>
+              </section>
+            ) : null}
+
+            <section
+              className={`checkout-payment-action ${declared ? "is-declared" : ""}`}
+            >
+              {declared ? (
+                <div className="declared-payment-result" role="status">
+                  <span aria-hidden="true">✓</span>
+                  <div>
+                    <strong>Su pedido fue recibido</strong>
+                    <p>
+                      Se procederá con el despacho después de verificar el pago.
+                      Código de seguimiento: <b>{declared.trackingCode}</b>
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="payment-reconciliation-note">
+                  <span aria-hidden="true">✉</span>Al presionar{" "}
+                  <strong>“Ya hice el pago”</strong>, registraremos tu aviso
+                  para que el administrador verifique el abono.
+                </p>
+              )}
+              {paymentError ? (
+                <div className="alert alert-error" role="alert">
+                  {paymentError}
+                </div>
+              ) : null}
+              {declared?.notificationPending ? (
+                <div className="alert alert-info" role="status">
+                  Tu aviso quedó registrado, pero el correo está pendiente de
+                  reintento.
+                </div>
+              ) : null}
+              {!declared ? (
+                <button
+                  type="button"
+                  className="btn btn-primary checkout-payment-declare"
+                  disabled={paymentPending}
+                  onClick={declarePayment}
+                >
+                  {paymentPending
+                    ? "Registrando tu aviso…"
+                    : "✓  Ya hice el pago"}
+                </button>
+              ) : declared.trackingToken ? (
+                <Link
+                  className="btn btn-primary checkout-payment-declare"
+                  href={`/seguimiento/${declared.trackingToken}`}
+                >
+                  Ver seguimiento seguro
+                </Link>
+              ) : null}
+              <div className="checkout-success-links">
+                <Link href="/mi-perfil">Ver mis pedidos</Link>
+                <Link href="/">Seguir comprando</Link>
+              </div>
+            </section>
+          </div>
+
+          <aside className="checkout-payment-aside">
+            {!declared ? (
+              <PaymentInstructions method={payment} total={confirmedTotal} />
+            ) : (
+              <div className="payment-declared-card">
+                <span aria-hidden="true">✓</span>
+                <h2>Pago informado</h2>
+                <p>
+                  Tu aviso ya está en la pestaña del administrador para su
+                  verificación.
+                </p>
+                <strong>{declared.trackingCode}</strong>
+              </div>
+            )}
+          </aside>
         </div>
+
+        <section
+          className="checkout-trust-row"
+          aria-label="Beneficios de compra"
+        >
+          <article>
+            <span>♢</span>
+            <p>
+              <strong>Pago protegido</strong>
+              <small>Validación directa y segura.</small>
+            </p>
+          </article>
+          <article>
+            <span>▣</span>
+            <p>
+              <strong>Stock reservado</strong>
+              <small>Durante tu ventana de pago.</small>
+            </p>
+          </article>
+          <article>
+            <span>◉</span>
+            <p>
+              <strong>Atención inmediata</strong>
+              <small>Soporte directo por WhatsApp.</small>
+            </p>
+          </article>
+        </section>
       </div>
     );
   }

@@ -1,11 +1,15 @@
 export const PAYMENT_DETAILS = {
   plin: {
     label: "Plin",
-    qrUrl: "https://res.cloudinary.com/uj9d2ddz/image/upload/q_auto,f_auto,w_400/v1789582950/PLIN.jpg",
+    qrUrl:
+      "https://res.cloudinary.com/uj9d2ddz/image/upload/q_auto,f_auto,w_400/v1789582950/PLIN.jpg",
+    titular: "Melissa Judith Morillas Salinas",
   },
   yape: {
     label: "Yape",
-    qrUrl: "https://res.cloudinary.com/uj9d2ddz/image/upload/q_auto,f_auto,w_400/v1790099479/YAPE.jpg",
+    qrUrl:
+      "https://res.cloudinary.com/uj9d2ddz/image/upload/q_auto,f_auto,w_400/v1790099479/YAPE.jpg",
+    titular: "Melissa Judith Morillas Salinas",
   },
   transferencia: {
     label: "Transferencia Interbank",
