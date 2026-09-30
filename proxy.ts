@@ -39,11 +39,22 @@ export async function proxy(request: NextRequest) {
   const hasOAuthParams =
     request.nextUrl.searchParams.has("code") || request.nextUrl.searchParams.has("error");
 
-  if (request.nextUrl.pathname === "/" && isDocumentRequest && !isRouterRequest && !hasOAuthParams) {
+  const splashSeen = request.cookies.get("mosameli_splash_seen")?.value === "1";
+  if (request.nextUrl.pathname === "/" && isDocumentRequest && !isRouterRequest && !hasOAuthParams && !splashSeen) {
     const splashUrl = request.nextUrl.clone();
     splashUrl.pathname = "/splash";
+    const destination = `${request.nextUrl.pathname}${request.nextUrl.search}`;
     splashUrl.search = "";
-    return NextResponse.redirect(splashUrl);
+    splashUrl.searchParams.set("next", destination);
+    const splashResponse = NextResponse.redirect(splashUrl);
+    splashResponse.cookies.set("mosameli_splash_seen", "1", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
+    return splashResponse;
   }
 
   const nonce = createNonce();

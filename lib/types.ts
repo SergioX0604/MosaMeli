@@ -52,6 +52,8 @@ export type Order = {
   notas_delivery?: string | null;
   tiene_regalo?: boolean;
   pago_declarado?: string | null;
+  reserva_expira_en?: string | null;
+  stock_liberado_en?: string | null;
   fecha: string;
   fecha_pago_verificado?: string | null;
   fecha_preparacion?: string | null;

@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.117.2";
 import { corsHeaders, json } from "../_shared/http.ts";
 import { boton, chip, correoShell, escapeHtml, metodoPago, miniatura, paso, primerNombre } from "../_shared/email.ts";
+import { authenticateEdgeRequest } from "../_shared/auth.ts";
 
 type Item = { id?: number; nombre?: string; precio?: number; cantidad?: number };
 
@@ -132,24 +133,20 @@ Deno.serve(async (request: Request) => {
     const from = Deno.env.get("EMAIL_FROM") ?? "MosaMeli <notificaciones@mosameli.com>";
     if (!supabaseUrl || !serviceRoleKey || !resendKey) return json({ error: "Configuración de correo incompleta" }, 503);
 
-    const authorization = request.headers.get("Authorization") ?? "";
-    const token = authorization.replace("Bearer ", "");
-    if (!token) return json({ error: "No autenticado" }, 401);
-
     const admin = createClient(supabaseUrl, serviceRoleKey);
-    const { data: authData, error: authError } = await admin.auth.getUser(token);
-    if (authError || !authData.user) return json({ error: "No autenticado" }, 401);
+    const auth = await authenticateEdgeRequest(request, admin, serviceRoleKey);
+    if (!auth.internal && !auth.user) return json({ error: "No autenticado" }, 401);
 
     const body = await request.json().catch(() => ({}));
     const orderId = Number(body.order_id);
     if (!Number.isInteger(orderId) || orderId <= 0) return json({ error: "Pedido inválido" }, 400);
 
-    const { data: order, error: orderError } = await admin
+    let orderQuery = admin
       .from("pedidos")
       .select("id,items,total,metodo_pago,cliente_nombre,cliente_email,direccion_cliente,tiene_regalo")
-      .eq("id", orderId)
-      .eq("usuario_id", authData.user.id)
-      .single();
+      .eq("id", orderId);
+    if (!auth.internal && auth.user) orderQuery = orderQuery.eq("usuario_id", auth.user.id);
+    const { data: order, error: orderError } = await orderQuery.single();
     if (orderError || !order) return json({ error: "Pedido no encontrado" }, 404);
 
     const siteUrl = (Deno.env.get("SITE_URL") ?? "https://mosameli.com").replace(/\/$/, "");
@@ -178,7 +175,11 @@ Deno.serve(async (request: Request) => {
 
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${resendKey}`,
+        "Content-Type": "application/json",
+        "Idempotency-Key": `mosameli-confirmacion-${order.id}`,
+      },
       body: JSON.stringify({ from, to: [order.cliente_email], subject: correo.subject, html: correo.html }),
     });
     if (!response.ok) return json({ error: "El proveedor de correo rechazó el mensaje" }, 502);

@@ -20,7 +20,7 @@ describe("regla de entrega del codigo de seguimiento", () => {
   });
 
   it("lo oculta si el pedido fue cancelado y nunca se declaro el pago", () => {
-    expect(trackingDisponible({ estado: "cancelado", pago_declarado: null })).toBe(true);
+    expect(trackingDisponible({ estado: "cancelado", pago_declarado: null })).toBe(false);
     expect(trackingDisponible({ estado: "pedido_recibido", pago_declarado: null })).toBe(false);
   });
 

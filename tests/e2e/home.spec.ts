@@ -34,10 +34,18 @@ test("el splash aparece al entrar al catálogo y se puede saltar", async ({ page
   await expect(catalogHeading(page)).toBeVisible();
 });
 
-test("recargar el catálogo vuelve a mostrar el splash", async ({ page }) => {
+test("recargar el catálogo no vuelve a mostrar el splash durante 30 días", async ({ page }) => {
   await openCatalog(page);
   await page.reload();
+  await expect(catalogHeading(page)).toBeVisible();
+  await expect(splashHeading(page)).toBeHidden();
+});
+
+test("el splash conserva los filtros del enlace de entrada", async ({ page }) => {
+  await page.goto("/?categoria=hogar#catalogo");
   await expect(splashHeading(page)).toBeVisible();
+  await page.getByRole("link", { name: /Saltar intro/i }).click();
+  await expect(page).toHaveURL(/categoria=hogar/);
 });
 
 test("ir al catálogo desde otra página no repite el splash", async ({ page }) => {

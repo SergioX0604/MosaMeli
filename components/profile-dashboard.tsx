@@ -11,21 +11,23 @@ import { formatMoney } from "@/lib/money";
 export function ProfileDashboard({ user, orders, reviews }: { user: { email?: string; id: string }; orders: Order[]; reviews: Review[] }) {
   const [filter, setFilter] = useState("todos");
   const visibleOrders = filter === "todos" ? orders : orders.filter((order) => order.estado === filter);
-  const filters = ["todos", "pedido_recibido", "pago_verificado", "en_preparacion", "en_camino", "entregado"];
+  const filters = ["todos", "pedido_recibido", "pago_verificado", "en_preparacion", "en_camino", "entregado", "cancelado"];
   return (
     <div className="space-y-6">
       <section className="surface p-6"><h1 className="text-3xl font-black">Mi perfil</h1><p className="mt-1 text-sm text-[var(--muted)]">{user.email}</p></section>
-      <section><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-black">Mis pedidos</h2><div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar pedidos">{filters.map((item) => <button key={item} type="button" className={`rounded-full border px-3 py-2 text-xs font-bold ${filter === item ? "border-transparent bg-[var(--primary)] text-white" : "border-[var(--border)]"}`} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item === "todos" ? "Todos" : estadoLabel(item)}</button>)}</div></div><div className="mt-3 space-y-3">{visibleOrders.length ? visibleOrders.map((order) => { const visible = trackingDisponible(order); return (
+      <section><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-black">Mis pedidos</h2><div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar pedidos">{filters.map((item) => <button key={item} type="button" className={`rounded-full border px-3 py-2 text-xs font-bold ${filter === item ? "border-transparent bg-[var(--primary)] text-white" : "border-[var(--border)]"}`} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item === "todos" ? "Todos" : estadoLabel(item)}</button>)}</div></div><div className="mt-3 space-y-3">{visibleOrders.length ? visibleOrders.map((order) => { const visible = trackingDisponible(order); const canDeclare = order.estado === "pedido_recibido" && !visible; return (
         <article key={order.id} className="surface flex flex-wrap items-center justify-between gap-3 p-4">
           <div className="min-w-0">
             <p className="font-black">{visible ? `#${order.codigo_seguimiento}` : `Pedido #${order.id}`}</p>
             <p className="text-sm text-[var(--muted)]">{new Date(order.fecha).toLocaleDateString("es-PE")} · {estadoLabel(order.estado)}</p>
-            {!visible ? <p className="mt-1 text-xs font-semibold text-[var(--accent)]">Confirma tu pago para obtener el código de seguimiento</p> : null}
+            {canDeclare ? <p className="mt-1 text-xs font-semibold text-[var(--accent)]">Confirma tu pago antes de que venza la reserva para obtener el código de seguimiento</p> : null}
+            {canDeclare && order.reserva_expira_en ? <p className="mt-1 text-xs text-[var(--muted)]">Reserva hasta {new Date(order.reserva_expira_en).toLocaleString("es-PE")}</p> : null}
+            {order.estado === "cancelado" && order.stock_liberado_en ? <p className="mt-1 text-xs text-[var(--muted)]">La reserva venció o fue cancelada y el stock volvió al catálogo.</p> : null}
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <strong>{formatMoney(order.total)}</strong>
             {visible && order.tracking_token ? <Link className="btn btn-secondary min-h-9 px-3 text-sm" href={`/seguimiento/${order.tracking_token}`}>Ver estado</Link> : null}
-            {!visible ? <DeclarePaymentButton orderId={order.id} /> : null}
+            {canDeclare ? <DeclarePaymentButton orderId={order.id} /> : null}
           </div>
         </article>
       ); }) : <p className="surface p-6 text-sm text-[var(--muted)]">No hay pedidos con este filtro.</p>}</div></section>

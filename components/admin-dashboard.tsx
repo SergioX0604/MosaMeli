@@ -12,19 +12,22 @@ import type { Order, Product, Review } from "@/lib/types";
 import { formatMoney } from "@/lib/money";
 import { orderStatusSchema } from "@/lib/validation";
 import { DeliveryCostEditor } from "@/components/delivery-cost-editor";
+import { nextOrderStatuses } from "@/lib/order-transitions";
 
-type AdminDashboardProps = { products: Product[]; orders: Order[]; reviews: Review[] };
+type AdminDashboardProps = {
+  products: Product[];
+  orders: Order[];
+  reviews: Review[];
+  summary: { paidOrders: number; paidTotal: number; deliveryCollected: number };
+};
 
 const emptyProduct = { nombre: "", categoria: "", precio: "", precioOriginal: "", imagen: "", stock: "" };
 
-export function AdminDashboard({ products, orders, reviews }: AdminDashboardProps) {
+export function AdminDashboard({ products, orders, reviews, summary }: AdminDashboardProps) {
   const [form, setForm] = useState(emptyProduct);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
-  const paidOrders = orders.filter((order) => ["pago_verificado", "en_preparacion", "en_camino", "entregado"].includes(String(order.estado)));
-  const paidTotal = paidOrders.reduce((total, order) => total + Number(order.total ?? 0), 0);
-  const deliveryCollected = paidOrders.reduce((total, order) => total + Number(order.costo_delivery ?? 0), 0);
 
   function updateField(field: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -94,15 +97,15 @@ export function AdminDashboard({ products, orders, reviews }: AdminDashboardProp
       </section>
 
       <section className="grid gap-3 sm:grid-cols-3">
-        <div className="surface p-5"><p className="text-sm text-[var(--muted)]">Pedidos pagados</p><p className="mt-1 text-2xl font-black">{paidOrders.length}</p></div>
-        <div className="surface p-5"><p className="text-sm text-[var(--muted)]">Ingresos verificados</p><p className="mt-1 text-2xl font-black">{formatMoney(paidTotal)}</p></div>
-        <div className="surface p-5"><p className="text-sm text-[var(--muted)]">Delivery cobrado</p><p className="mt-1 text-2xl font-black">{formatMoney(deliveryCollected)}</p></div>
+        <div className="surface p-5"><p className="text-sm text-[var(--muted)]">Pedidos pagados</p><p className="mt-1 text-2xl font-black">{summary.paidOrders}</p></div>
+        <div className="surface p-5"><p className="text-sm text-[var(--muted)]">Ingresos verificados</p><p className="mt-1 text-2xl font-black">{formatMoney(summary.paidTotal)}</p></div>
+        <div className="surface p-5"><p className="text-sm text-[var(--muted)]">Delivery cobrado</p><p className="mt-1 text-2xl font-black">{formatMoney(summary.deliveryCollected)}</p></div>
       </section>
 
       <section className="surface p-5 md:p-6">
         <h2 className="text-xl font-black">Pedidos</h2>
         <div className="mt-4 space-y-3">
-          {orders.length ? orders.map((order) => <article key={order.id} className="rounded-2xl border border-[var(--border)] p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-black">#{order.codigo_seguimiento}</h3><p className="text-sm text-[var(--muted)]">{order.cliente_nombre} · {order.cliente_email}</p>{order.pago_declarado ? <p className="mt-1 text-xs font-bold text-[#16a34a]">Pago declarado por el cliente · {new Date(order.pago_declarado).toLocaleString("es-PE")}</p> : null}</div><strong>{formatMoney(order.total)}</strong></div><div className="mt-3 flex flex-wrap items-center gap-3"><label className="text-sm font-bold" htmlFor={`status-${order.id}`}>Estado</label><select id={`status-${order.id}`} className="form-select max-w-56" value={order.estado} onChange={(event) => changeStatus(order.id, event.target.value)} disabled={pending}><option value="pedido_recibido">Pedido recibido</option><option value="pago_verificado">Pago verificado</option><option value="en_preparacion">En preparación</option><option value="en_camino">En camino</option><option value="entregado">Entregado</option><option value="cancelado">Cancelado</option></select></div><p className="mt-3 text-sm text-[var(--muted)]">{order.items?.length ?? 0} producto(s)</p>{order.direccion_cliente ? <p className="mt-1 text-sm">Dirección: {order.direccion_cliente}</p> : null}{order.notas_delivery ? <p className="mt-1 text-sm">Notas: {order.notas_delivery}</p> : null}<DeliveryCostEditor orderId={order.id} initial={Number(order.costo_real_delivery ?? 0)} /></article>) : <p className="text-sm text-[var(--muted)]">No hay pedidos.</p>}
+          {orders.length ? orders.map((order) => { const nextStatuses = nextOrderStatuses(order.estado); return <article key={order.id} className="rounded-2xl border border-[var(--border)] p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-black">#{order.codigo_seguimiento}</h3><p className="text-sm text-[var(--muted)]">{order.cliente_nombre} · {order.cliente_email}</p>{order.pago_declarado ? <p className="mt-1 text-xs font-bold text-[#16a34a]">Pago declarado por el cliente · {new Date(order.pago_declarado).toLocaleString("es-PE")}</p> : null}</div><strong>{formatMoney(order.total)}</strong></div><div className="mt-3 flex flex-wrap items-center gap-3"><label className="text-sm font-bold" htmlFor={`status-${order.id}`}>Estado</label><select id={`status-${order.id}`} className="form-select max-w-56" value={order.estado} onChange={(event) => changeStatus(order.id, event.target.value)} disabled={pending || nextStatuses.length === 0}><option value={order.estado}>{order.estado.replaceAll("_", " ")}</option>{nextStatuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</select>{nextStatuses.length === 0 ? <span className="text-xs text-[var(--muted)]">Estado final</span> : null}</div><p className="mt-3 text-sm text-[var(--muted)]">{order.items?.length ?? 0} producto(s) · Delivery cobrado: {formatMoney(Number(order.costo_delivery ?? 0))}</p>{order.direccion_cliente ? <p className="mt-1 text-sm">Dirección: {order.direccion_cliente}</p> : null}{order.notas_delivery ? <p className="mt-1 text-sm">Notas: {order.notas_delivery}</p> : null}<DeliveryCostEditor orderId={order.id} initial={Number(order.costo_real_delivery ?? 0)} /></article>; }) : <p className="text-sm text-[var(--muted)]">No hay pedidos.</p>}
         </div>
       </section>
 

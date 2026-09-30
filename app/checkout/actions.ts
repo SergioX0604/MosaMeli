@@ -3,13 +3,26 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createOrderSchema } from "@/lib/validation";
+import { z } from "zod";
 
 export type CreateOrderResult = {
   ok: boolean;
   message?: string;
   orderId?: number;
   total?: number;
+  deliveryCost?: number;
+  reservationExpiresAt?: string;
   notificationPending?: boolean;
+};
+
+export type DeliveryQuoteResult = {
+  ok: boolean;
+  message?: string;
+  distance?: number;
+  base?: number;
+  nightSurcharge?: number;
+  sundaySurcharge?: number;
+  cost?: number;
 };
 
 export type DeclarePaymentResult = {
@@ -38,11 +51,39 @@ const RPC_ERRORS: Record<string, string> = {
   PEDIDO_NO_ENCONTRADO: "No encontramos ese pedido en tu cuenta.",
   PEDIDO_YA_VERIFICADO: "El pago de este pedido ya fue verificado.",
   PAGO_YA_DECLARADO: "Ya registraste el pago de este pedido.",
+  PEDIDO_EXPIRADO: "La reserva venció y el stock fue liberado. Vuelve al carrito para crear un pedido nuevo.",
+  IDEMPOTENCY_KEY_REQUERIDA: "No pudimos proteger este pedido contra duplicados. Recarga la página e inténtalo de nuevo.",
 };
 
 function friendlyError(message: string): string {
-  const code = message.trim();
+  const code = Object.keys(RPC_ERRORS).find((item) => message.includes(item)) ?? message.trim();
   return RPC_ERRORS[code] ?? `No pudimos confirmar el pedido (${code}). Inténtalo de nuevo.`;
+}
+
+const coordinatesSchema = z.object({
+  lat: z.number().finite().min(-90).max(90),
+  lng: z.number().finite().min(-180).max(180),
+});
+
+export async function quoteDeliveryAction(input: unknown): Promise<DeliveryQuoteResult> {
+  const parsed = coordinatesSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Selecciona una ubicación válida en el mapa." };
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("cotizar_delivery", {
+    p_lat: parsed.data.lat,
+    p_lng: parsed.data.lng,
+  });
+  if (error) return { ok: false, message: friendlyError(error.message) };
+  const result = Array.isArray(data) ? data[0] : data;
+  if (!result) return { ok: false, message: "No pudimos calcular el delivery." };
+  return {
+    ok: true,
+    distance: Number(result.distancia),
+    base: Number(result.base),
+    nightSurcharge: Number(result.recargo_nocturno),
+    sundaySurcharge: Number(result.recargo_domingo),
+    cost: Number(result.costo),
+  };
 }
 
 export async function createOrderAction(input: unknown): Promise<CreateOrderResult> {
@@ -79,13 +120,23 @@ export async function createOrderAction(input: unknown): Promise<CreateOrderResu
   if (!result) return { ok: false, message: "No se pudo crear el pedido" };
 
   let notificationPending = false;
+  let notificationError = "";
   try {
     const { error: emailError } = await supabase.functions.invoke("enviar-confirmacion", {
       body: { order_id: result.id },
     });
     notificationPending = Boolean(emailError);
+    notificationError = emailError?.message ?? "";
   } catch {
     notificationPending = true;
+    notificationError = "No se pudo invocar enviar-confirmacion";
+  }
+  if (notificationPending) {
+    await supabase.rpc("registrar_notificacion_pendiente", {
+      p_pedido_id: Number(result.id),
+      p_tipo: "confirmacion",
+      p_error: notificationError,
+    });
   }
 
   revalidatePath("/mi-perfil");
@@ -96,6 +147,8 @@ export async function createOrderAction(input: unknown): Promise<CreateOrderResu
     ok: true,
     orderId: Number(result.id),
     total: Number(result.total ?? 0),
+    deliveryCost: Number(result.costo_delivery ?? 0),
+    reservationExpiresAt: result.reserva_expira_en ?? undefined,
     notificationPending,
   };
 }
@@ -128,28 +181,9 @@ export async function declararPagoAction(orderId: number): Promise<DeclarePaymen
     }
   }
 
-  // Si la migracion 202609260003 aun no esta aplicada se resuelve con una
-  // lectura (RLS ya limita la fila al usuario). El mismo camino cubre el doble
-  // clic, que el RPC reporta como PAGO_YA_DECLARADO.
   const message = error?.message ?? "";
-  const missingFunction = error?.code === "PGRST202" || error?.code === "42883" || /declarar_pago/i.test(message);
-  const alreadyDeclared = /PAGO_YA_DECLARADO/.test(message);
-  if (!missingFunction && !alreadyDeclared) {
-    return { ok: false, message: friendlyError(message) };
+  if (error?.code === "PGRST202" || error?.code === "42883") {
+    return { ok: false, message: "La base de datos todavía no tiene aplicada la migración de pagos. Contacta al administrador." };
   }
-
-  const { data: order, error: readError } = await supabase
-    .from("pedidos")
-    .select("id,codigo_seguimiento,tracking_token,total,estado")
-    .eq("id", id)
-    .maybeSingle();
-  if (readError || !order) {
-    return { ok: false, message: "No encontramos ese pedido en tu cuenta." };
-  }
-  return {
-    ok: true,
-    trackingCode: order.codigo_seguimiento,
-    trackingToken: order.tracking_token ?? undefined,
-    total: Number(order.total ?? 0),
-  };
+  return { ok: false, message: friendlyError(message) };
 }

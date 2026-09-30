@@ -23,7 +23,7 @@ La aplicación estará disponible en `http://localhost:3000`.
 
 ## Supabase
 
-Las migraciones están en `supabase/migrations/`: `202609260001_p0_security.sql` (RLS, RPCs, roles, stock atómico e idempotencia) y `202609260002_regalo_subtotal.sql` (regla del regalo sorpresa). Las funciones Edge están en `supabase/functions/`. Consulta `supabase/README.md` antes de aplicarlas.
+Las migraciones están en `supabase/migrations/`, empezando por el esquema base reproducible y continuando con seguridad, reglas comerciales y fiabilidad del checkout. Las funciones Edge están en `supabase/functions/`. Consulta `supabase/README.md` antes de aplicarlas.
 
 El checkout no acepta precios ni totales desde el navegador: envía únicamente IDs, cantidades, ubicación y método de pago. El servidor vuelve a calcular y validar todo antes de crear el pedido.
 
@@ -43,11 +43,14 @@ El cierre del flujo OAuth ocurre en el navegador: `/auth/callback` es una págin
 
 - **Regalo sorpresa**: se incluye cuando el subtotal de productos llega a S/ 150 (`GIFT_THRESHOLD` en `lib/delivery.ts`). El catálogo muestra el badge, el carrito y el checkout indican cuánto falta, y el RPC `crear_pedido` guarda `tiene_regalo` con el mismo criterio.
 - **Código de seguimiento**: no se entrega al crear el pedido. El cliente paga (Plin, Yape o transferencia), presiona **Ya hice el pago** y recién entonces el servidor devuelve el código (`declararPagoAction` → RPC `declarar_pago`, migración `202609260003_pago_declarado.sql`). Mientras tanto el código tampoco aparece en "Mis pedidos" ni en la página de seguimiento, y el panel de admin muestra "Pago declarado por el cliente" para que verifiques el pago antes de marcarlo como verificado.
+- **Reserva de inventario**: un pedido pendiente reserva el stock durante 30 minutos. Al vencer o cancelarse, el servidor devuelve las unidades exactamente una vez. Declarar el pago detiene el vencimiento.
+- **Delivery**: la interfaz consume la misma cotización del servidor que usa `crear_pedido`, incluidos los recargos nocturno y dominical.
+- **Estados**: solo se permiten avances coherentes y cada cambio queda registrado en `pedido_historial`.
 
 - **Barra de categorías y buscador**: el header los muestra solo en el catálogo (`/`). En el resto de páginas quedan el logo, la ubicación, favoritos, carrito y usuario.
 - **Seguimiento y correos**: `lib/estados.ts` es la fuente única de los textos didácticos (título, resumen, qué sigue, tono de color y descripción de cada paso) y la usan tanto la página de seguimiento como los correos. Las Edge Functions comparten `_shared/email.ts` con la maqueta, el pie y la barra de progreso; el estilo va en línea y sobre tablas porque Gmail y Outlook descartan las hojas de estilo externas. `construirConfirmacion` y `construirAviso` son funciones puras: devuelven `{ subject, html }` y se pueden previsualizar sin desplegar.
 - **Paleta**: fondo lavanda `#f7f2fb`, violeta `#7c3aed` para acciones, rosa `#e11d48` para precios y acentos pastel en los chips de categoría. Los tokens viven en `:root` y `@theme` de `app/globals.css`.
-- **Splash**: la intro se reproduce solo al entrar de verdad al catálogo, es decir, con una carga real de la página (URL directa, F5, enlace externo o pestaña nueva). Las navegaciones internas —carrito, perfil, logo, categorías, buscador— no la lanzan. El redirect se resuelve en `proxy.ts` para responder con un 307 real; con `redirect()` desde la página Next devolvía un 200 con meta-refresh. La barra muestra el progreso de la intro y suena `public/audio/splash-intro.wav`, sintetizado con `node scripts/build-splash-audio.js`; el botón 🔊/🔇 permite silenciarlo porque los navegadores bloquean el audio automático en la primera visita.
+- **Splash**: la intro se reproduce una vez por navegador cada 30 días y conserva los filtros o parámetros del enlace de entrada. Las navegaciones internas no la lanzan. La barra muestra el progreso de la intro y suena `public/audio/splash-intro.wav`; el botón 🔊/🔇 permite silenciarlo.
 
 ## Estructura
 

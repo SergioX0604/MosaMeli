@@ -13,32 +13,49 @@ export default async function HomePage() {
 
   if (hasSupabaseConfig()) {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from("productos")
-      .select("id,nombre,categoria,precio,precio_original,imagen,stock,descripcion,caracteristicas,imagenes_extra,video_url,marca,garantia")
+    let { data, error } = await supabase
+      .from("productos_catalogo")
+      .select("id,nombre,categoria,precio,precio_original,imagen,stock,descripcion,caracteristicas,imagenes_extra,video_url,marca,garantia,rating,review_count")
       .order("id");
-    const { data: reviewData } = await supabase.from("resenas").select("producto_id,calificacion").eq("aprobada", true);
+
+    // Facilita el despliegue sin interrupcion: durante el breve lapso entre el
+    // frontend y la migracion nueva solo se usa el esquema anterior si la vista
+    // aun no existe. Cualquier otro error se muestra al usuario.
+    if (error?.code === "PGRST205" || error?.code === "42P01") {
+      const [productsResult, reviewsResult] = await Promise.all([
+        supabase.from("productos").select("id,nombre,categoria,precio,precio_original,imagen,stock,descripcion,caracteristicas,imagenes_extra,video_url,marca,garantia").order("id"),
+        supabase.from("resenas").select("producto_id,calificacion").eq("aprobada", true),
+      ]);
+      if (!productsResult.error && !reviewsResult.error) {
+        const summaries = new Map<number, { total: number; count: number }>();
+        for (const review of reviewsResult.data ?? []) {
+          const id = Number(review.producto_id);
+          const current = summaries.get(id) ?? { total: 0, count: 0 };
+          current.total += Number(review.calificacion) || 0;
+          current.count += 1;
+          summaries.set(id, current);
+        }
+        data = (productsResult.data ?? []).map((product) => {
+          const summary = summaries.get(Number(product.id));
+          return { ...product, rating: summary?.count ? summary.total / summary.count : null, review_count: summary?.count ?? 0 };
+        });
+        error = null;
+      } else {
+        error = productsResult.error ?? reviewsResult.error;
+      }
+    }
 
     if (error) {
       loadError = true;
     } else {
-      const reviewSummary = new Map<number, { total: number; count: number }>();
-      for (const review of reviewData ?? []) {
-        const id = Number(review.producto_id);
-        const current = reviewSummary.get(id) ?? { total: 0, count: 0 };
-        current.total += Number(review.calificacion) || 0;
-        current.count += 1;
-        reviewSummary.set(id, current);
-      }
       products = (data ?? []).map((product) => {
-        const summary = reviewSummary.get(Number(product.id));
         return {
           ...product,
           precio: toNumber(product.precio),
           precio_original: product.precio_original == null ? null : toNumber(product.precio_original),
           stock: toNumber(product.stock),
-          rating: summary?.count ? Number((summary.total / summary.count).toFixed(1)) : null,
-          review_count: summary?.count ?? 0,
+          rating: product.rating == null ? null : toNumber(product.rating),
+          review_count: toNumber(product.review_count),
         };
       }) as Product[];
     }

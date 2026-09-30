@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.117.2";
 import { corsHeaders, json } from "../_shared/http.ts";
 import { boton, chip, correoShell, estadoInfo, lineaTiempo, escapeHtml, metodoPago, primerNombre } from "../_shared/email.ts";
+import { authenticateEdgeRequest } from "../_shared/auth.ts";
 
 /** Estados en los que el pedido sigue activo y conviene un tono de avance. */
 const ESTADOS_ACTIVOS = new Set(["pago_verificado", "en_preparacion", "en_camino", "entregado"]);
@@ -125,12 +126,9 @@ Deno.serve(async (request: Request) => {
     const from = Deno.env.get("EMAIL_FROM") ?? "MosaMeli <notificaciones@mosameli.com>";
     if (!supabaseUrl || !serviceRoleKey || !resendKey) return json({ error: "Configuración de correo incompleta" }, 503);
 
-    const authorization = request.headers.get("Authorization") ?? "";
-    const token = authorization.replace("Bearer ", "");
-    if (!token) return json({ error: "No autenticado" }, 401);
     const admin = createClient(supabaseUrl, serviceRoleKey);
-    const { data: authData, error: authError } = await admin.auth.getUser(token);
-    if (authError || !authData.user || authData.user.app_metadata?.role !== "admin") return json({ error: "No autorizado" }, 403);
+    const auth = await authenticateEdgeRequest(request, admin, serviceRoleKey);
+    if (!auth.internal && auth.user?.app_metadata?.role !== "admin") return json({ error: "No autorizado" }, 403);
 
     const body = await request.json().catch(() => ({}));
     const orderId = Number(body.order_id);
@@ -171,7 +169,11 @@ Deno.serve(async (request: Request) => {
 
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${resendKey}`,
+        "Content-Type": "application/json",
+        "Idempotency-Key": `mosameli-estado-${orderId}-${order.estado}`,
+      },
       body: JSON.stringify({ from, to: [order.cliente_email], subject: correo.subject, html: correo.html }),
     });
     if (!response.ok) return json({ error: "El proveedor de correo rechazó el mensaje" }, 502);

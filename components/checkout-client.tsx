@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { createOrderAction, declararPagoAction, type CreateOrderResult, type DeclarePaymentResult } from "@/app/checkout/actions";
+import { createOrderAction, declararPagoAction, quoteDeliveryAction, type CreateOrderResult, type DeclarePaymentResult, type DeliveryQuoteResult } from "@/app/checkout/actions";
 import { DeliveryMap } from "@/components/delivery-map";
 import { PaymentInstructions } from "@/components/payment-instructions";
 import { useCartStore } from "@/lib/cart-store";
@@ -14,12 +14,24 @@ const paymentMethods = [
   { value: "yape", label: "Yape", description: "Paga rápido con Yape" },
   { value: "transferencia", label: "Transferencia", description: "Transferencia bancaria Interbank" },
 ] as const;
+const CHECKOUT_KEY = "mosameli-checkout-idempotency";
+
+function persistentCheckoutKey(): string {
+  const stored = window.sessionStorage.getItem(CHECKOUT_KEY);
+  if (stored && /^[0-9a-f-]{36}$/i.test(stored)) return stored;
+  const created = crypto.randomUUID();
+  window.sessionStorage.setItem(CHECKOUT_KEY, created);
+  return created;
+}
 
 export function CheckoutClient() {
   const { items, clear } = useCartStore();
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [position, setPosition] = useState({ lat: DELIVERY_ORIGIN.lat, lng: DELIVERY_ORIGIN.lng });
+  const [positionConfirmed, setPositionConfirmed] = useState(false);
+  const [quote, setQuote] = useState<DeliveryQuoteResult | null>(null);
+  const [quotePending, setQuotePending] = useState(false);
   const [payment, setPayment] = useState<(typeof paymentMethods)[number]["value"]>("plin");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<CreateOrderResult | null>(null);
@@ -27,6 +39,7 @@ export function CheckoutClient() {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [paymentPending, setPaymentPending] = useState(false);
   const [pending, startTransition] = useTransition();
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   const distance = useMemo(
     () => haversineKm(DELIVERY_ORIGIN.lat, DELIVERY_ORIGIN.lng, position.lat, position.lng),
@@ -34,14 +47,33 @@ export function CheckoutClient() {
   );
   const zone = zoneForDistance(distance);
   const deliverable = isDeliverable(distance);
-  const deliveryCost = deliverable ? zone.costo : 0;
+  const deliveryCost = quote?.ok ? Number(quote.cost ?? 0) : 0;
   const subtotal = cartSubtotal(items);
   const total = subtotal + deliveryCost;
   const gift = giftProgress(subtotal);
 
   const handlePositionChange = useCallback((lat: number, lng: number) => {
     setPosition({ lat, lng });
+    setPositionConfirmed(true);
+    setQuote(null);
   }, []);
+
+  useEffect(() => {
+    if (!positionConfirmed) return;
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      setQuotePending(true);
+      const result = await quoteDeliveryAction(position);
+      if (!cancelled) {
+        setQuote(result);
+        setQuotePending(false);
+      }
+    }, 350);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [position, positionConfirmed]);
 
   function useMyLocation() {
     if (!navigator.geolocation) {
@@ -50,7 +82,11 @@ export function CheckoutClient() {
     }
     setError(null);
     navigator.geolocation.getCurrentPosition(
-      (result) => setPosition({ lat: result.coords.latitude, lng: result.coords.longitude }),
+      (result) => {
+        setPosition({ lat: result.coords.latitude, lng: result.coords.longitude });
+        setPositionConfirmed(true);
+        setQuote(null);
+      },
       () => setError("No pudimos obtener tu ubicación. Marca el punto en el mapa."),
       { enableHighAccuracy: true, timeout: 10000 },
     );
@@ -63,7 +99,11 @@ export function CheckoutClient() {
       setError("Escribe o selecciona una dirección de entrega.");
       return;
     }
-    if (!deliverable) {
+    if (!positionConfirmed) {
+      setError("Marca el punto exacto de entrega en el mapa o usa tu ubicación.");
+      return;
+    }
+    if (!deliverable || !quote?.ok) {
       setError("Tu ubicación está fuera de la zona de cobertura. Contáctanos por WhatsApp para revisar el envío.");
       return;
     }
@@ -75,7 +115,7 @@ export function CheckoutClient() {
       lat: position.lat,
       lng: position.lng,
       notas: notes.trim(),
-      idempotencyKey: crypto.randomUUID(),
+      idempotencyKey: idempotencyKeyRef.current ??= persistentCheckoutKey(),
     };
 
     startTransition(async () => {
@@ -85,6 +125,8 @@ export function CheckoutClient() {
         return;
       }
       clear();
+      idempotencyKeyRef.current = null;
+      window.sessionStorage.removeItem(CHECKOUT_KEY);
       setSuccess(result);
     });
   }
@@ -121,6 +163,7 @@ export function CheckoutClient() {
         <div className="mt-6 rounded-2xl bg-[var(--brand-50)] p-5">
           <p className="text-sm text-[var(--muted)]">Total a pagar: <strong className="text-[var(--text)]">{formatMoney(success.total ?? 0)}</strong></p>
           <p className="mt-1 text-sm text-[var(--muted)]">N.º de pedido: <strong className="text-[var(--text)]">#{success.orderId}</strong></p>
+          {success.reservationExpiresAt ? <p className="mt-1 text-xs text-[var(--muted)]">Tu stock queda reservado hasta las {new Date(success.reservationExpiresAt).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}.</p> : null}
         </div>
 
         <PaymentInstructions method={payment} total={success.total ?? 0} />
@@ -179,9 +222,16 @@ export function CheckoutClient() {
           <div className="mt-4 space-y-4">
             <div><label className="form-label" htmlFor="delivery-address">Dirección</label><input id="delivery-address" className="form-input" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Calle, número, referencia" autoComplete="street-address" required /></div>
             <DeliveryMap lat={position.lat} lng={position.lng} onChange={handlePositionChange} />
-            <div className={`alert ${deliverable ? "alert-success" : "alert-error"}`} role="status">
-              {deliverable ? `Zona: ${zone.nombre} · Distancia aproximada: ${distance.toFixed(1)} km · Delivery: ${formatMoney(deliveryCost)}` : "Fuera de cobertura (máximo 10 km)."}
+            <div className={`alert ${quote?.ok ? "alert-success" : quote && !quote.ok ? "alert-error" : "alert-info"}`} role="status">
+              {!positionConfirmed
+                ? "Marca en el mapa el punto exacto donde entregaremos el pedido."
+                : quotePending
+                  ? "Calculando la tarifa oficial…"
+                  : quote?.ok
+                    ? `Zona: ${zone.nombre} · ${Number(quote.distance).toFixed(1)} km · Delivery final: ${formatMoney(deliveryCost)}`
+                    : quote?.message ?? "No pudimos cotizar esta ubicación."}
             </div>
+            {quote?.ok && (quote.nightSurcharge || quote.sundaySurcharge) ? <p className="text-xs text-[var(--muted)]">Incluye {quote.nightSurcharge ? `${formatMoney(quote.nightSurcharge)} por horario nocturno` : ""}{quote.nightSurcharge && quote.sundaySurcharge ? " y " : ""}{quote.sundaySurcharge ? `${formatMoney(quote.sundaySurcharge)} por domingo` : ""}.</p> : null}
             <div><label className="form-label" htmlFor="delivery-notes">Notas para el repartidor <span className="font-normal text-[var(--muted)]">(opcional)</span></label><textarea id="delivery-notes" className="form-textarea" value={notes} onChange={(event) => setNotes(event.target.value)} maxLength={500} placeholder="Referencia, punto de encuentro, etc." /></div>
           </div>
         </section>
@@ -205,9 +255,9 @@ export function CheckoutClient() {
         <div className="mt-4 space-y-3 border-b border-[var(--border)] pb-4 text-sm">
           {items.map((line) => <div key={line.product.id} className="flex justify-between gap-3"><span className="min-w-0 truncate">{line.quantity}× {line.product.nombre}</span><strong>{formatMoney(line.product.precio * line.quantity)}</strong></div>)}
         </div>
-        <div className="mt-4 space-y-2 text-sm"><div className="flex justify-between"><span className="text-[var(--muted)]">Subtotal</span><strong>{formatMoney(subtotal)}</strong></div><div className="flex justify-between"><span className="text-[var(--muted)]">Delivery</span><strong>{deliverable ? formatMoney(deliveryCost) : "—"}</strong></div><div className="mt-3 flex justify-between border-t border-[var(--border)] pt-3 text-base"><strong>Total estimado</strong><strong>{formatMoney(total)}</strong></div></div>
+        <div className="mt-4 space-y-2 text-sm"><div className="flex justify-between"><span className="text-[var(--muted)]">Subtotal</span><strong>{formatMoney(subtotal)}</strong></div><div className="flex justify-between"><span className="text-[var(--muted)]">Delivery</span><strong>{quote?.ok ? formatMoney(deliveryCost) : "—"}</strong></div><div className="mt-3 flex justify-between border-t border-[var(--border)] pt-3 text-base"><strong>Total final</strong><strong>{quote?.ok ? formatMoney(total) : "—"}</strong></div></div>
         {gift.qualifies ? <p className="gift-box qualified mt-4"><span className="gift-box-title">🎉 Tu pedido incluye regalo sorpresa.</span></p> : <p className="gift-box mt-4"><span className="gift-box-title">🎁 Te faltan {formatMoney(gift.missing)} para tu regalo sorpresa</span><span className="gift-box-text">El monto mínimo se calcula sobre los productos, sin delivery.</span></p>}
-        <button className="btn btn-primary mt-5 w-full" type="submit" disabled={pending || !deliverable}>{pending ? "Creando pedido…" : "Confirmar pedido"}</button>
+        <button className="btn btn-primary mt-5 w-full" type="submit" disabled={pending || quotePending || !positionConfirmed || !quote?.ok}>{pending ? "Creando pedido…" : quotePending ? "Calculando delivery…" : "Confirmar pedido"}</button>
         <p className="mt-3 text-xs leading-relaxed text-[var(--muted)]">El servidor volverá a calcular precio, stock, delivery y total antes de guardar el pedido.</p>
       </aside>
     </form>

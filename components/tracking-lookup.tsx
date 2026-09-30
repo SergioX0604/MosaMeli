@@ -30,12 +30,12 @@ export function TrackingLookup({ initialToken = "" }: { initialToken?: string })
             className="form-input"
             value={token}
             onChange={(event) => setToken(event.target.value)}
-            placeholder="El código que te mostramos al confirmar tu pago"
+            placeholder="MOSA-20260929-ABC123 o token del enlace seguro"
             autoComplete="off"
             spellCheck={false}
             required
           />
-          <p className="mt-1 text-xs text-[var(--muted)]">No lo encontramos o te equivocaste de letra, con gusto lo buscamos por WhatsApp.</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">Puedes pegar el código MOSA que recibiste. Para proteger tus datos, debes iniciar sesión al usar el código escrito.</p>
         </div>
         <button className="btn btn-primary" type="submit" disabled={pending}>{pending ? "Buscando…" : "Consultar"}</button>
       </form>

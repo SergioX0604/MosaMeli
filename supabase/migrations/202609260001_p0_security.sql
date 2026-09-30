@@ -486,10 +486,7 @@ $$;
 revoke all on function public.obtener_seguimiento(text) from public;
 grant execute on function public.obtener_seguimiento(text) to anon, authenticated;
 
--- Bootstrap del administrador actual. Cambia el correo si tu cuenta administrativa es otra.
-update auth.users
-   set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) ||
-       jsonb_build_object('role', 'admin')
- where email = 'espis0611@gmail.com';
+-- Los administradores se asignan fuera de las migraciones mediante
+-- app_metadata.role = 'admin'. No se incluyen correos personales en el esquema.
 
 commit;

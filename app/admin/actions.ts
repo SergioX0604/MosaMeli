@@ -61,20 +61,32 @@ export async function deleteProductAction(id: number) {
 
 export async function updateOrderStatusAction(orderId: number, status: unknown) {
   await assertAdmin();
+  if (!Number.isInteger(orderId) || orderId <= 0) return { ok: false, message: "Pedido inválido" };
   const parsed = orderStatusSchema.safeParse(status);
   if (!parsed.success) return { ok: false, message: "Estado inválido" };
   const supabase = await createSupabaseServerClient();
-  const updates: Record<string, string> = { estado: parsed.data };
-  const now = new Date().toISOString();
-  if (parsed.data === "pago_verificado") updates.fecha_pago_verificado = now;
-  if (parsed.data === "en_preparacion") updates.fecha_preparacion = now;
-  if (parsed.data === "en_camino") updates.fecha_envio = now;
-  if (parsed.data === "entregado") updates.fecha_entrega = now;
-  const { error } = await supabase.from("pedidos").update(updates).eq("id", orderId);
-  if (error) return { ok: false, message: error.message };
+  const { error } = await supabase.rpc("cambiar_estado_pedido", {
+    p_pedido_id: orderId,
+    p_estado: parsed.data,
+  });
+  if (error) {
+    const message = error.message.includes("TRANSICION_INVALIDA")
+      ? "Ese cambio de estado no está permitido. Actualiza el panel y revisa el estado actual."
+      : error.message.includes("PAGO_NO_DECLARADO")
+        ? "El cliente todavía no declaró el pago."
+        : error.message;
+    return { ok: false, message };
+  }
   const { error: notificationError } = await supabase.functions.invoke("notificar-estado", {
     body: { order_id: orderId },
   });
+  if (notificationError) {
+    await supabase.rpc("registrar_notificacion_pendiente", {
+      p_pedido_id: orderId,
+      p_tipo: "estado",
+      p_error: notificationError.message,
+    });
+  }
   revalidatePath("/admin");
   revalidatePath("/seguimiento");
   return { ok: true, notificationPending: Boolean(notificationError) };

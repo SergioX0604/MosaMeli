@@ -12,7 +12,7 @@ type SelectOptions = {
  * pago o cuando un administrador lo verifico.
  */
 export function trackingDisponible(order: { estado?: string | null; pago_declarado?: string | null }): boolean {
-  return Boolean(order.pago_declarado) || (order.estado ?? "pedido_recibido") !== "pedido_recibido";
+  return Boolean(order.pago_declarado) || ["pago_verificado", "en_preparacion", "en_camino", "entregado"].includes(order.estado ?? "pedido_recibido");
 }
 
 /**
@@ -25,19 +25,28 @@ export async function selectPedidos(
   columns: string,
   options: SelectOptions = {},
 ): Promise<{ data: Array<Record<string, unknown>>; declaredColumn: boolean }> {
+  const baseColumns = columns
+    .split(",")
+    .map((column) => column.trim())
+    .filter((column) => !["pago_declarado", "reserva_expira_en", "stock_liberado_en"].includes(column))
+    .join(",");
   async function run(extra: string) {
-    let query = supabase.from("pedidos").select(`${columns}${extra}`);
+    let query = supabase.from("pedidos").select(`${baseColumns}${extra}`);
     if (options.codigo) query = query.eq("codigo_seguimiento", options.codigo);
     if (options.orderBy) query = query.order(options.orderBy, { ascending: options.ascending ?? false });
     if (options.limit) query = query.limit(options.limit);
     return query;
   }
 
-  const withColumn = await run(",pago_declarado");
+  const withColumn = await run(",pago_declarado,reserva_expira_en,stock_liberado_en");
   if (!withColumn.error) {
     return { data: (withColumn.data ?? []) as unknown as Array<Record<string, unknown>>, declaredColumn: true };
   }
 
+  const missingColumn = withColumn.error?.code === "42703" || withColumn.error?.code === "PGRST204";
+  if (!missingColumn) throw new Error(`No se pudieron cargar los pedidos: ${withColumn.error?.message ?? "error desconocido"}`);
+
   const fallback = await run("");
+  if (fallback.error) throw new Error(`No se pudieron cargar los pedidos: ${fallback.error.message}`);
   return { data: (fallback.data ?? []) as unknown as Array<Record<string, unknown>>, declaredColumn: false };
 }
