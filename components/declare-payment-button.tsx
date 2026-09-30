@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { declararPagoAction, type DeclarePaymentResult } from "@/app/checkout/actions";
+import {
+  declararPagoAction,
+  type DeclarePaymentResult,
+} from "@/app/checkout/actions";
 
 /**
  * Boton "Ya hice el pago" para cuando el cliente salio del checkout antes de
@@ -24,7 +27,9 @@ export function DeclarePaymentButton({ orderId }: { orderId: number }) {
       }
       setResult(respuesta);
     } catch {
-      setError("No pudimos registrar tu pago. Inténtalo de nuevo en un momento.");
+      setError(
+        "No pudimos registrar tu pago. Inténtalo de nuevo en un momento.",
+      );
     } finally {
       setPending(false);
     }
@@ -33,10 +38,27 @@ export function DeclarePaymentButton({ orderId }: { orderId: number }) {
   if (result?.ok) {
     return (
       <div className="rounded-2xl border border-[#a7f3d0] bg-[#ecfdf5] p-3">
-        <p className="text-xs font-bold text-[#065f46]">Pago registrado ✅</p>
-        <p className="mt-1 text-lg font-black tracking-wider text-[#065f46]">{result.trackingCode}</p>
+        <p className="text-xs font-bold text-[#065f46]">
+          Aviso de pago recibido ✅
+        </p>
+        <p className="mt-1 text-xs text-[#047857]">
+          El administrador verificará el abono antes de cambiar el estado a Pago
+          verificado.
+        </p>
+        <p className="mt-1 text-lg font-black tracking-wider text-[#065f46]">
+          {result.trackingCode}
+        </p>
+        {result.notificationPending ? (
+          <p className="mt-2 text-xs font-semibold text-[#92400e]">
+            Tu pedido quedó registrado, pero el correo está pendiente de
+            reintento.
+          </p>
+        ) : null}
         {result.trackingToken ? (
-          <Link className="btn btn-secondary mt-2 min-h-9 px-3 text-sm" href={`/seguimiento/${result.trackingToken}`}>
+          <Link
+            className="btn btn-secondary mt-2 min-h-9 px-3 text-sm"
+            href={`/seguimiento/${result.trackingToken}`}
+          >
             Ver seguimiento
           </Link>
         ) : null}
@@ -46,8 +68,17 @@ export function DeclarePaymentButton({ orderId }: { orderId: number }) {
 
   return (
     <div className="w-full sm:w-auto">
-      {error ? <p className="mb-2 text-xs font-semibold text-[var(--danger)]">{error}</p> : null}
-      <button type="button" className="btn btn-primary min-h-9 w-full px-3 text-sm sm:w-auto" disabled={pending} onClick={declarar}>
+      {error ? (
+        <p className="mb-2 text-xs font-semibold text-[var(--danger)]">
+          {error}
+        </p>
+      ) : null}
+      <button
+        type="button"
+        className="btn btn-primary min-h-9 w-full px-3 text-sm sm:w-auto"
+        disabled={pending}
+        onClick={declarar}
+      >
         {pending ? "Registrando…" : "Ya hice el pago"}
       </button>
     </div>

@@ -204,14 +204,28 @@ export function CheckoutClient() {
     return (
       <div className="surface mx-auto max-w-2xl p-6 text-center md:p-10">
         <div className="text-5xl" aria-hidden="true">
-          🎉
+          {declared ? "✅" : "🧾"}
         </div>
-        <h1 className="mt-4 text-3xl font-black">Pedido confirmado</h1>
+        <h1 className="mt-4 text-3xl font-black">
+          {declared
+            ? "Aviso de pago recibido"
+            : "Pedido registrado · pago pendiente"}
+        </h1>
         <p className="mx-auto mt-2 max-w-lg text-[var(--muted)]">
-          Guardamos tu pedido. Realiza el pago con los datos que aparecen abajo
-          y, cuando lo hagas, presiona
-          <strong className="text-[var(--text)]"> Ya hice el pago </strong>
-          para recibir tu código de seguimiento.
+          {declared ? (
+            <>
+              Recibimos tu aviso. El administrador verificará el abono antes de
+              cambiar el estado a{" "}
+              <strong className="text-[var(--text)]">Pago verificado</strong> y
+              continuar con el despacho.
+            </>
+          ) : (
+            <>
+              Tu pedido todavía no está pagado. Realiza el pago con los datos
+              que aparecen abajo y luego presiona{" "}
+              <strong className="text-[var(--text)]">Ya hice el pago</strong>.
+            </>
+          )}
         </p>
 
         <div className="mt-6 rounded-2xl bg-[var(--brand-50)] p-5">
@@ -237,7 +251,9 @@ export function CheckoutClient() {
           ) : null}
         </div>
 
-        <PaymentInstructions method={payment} total={success.total ?? 0} />
+        {!declared ? (
+          <PaymentInstructions method={payment} total={success.total ?? 0} />
+        ) : null}
 
         {declared ? (
           <div
@@ -245,7 +261,8 @@ export function CheckoutClient() {
             role="status"
           >
             <p className="text-sm font-bold text-[#065f46]">
-              Registramos tu pago. Este es tu código de seguimiento:
+              Su pedido fue recibido y se procederá con el proceso de despacho
+              después de verificar el pago.
             </p>
             <p className="mt-2 text-2xl font-black tracking-wider text-[#065f46]">
               {declared.trackingCode}
@@ -254,6 +271,12 @@ export function CheckoutClient() {
               Guárdalo: con él puedes consultar el estado de tu pedido cuando
               quieras.
             </p>
+            {declared.notificationPending ? (
+              <p className="alert alert-info mt-4 text-left">
+                Tu aviso quedó registrado, pero el correo está pendiente de
+                reintento. Puedes consultar el estado desde tu perfil.
+              </p>
+            ) : null}
             {declared.trackingToken ? (
               <Link
                 className="btn btn-primary mt-4"
@@ -285,12 +308,6 @@ export function CheckoutClient() {
           </div>
         )}
 
-        {success.notificationPending ? (
-          <p className="alert alert-info mt-5 text-left">
-            El pedido se guardó, pero la notificación por correo está pendiente.
-            Puedes revisar el estado desde tu perfil.
-          </p>
-        ) : null}
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link className="btn btn-secondary" href="/mi-perfil">
             Ver mis pedidos
