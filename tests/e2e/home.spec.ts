@@ -1,12 +1,18 @@
 import { test, expect, type Page } from "@playwright/test";
 
-const splashHeading = (page: Page) => page.getByRole("heading", { name: "MosaMeli" });
-const catalogHeading = (page: Page) => page.getByRole("heading", { name: /productos/i }).first();
+const splashHeading = (page: Page) =>
+  page.getByRole("heading", { name: "MosaMeli" });
+const catalogHeading = (page: Page) =>
+  page.getByRole("heading", { name: /productos/i }).first();
 
 /** Entra al catálogo como lo haría una persona: carga real y salto de la intro. */
 async function openCatalog(page: Page) {
   await page.goto("/");
-  if (await splashHeading(page).isVisible().catch(() => false)) {
+  if (
+    await splashHeading(page)
+      .isVisible()
+      .catch(() => false)
+  ) {
     await page.getByRole("link", { name: /Saltar intro/i }).click();
   }
   await expect(catalogHeading(page)).toBeVisible();
@@ -24,34 +30,46 @@ test("el buscador tiene una acción accessible", async ({ page }) => {
   await expect(search).toBeVisible();
   await search.fill("hogar");
   await search.press("Enter");
-  await expect(page.getByRole("status").filter({ hasText: /producto/i })).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: /producto/i }),
+  ).toBeVisible();
 });
 
-test("el splash aparece al entrar al catálogo y se puede saltar", async ({ page }) => {
+test("el splash aparece al entrar al catálogo y se puede saltar", async ({
+  page,
+}) => {
   await page.goto("/");
   await expect(splashHeading(page)).toBeVisible();
   await page.getByRole("link", { name: /Saltar intro/i }).click();
   await expect(catalogHeading(page)).toBeVisible();
 });
 
-test("recargar el catálogo no vuelve a mostrar el splash durante 30 días", async ({ page }) => {
+test("recargar el catálogo no vuelve a mostrar el splash durante 30 días", async ({
+  page,
+}) => {
   await openCatalog(page);
   await page.reload();
   await expect(catalogHeading(page)).toBeVisible();
   await expect(splashHeading(page)).toBeHidden();
 });
 
-test("el splash conserva los filtros del enlace de entrada", async ({ page }) => {
+test("el splash conserva los filtros del enlace de entrada", async ({
+  page,
+}) => {
   await page.goto("/?categoria=hogar#catalogo");
   await expect(splashHeading(page)).toBeVisible();
   await page.getByRole("link", { name: /Saltar intro/i }).click();
   await expect(page).toHaveURL(/categoria=hogar/);
 });
 
-test("ir al catálogo desde otra página no repite el splash", async ({ page }) => {
+test("ir al catálogo desde otra página no repite el splash", async ({
+  page,
+}) => {
   await openCatalog(page);
   await page.getByRole("link", { name: /Carrito/i }).click();
-  await expect(page.getByRole("heading", { name: "Tu carrito", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Tu carrito", exact: true }),
+  ).toBeVisible();
   // navegación interna: el catálogo entra directo, sin intro
   await page.getByRole("link", { name: "MosaMeli, inicio" }).click();
   await expect(page).toHaveURL(/\/$|\/\?/);
@@ -74,15 +92,23 @@ test("filtrar por categoría no repite el splash", async ({ page }) => {
   await page.getByRole("link", { name: /Hogar/i }).first().click();
   await expect(page).toHaveURL(/categoria=hogar/);
   await expect(splashHeading(page)).toBeHidden();
-  await expect(page.getByRole("heading", { name: /productos|Hogar/i }).first()).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /productos|Hogar/i }).first(),
+  ).toBeVisible();
 });
 
-test("un ?code= de OAuth inválido devuelve al login con aviso", async ({ page }) => {
+test("un ?code= de OAuth inválido devuelve al login con aviso", async ({
+  page,
+}) => {
   // tanto en /auth/callback como si Supabase cae al Site URL con ?code=...
   await page.goto("/auth/callback?code=codigo-invalido");
   await expect(page).toHaveURL(/\/login\?error=oauth/);
-  await expect(page.getByRole("heading", { name: "Inicia sesión" })).toBeVisible();
-  await expect(page.getByRole("status")).toContainText(/No pudimos completar el acceso con Google/i);
+  await expect(
+    page.getByRole("heading", { name: "Inicia sesión" }),
+  ).toBeVisible();
+  await expect(page.getByRole("status")).toContainText(
+    /No pudimos completar el acceso con Google/i,
+  );
 
   await page.goto("/?code=codigo-invalido");
   await expect(page).toHaveURL(/\/login\?error=oauth/);
@@ -90,10 +116,14 @@ test("un ?code= de OAuth inválido devuelve al login con aviso", async ({ page }
 
 test("el callback de Google muestra el estado de cierre", async ({ page }) => {
   await page.goto("/auth/callback");
-  await expect(page.getByRole("heading", { name: /Cerrando tu acceso/i })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /Cerrando tu acceso/i }),
+  ).toBeVisible();
 });
 
-test("el code de OAuth se procesa en el navegador, no en el servidor", async ({ page }) => {
+test("el code de OAuth se procesa en el navegador, no en el servidor", async ({
+  page,
+}) => {
   // Con un code sin verifier, @supabase/auth-js falla antes de llamar a la API.
   // Si el intercambio se hiciera en un Route Handler, el servidor lo intentaría
   // (y sin cookies del flujo no encontraría el verifier).
@@ -125,16 +155,25 @@ test("cada enlace del pie lleva a su propia página", async ({ page }) => {
 
   for (const [nombre, url] of Object.entries(destinos)) {
     await page.goto("/carrito");
-    await page.getByRole("contentinfo").getByRole("link", { name: nombre }).click();
+    await page
+      .getByRole("contentinfo")
+      .getByRole("link", { name: nombre })
+      .click();
     await expect(page).toHaveURL(url);
   }
 });
 
-test("las preguntas frecuentes explican cómo conseguir el código y las zonas", async ({ page }) => {
+test("las preguntas frecuentes explican cómo conseguir el código y las zonas", async ({
+  page,
+}) => {
   await page.goto("/preguntas-frecuentes");
-  await expect(page.getByRole("heading", { name: "Preguntas frecuentes" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Preguntas frecuentes" }),
+  ).toBeVisible();
 
-  const zonas = page.locator("details", { hasText: "delivery y cuánto cuesta" });
+  const zonas = page.locator("details", {
+    hasText: "delivery y cuánto cuesta",
+  });
   await expect(zonas).toBeVisible();
   // Las zonas y el umbral del regalo vienen de lib/delivery.ts, no de texto fijo.
   await expect(zonas).toContainText("Chaclacayo Centro");
@@ -142,4 +181,40 @@ test("las preguntas frecuentes explican cómo conseguir el código y las zonas",
 
   const gift = page.locator("details", { hasText: "regalo sorpresa" });
   await expect(gift).toContainText("150");
+});
+
+test("el catálogo móvil usa navegación, dos columnas y filtros adaptados", async ({
+  page,
+  context,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await context.addCookies([
+    {
+      name: "mosameli_splash_seen",
+      value: "1",
+      domain: "127.0.0.1",
+      path: "/",
+    },
+  ]);
+  await page.goto("/");
+
+  await expect(page.locator(".mobile-menu-trigger")).toBeVisible();
+  await expect(page.locator(".mobile-bottom-nav")).toBeVisible();
+  await expect(page.locator(".catalog-mobile-hero-content")).toBeVisible();
+  await expect(page.locator(".mobile-filter-button")).toBeVisible();
+
+  const cards = page.locator(".product-card");
+  await expect(cards.first()).toBeVisible();
+  const first = await cards.nth(0).boundingBox();
+  const second = await cards.nth(1).boundingBox();
+  expect(first?.y).toBe(second?.y);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+
+  await page.locator(".mobile-filter-button").click();
+  await expect(page.locator(".filters-panel")).toHaveClass(/mobile-open/);
+  await expect(page.locator(".mobile-filter-apply")).toBeVisible();
 });

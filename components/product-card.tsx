@@ -9,6 +9,17 @@ import { useFavoritesStore } from "@/lib/favorites-store";
 import { giftProgress } from "@/lib/delivery";
 import { cartSubtotal, formatMoney } from "@/lib/money";
 
+function mobileBadge(product: Product): string {
+  const category = product.categoria.toLowerCase();
+  if (category.includes("deport")) return "100% CALIDAD";
+  if (category.includes("cocina")) return "TOP VENTAS";
+  if (category.includes("hogar")) return "ORGANIZACIÓN";
+  if (category.includes("oficina")) return "MINIMALISTA";
+  if (category.includes("baño")) return "SMART HOME";
+  if (category.includes("vest")) return "NUEVO";
+  return product.stock <= 6 ? `${product.stock} DISPONIBLES` : "SELECCIÓN";
+}
+
 export function ProductCard({ product }: { product: Product }) {
   const add = useCartStore((state) => state.add);
   const cartItems = useCartStore((state) => state.items);
@@ -32,6 +43,7 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <article className="product-card">
+      <span className="product-mobile-badge">{mobileBadge(product)}</span>
       <div className="product-flags">
         {gift.qualifies ? (
           <span className="product-badge gift">🎁 Regalo sorpresa</span>
@@ -102,7 +114,12 @@ export function ProductCard({ product }: { product: Product }) {
               product.stock > 0 ? "Agregar al carrito" : "Producto agotado"
             }
           >
-            <span aria-hidden="true">＋</span>
+            <span className="desktop-cart-symbol" aria-hidden="true">
+              ＋
+            </span>
+            <span className="mobile-cart-symbol" aria-hidden="true">
+              🛒
+            </span>
           </button>
         </div>
         <p className="product-feedback" role="status" aria-live="polite">

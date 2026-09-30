@@ -80,6 +80,14 @@ export default async function HomePage() {
   return (
     <div className="catalog-page page-shell container-shell">
       <section className="catalog-hero" aria-labelledby="catalog-hero-title">
+        <div className="catalog-mobile-hero-content">
+          <span>● ENTREGA HOY MISMO</span>
+          <h2>Colección 2026</h2>
+          <p>Estilo y funcionalidad con confort para cada espacio.</p>
+          <a href="#catalogo" aria-label="Ver colección">
+            <span aria-hidden="true">▢</span>
+          </a>
+        </div>
         <div className="catalog-hero-copy">
           <span className="catalog-hero-kicker">
             ✦ Selección especial MosaMeli

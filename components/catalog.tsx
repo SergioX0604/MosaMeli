@@ -33,6 +33,7 @@ export function Catalog({ products }: { products: Product[] }) {
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
   const [sort, setSort] = useState("relevancia");
   const [page, setPage] = useState(1);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const cartItems = useCartStore((state) => state.items);
   const gift = giftProgress(cartSubtotal(cartItems));
 
@@ -55,6 +56,15 @@ export function Catalog({ products }: { products: Product[] }) {
     const category = searchParams.get("categoria");
     setActiveCategories(category && category !== "todos" ? [category] : []);
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setFiltersOpen(false);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [filtersOpen]);
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -116,21 +126,37 @@ export function Catalog({ products }: { products: Product[] }) {
 
   return (
     <section id="catalogo" className="catalog-layout">
+      <button
+        type="button"
+        className={`mobile-filters-backdrop ${filtersOpen ? "open" : ""}`}
+        aria-label="Cerrar filtros"
+        onClick={() => setFiltersOpen(false)}
+      />
       <aside
-        className="filters-panel surface"
+        className={`filters-panel surface ${filtersOpen ? "mobile-open" : ""}`}
         aria-label="Filtros del catálogo"
       >
         <div className="filters-heading">
           <h2>Filtros</h2>
-          {hasFilters ? (
+          <div className="filters-heading-actions">
+            {hasFilters ? (
+              <button
+                type="button"
+                className="clear-filter-button"
+                onClick={clearFilters}
+              >
+                Limpiar
+              </button>
+            ) : null}
             <button
               type="button"
-              className="clear-filter-button"
-              onClick={clearFilters}
+              className="mobile-filter-close"
+              onClick={() => setFiltersOpen(false)}
+              aria-label="Cerrar filtros"
             >
-              Limpiar
+              ×
             </button>
-          ) : null}
+          </div>
         </div>
 
         <div className="filter-section">
@@ -238,6 +264,13 @@ export function Catalog({ products }: { products: Product[] }) {
             {formatMoney(gift.total)} <span>/ S/ {GIFT_THRESHOLD}</span>
           </p>
         </div>
+        <button
+          type="button"
+          className="mobile-filter-apply"
+          onClick={() => setFiltersOpen(false)}
+        >
+          Ver {filtered.length} productos
+        </button>
       </aside>
 
       <div className="catalog-results">
@@ -267,9 +300,27 @@ export function Catalog({ products }: { products: Product[] }) {
             <span className="catalog-count" role="status" aria-live="polite">
               {filtered.length} productos
             </span>
+            {activeCategories.length ? (
+              <button
+                type="button"
+                className="mobile-active-filter"
+                onClick={() => toggleCategory(activeCategories[0])}
+              >
+                {displayCategory(activeCategories[0])}{" "}
+                <span aria-hidden="true">×</span>
+              </button>
+            ) : null}
           </div>
+          <button
+            type="button"
+            className="mobile-filter-button"
+            onClick={() => setFiltersOpen(true)}
+            aria-expanded={filtersOpen}
+          >
+            <span aria-hidden="true">☷</span> Filtros
+          </button>
           <label className="catalog-sort">
-            Ordenar:
+            <span>Ordenar:</span>
             <select
               value={sort}
               onChange={(event) => {
