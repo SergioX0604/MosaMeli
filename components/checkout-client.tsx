@@ -411,9 +411,17 @@ export function CheckoutClient() {
                 </div>
               ) : (
                 <p className="payment-reconciliation-note">
-                  <span aria-hidden="true">✉</span>Al presionar{" "}
-                  <strong>“Ya hice el pago”</strong>, registraremos tu aviso
-                  para que el administrador verifique el abono.
+                  <span
+                    className="payment-reconciliation-icon"
+                    aria-hidden="true"
+                  >
+                    ✉
+                  </span>
+                  <span className="payment-reconciliation-copy">
+                    Al presionar <strong>“Ya hice el pago”</strong>,
+                    registraremos tu aviso para que el administrador verifique
+                    el abono.
+                  </span>
                 </p>
               )}
               {paymentError ? (

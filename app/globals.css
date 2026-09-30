@@ -2815,9 +2815,22 @@ textarea {
   line-height: 1.55;
 }
 
-.payment-reconciliation-note > span {
+.payment-reconciliation-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
   color: #6124d5;
   font-size: 1.35rem;
+}
+
+.payment-reconciliation-copy {
+  display: block;
+  min-width: 0;
+}
+
+.payment-reconciliation-copy strong {
+  color: #2d2139;
 }
 
 .checkout-payment-declare {

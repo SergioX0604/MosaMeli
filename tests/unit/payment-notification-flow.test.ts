@@ -16,6 +16,16 @@ const emailSource = readFileSync(
   ),
   "utf8",
 );
+const retrySource = readFileSync(
+  path.join(
+    process.cwd(),
+    "supabase",
+    "functions",
+    "reintentar-notificaciones",
+    "index.ts",
+  ),
+  "utf8",
+);
 
 function functionBody(source: string, name: string, nextName?: string): string {
   const start = source.indexOf(`export async function ${name}`);
@@ -56,5 +66,11 @@ describe("comunicación del pago", () => {
   it("la función de correo rechaza pedidos sin pago declarado", () => {
     expect(emailSource).toContain("pago_declarado");
     expect(emailSource).toContain("El cliente todavía no declaró el pago");
+  });
+
+  it("los reintentos tampoco envían antes de la declaración de pago", () => {
+    expect(retrySource).toContain('select("pago_declarado,estado")');
+    expect(retrySource).toContain("!order?.pago_declarado");
+    expect(retrySource).toContain("Esperando que el cliente declare el pago");
   });
 });
