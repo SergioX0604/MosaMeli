@@ -49,6 +49,7 @@ describe("comunicación del pago", () => {
   it("el correo evita afirmar que la compra o el pago ya están confirmados", () => {
     expect(emailSource).not.toContain("Gracias por tu compra");
     expect(emailSource).toContain("Su pedido fue recibido");
+    expect(emailSource).toContain("se procederá con el proceso de despacho");
     expect(emailSource).toContain("no que el pago ya fue verificado");
   });
 

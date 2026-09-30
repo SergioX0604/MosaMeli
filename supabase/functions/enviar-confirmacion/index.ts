@@ -88,7 +88,7 @@ export function construirConfirmacion(args: Confirmacion): {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
   <div style="width:66px;height:66px;line-height:66px;border-radius:999px;background:linear-gradient(135deg,#f3e8ff,#fce7f3);font-size:32px">✅</div>
   <h1 style="margin:16px 0 0;font-family:inherit;font-size:24px;line-height:1.25;color:#2b1b45">Su pedido fue recibido, ${escapeHtml(nombre)}</h1>
-  <p style="margin:8px 0 0;font-family:inherit;font-size:15px;line-height:1.6;color:#5b4a70">Registramos tu aviso de pago. Ahora nuestro equipo verificará el abono y procederá con el proceso de despacho.</p>
+  <p style="margin:8px 0 0;font-family:inherit;font-size:15px;line-height:1.6;color:#5b4a70">Su pedido fue recibido y se procederá con el proceso de despacho una vez que el administrador verifique el pago informado.</p>
 </td></tr></table>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 0"><tr><td style="padding:20px;background:#faf5ff;border:1px solid #f0e7fb;border-radius:18px">
