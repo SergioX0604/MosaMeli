@@ -43,7 +43,11 @@ export function ProductCard({ product }: { product: Product }) {
         <button
           type="button"
           className="product-favorite"
-          aria-label={favorite ? `Quitar ${product.nombre} de favoritos` : `Añadir ${product.nombre} a favoritos`}
+          aria-label={
+            favorite
+              ? `Quitar ${product.nombre} de favoritos`
+              : `Añadir ${product.nombre} a favoritos`
+          }
           aria-pressed={favorite}
           onClick={() => toggleFavorite(product.id)}
         >
@@ -51,23 +55,41 @@ export function ProductCard({ product }: { product: Product }) {
         </button>
       </div>
 
-      <Link href={`/producto/${product.id}`} className="product-media" aria-label={`Ver ${product.nombre}`}>
-        <img src={product.imagen} alt={product.nombre} loading="lazy" decoding="async" />
+      <Link
+        href={`/producto/${product.id}`}
+        className="product-media"
+        aria-label={`Ver ${product.nombre}`}
+      >
+        <img
+          src={product.imagen}
+          alt={product.nombre}
+          loading="lazy"
+          decoding="async"
+        />
       </Link>
 
       <div className="product-body">
         {product.rating ? (
-          <div className="product-rating" aria-label={`Calificación ${product.rating} de 5`}>
-            <span className="star" aria-hidden="true">★</span>
+          <div
+            className="product-rating"
+            aria-label={`Calificación ${product.rating} de 5`}
+          >
+            <span className="star" aria-hidden="true">
+              ★
+            </span>
             <strong>{product.rating}</strong>
             <span>({product.review_count ?? 0})</span>
           </div>
         ) : null}
-        <Link href={`/producto/${product.id}`} className="product-name">{product.nombre}</Link>
+        <Link href={`/producto/${product.id}`} className="product-name">
+          {product.nombre}
+        </Link>
         <p className="product-description">{summary}</p>
         <div className="product-price-row">
           <span className="product-price-stack">
-            {hasDiscount ? <span className="product-price-old">{formatMoney(original)}</span> : null}
+            {hasDiscount ? (
+              <span className="product-price-old">{formatMoney(original)}</span>
+            ) : null}
             <span className="product-price">{formatMoney(product.precio)}</span>
           </span>
           <button
@@ -76,12 +98,16 @@ export function ProductCard({ product }: { product: Product }) {
             onClick={addProduct}
             disabled={product.stock <= 0}
             aria-label={`Agregar ${product.nombre} al carrito`}
-            title={product.stock > 0 ? "Agregar al carrito" : "Producto agotado"}
+            title={
+              product.stock > 0 ? "Agregar al carrito" : "Producto agotado"
+            }
           >
-            🛒
+            <span aria-hidden="true">＋</span>
           </button>
         </div>
-        <p className="product-feedback" role="status" aria-live="polite">{message}</p>
+        <p className="product-feedback" role="status" aria-live="polite">
+          {message}
+        </p>
       </div>
     </article>
   );

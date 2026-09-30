@@ -14,54 +14,213 @@ export function CartPanel() {
   if (!items.length) {
     return (
       <div className="surface px-6 py-12 text-center">
-        <p className="text-4xl" aria-hidden="true">🛒</p>
-        <h1 className="mt-3 text-xl font-black">Tu carrito está vacío</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">Agrega productos desde el catálogo para continuar.</p>
-        <Link href="/#catalogo" className="btn btn-primary mt-6">Ver catálogo</Link>
+        <p className="text-4xl" aria-hidden="true">
+          🛒
+        </p>
+        <h1 className="mt-3 text-xl font-black">Tu carrito</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          Está vacío. Agrega productos desde el catálogo para continuar.
+        </p>
+        <Link href="/#catalogo" className="btn btn-primary mt-6">
+          Ver catálogo
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
-      <section className="surface divide-y divide-[var(--border)] overflow-hidden" aria-label="Productos del carrito">
-        {items.map((line) => (
-          <div key={line.product.id} className="flex gap-3 p-4">
-            <img src={line.product.imagen} alt="" className="h-20 w-20 rounded-xl object-cover" />
-            <div className="min-w-0 flex-1">
-              <h2 className="font-bold">{line.product.nombre}</h2>
-              <p className="mt-1 text-sm font-bold text-[var(--primary-dark)]">{formatMoney(line.product.precio)}</p>
-              <div className="mt-3 flex items-center gap-2">
-                <button type="button" className="btn btn-secondary min-h-9 px-3" aria-label={`Quitar una unidad de ${line.product.nombre}`} onClick={() => setQuantity(line.product.id, line.quantity - 1)}>−</button>
-                <span className="min-w-8 text-center text-sm font-bold" aria-live="polite">{line.quantity}</span>
-                <button type="button" className="btn btn-secondary min-h-9 px-3" aria-label={`Agregar una unidad de ${line.product.nombre}`} onClick={() => setQuantity(line.product.id, line.quantity + 1)}>+</button>
-              </div>
+    <div className="cart-checkout-grid">
+      <div className="cart-main-column">
+        <div className="secure-purchase-banner">
+          <span aria-hidden="true">♢</span>
+          <p>
+            <strong>Compra protegida y segura</strong>
+            <small>
+              Tu pedido, ubicación y pago se procesan de forma cifrada.
+            </small>
+          </p>
+          <b>Compra segura</b>
+        </div>
+        <section
+          className="cart-products-card surface"
+          aria-label="Productos del carrito"
+        >
+          <header>
+            <div>
+              <span aria-hidden="true">♧</span>
+              <h2>Productos en tu carrito</h2>
+              <span className="cart-items-count">
+                {items.reduce((total, line) => total + line.quantity, 0)}{" "}
+                artículos
+              </span>
             </div>
-            <div className="flex flex-col items-end justify-between">
-              <strong>{formatMoney(line.product.precio * line.quantity)}</strong>
-              <button type="button" className="text-sm font-semibold text-[var(--danger)] hover:underline" onClick={() => remove(line.product.id)}>Quitar</button>
+            <Link href="/#catalogo">Seguir comprando</Link>
+          </header>
+          <div className="cart-lines">
+            {items.map((line) => (
+              <article key={line.product.id} className="cart-line">
+                <img src={line.product.imagen} alt={line.product.nombre} />
+                <div className="cart-line-copy">
+                  <h3>{line.product.nombre}</h3>
+                  <p>
+                    {line.product.categoria}
+                    {line.product.marca ? ` · ${line.product.marca}` : ""}
+                  </p>
+                  <div
+                    className="quantity-control"
+                    aria-label={`Cantidad de ${line.product.nombre}`}
+                  >
+                    <button
+                      type="button"
+                      aria-label={`Quitar una unidad de ${line.product.nombre}`}
+                      onClick={() =>
+                        setQuantity(line.product.id, line.quantity - 1)
+                      }
+                    >
+                      −
+                    </button>
+                    <span aria-live="polite">{line.quantity}</span>
+                    <button
+                      type="button"
+                      aria-label={`Agregar una unidad de ${line.product.nombre}`}
+                      onClick={() =>
+                        setQuantity(line.product.id, line.quantity + 1)
+                      }
+                    >
+                      ＋
+                    </button>
+                  </div>
+                </div>
+                <div className="cart-line-total">
+                  <strong>
+                    {formatMoney(line.product.precio * line.quantity)}
+                  </strong>
+                  {line.quantity > 1 ? (
+                    <small>{formatMoney(line.product.precio)} c/u</small>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => remove(line.product.id)}
+                    aria-label={`Quitar ${line.product.nombre} del carrito`}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="cart-delivery-preview surface">
+          <div className="cart-section-heading">
+            <span aria-hidden="true">▱</span>
+            <div>
+              <h2>Entrega adaptada a tu ubicación</h2>
+              <p>
+                En el siguiente paso podrás escribir tu dirección o marcarla en
+                el mapa.
+              </p>
             </div>
           </div>
-        ))}
-      </section>
+          <div className="delivery-preview-options">
+            <div className="selected">
+              <span aria-hidden="true">●</span>
+              <p>
+                <strong>Delivery local MosaMeli</strong>
+                <small>
+                  Tarifa calculada por distancia, con total visible antes de
+                  confirmar.
+                </small>
+              </p>
+            </div>
+            <div>
+              <span aria-hidden="true">⌖</span>
+              <p>
+                <strong>Cobertura de hasta 10 km</strong>
+                <small>
+                  Selecciona el punto exacto para evitar errores de entrega.
+                </small>
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
 
-      <aside className="surface h-fit p-5">
-        <h2 className="text-lg font-black">Resumen</h2>
-        <div className="mt-4 space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-[var(--muted)]">Subtotal</span><strong>{formatMoney(subtotal)}</strong></div>
-          <div className="flex justify-between"><span className="text-[var(--muted)]">Delivery</span><span>Se calcula al finalizar</span></div>
-          <div className="mt-3 flex justify-between border-t border-[var(--border)] pt-3 text-base"><strong>Total estimado</strong><strong>{formatMoney(subtotal)}</strong></div>
+      <aside className="cart-summary-card surface">
+        <div className="cart-section-heading">
+          <span aria-hidden="true">▤</span>
+          <h2>Resumen del pedido</h2>
         </div>
-        <div className={`gift-box mt-4 ${gift.qualifies ? "qualified" : ""}`}>
-          <p className="gift-box-title">{gift.qualifies ? "🎉 ¡Tu pedido incluye regalo sorpresa!" : "🎁 Te falta poco para tu regalo sorpresa"}</p>
-          <p className="gift-box-text">{gift.qualifies ? "Se agrega automáticamente al confirmar el pedido." : `Agrega ${formatMoney(gift.missing)} más y lo desbloqueas. El monto mínimo es S/ ${GIFT_THRESHOLD}.`}</p>
-          <div className="gift-progress" role="progressbar" aria-label="Progreso para el regalo sorpresa" aria-valuemin={0} aria-valuemax={GIFT_THRESHOLD} aria-valuenow={Math.round(gift.total)}>
+        <div className="cart-summary-lines">
+          <div>
+            <span>
+              Subtotal (
+              {items.reduce((total, line) => total + line.quantity, 0)}{" "}
+              productos)
+            </span>
+            <strong>{formatMoney(subtotal)}</strong>
+          </div>
+          <div>
+            <span>Costo de delivery</span>
+            <strong className="pending-value">Por calcular</strong>
+          </div>
+        </div>
+        <div className={`gift-box ${gift.qualifies ? "qualified" : ""}`}>
+          <p className="gift-box-title">
+            {gift.qualifies
+              ? "🎉 Incluye regalo sorpresa"
+              : "🎁 Regalo sorpresa"}
+          </p>
+          <p className="gift-box-text">
+            {gift.qualifies
+              ? "Se agregará automáticamente al confirmar."
+              : `Agrega ${formatMoney(gift.missing)} más para desbloquearlo desde S/ ${GIFT_THRESHOLD}.`}
+          </p>
+          <div
+            className="gift-progress"
+            role="progressbar"
+            aria-label="Progreso para el regalo sorpresa"
+            aria-valuemin={0}
+            aria-valuemax={GIFT_THRESHOLD}
+            aria-valuenow={Math.round(gift.total)}
+          >
             <span style={{ width: `${Math.round(gift.ratio * 100)}%` }} />
           </div>
         </div>
-        <Link href="/checkout" className="btn btn-primary mt-5 w-full">Finalizar compra</Link>
-        <button type="button" className="btn btn-quiet mt-2 w-full text-sm" onClick={clear}>Vaciar carrito</button>
-        <p className="mt-4 text-xs leading-relaxed text-[var(--muted)]">El total definitivo y el costo de delivery se calculan en el servidor antes de confirmar el pago.</p>
+        <div className="cart-summary-total">
+          <span>
+            <strong>Total estimado</strong>
+            <small>El delivery se suma en el siguiente paso</small>
+          </span>
+          <b>{formatMoney(subtotal)}</b>
+        </div>
+        <Link href="/checkout" className="btn btn-primary cart-checkout-button">
+          <span aria-hidden="true">♙</span> Continuar con entrega y pago
+        </Link>
+        <button type="button" className="cart-clear-button" onClick={clear}>
+          Vaciar carrito
+        </button>
+        <div className="purchase-benefits">
+          <p>
+            <span>✓</span>
+            <strong>
+              Stock reservado al confirmar<small>Durante 30 minutos</small>
+            </strong>
+          </p>
+          <p>
+            <span>✓</span>
+            <strong>
+              Seguimiento del pedido
+              <small>Estado actualizado en tu cuenta</small>
+            </strong>
+          </p>
+          <p>
+            <span>✓</span>
+            <strong>
+              Soporte por WhatsApp<small>Asistencia cuando la necesites</small>
+            </strong>
+          </p>
+        </div>
       </aside>
     </div>
   );
