@@ -9,7 +9,18 @@ Deno.serve(async (request: Request) => {
   if (!supabaseUrl || !serviceRoleKey) return json({ error: "Configuración incompleta" }, 503);
 
   const token = (request.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
-  if (token !== serviceRoleKey) return json({ error: "No autorizado" }, 403);
+  const apiKey = request.headers.get("apikey") ?? "";
+  let authorized = token === serviceRoleKey;
+
+  if (!authorized && apiKey) {
+    const verifier = createClient(supabaseUrl, apiKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { error: verificationError } = await verifier.auth.admin.listUsers({ page: 1, perPage: 1 });
+    authorized = !verificationError;
+  }
+
+  if (!authorized) return json({ error: "No autorizado" }, 403);
 
   const admin = createClient(supabaseUrl, serviceRoleKey);
   const { data: pending, error } = await admin
