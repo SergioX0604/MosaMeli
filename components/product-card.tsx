@@ -20,7 +20,13 @@ function mobileBadge(product: Product): string {
   return product.stock <= 6 ? `${product.stock} DISPONIBLES` : "SELECCIÓN";
 }
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  onPreview,
+}: {
+  product: Product;
+  onPreview?: () => void;
+}) {
   const add = useCartStore((state) => state.add);
   const cartItems = useCartStore((state) => state.items);
   const favorite = useFavoritesStore((state) => state.ids.includes(product.id));
@@ -67,18 +73,35 @@ export function ProductCard({ product }: { product: Product }) {
         </button>
       </div>
 
-      <Link
-        href={`/producto/${product.id}`}
-        className="product-media"
-        aria-label={`Ver ${product.nombre}`}
-      >
-        <img
-          src={product.imagen}
-          alt={product.nombre}
-          loading="lazy"
-          decoding="async"
-        />
-      </Link>
+      {onPreview ? (
+        <button
+          type="button"
+          className="product-media"
+          aria-label={`Vista rápida de ${product.nombre}`}
+          onClick={onPreview}
+        >
+          <img
+            src={product.imagen}
+            alt={product.nombre}
+            loading="lazy"
+            decoding="async"
+          />
+          <span className="product-quick-view-trigger">⌕ Vista rápida</span>
+        </button>
+      ) : (
+        <Link
+          href={`/producto/${product.id}`}
+          className="product-media"
+          aria-label={`Ver ${product.nombre}`}
+        >
+          <img
+            src={product.imagen}
+            alt={product.nombre}
+            loading="lazy"
+            decoding="async"
+          />
+        </Link>
+      )}
 
       <div className="product-body">
         {product.rating ? (

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/product-card";
+import { ProductQuickView } from "@/components/product-quick-view";
 import { useCartStore } from "@/lib/cart-store";
 import { GIFT_THRESHOLD, giftProgress } from "@/lib/delivery";
 import { cartSubtotal, formatMoney } from "@/lib/money";
@@ -34,6 +35,7 @@ export function Catalog({ products }: { products: Product[] }) {
   const [sort, setSort] = useState("relevancia");
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [quickView, setQuickView] = useState<Product | null>(null);
   const cartItems = useCartStore((state) => state.items);
   const gift = giftProgress(cartSubtotal(cartItems));
 
@@ -340,7 +342,11 @@ export function Catalog({ products }: { products: Product[] }) {
         {visibleProducts.length ? (
           <div className="product-grid">
             {visibleProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                onPreview={() => setQuickView(product)}
+              />
             ))}
           </div>
         ) : (
@@ -398,6 +404,12 @@ export function Catalog({ products }: { products: Product[] }) {
           </div>
         ) : null}
       </div>
+      {quickView ? (
+        <ProductQuickView
+          product={quickView}
+          onClose={() => setQuickView(null)}
+        />
+      ) : null}
     </section>
   );
 }

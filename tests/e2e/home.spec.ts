@@ -218,3 +218,64 @@ test("el catálogo móvil usa navegación, dos columnas y filtros adaptados", as
   await expect(page.locator(".filters-panel")).toHaveClass(/mobile-open/);
   await expect(page.locator(".mobile-filter-apply")).toBeVisible();
 });
+
+test("la vista rápida permite zoom y ampliación de las imágenes", async ({
+  page,
+  context,
+}) => {
+  await context.addCookies([
+    {
+      name: "mosameli_splash_seen",
+      value: "1",
+      domain: "127.0.0.1",
+      path: "/",
+    },
+  ]);
+  await page.goto("/");
+  await page.locator(".product-media").first().click();
+
+  const dialog = page.getByRole("dialog", { name: /Rodillera Deportiva/i });
+  await expect(dialog).toBeVisible();
+  const zoom = dialog.locator(".product-zoom-stage");
+  await zoom.hover({ position: { x: 220, y: 180 } });
+  await expect(zoom).toHaveClass(/is-zoomed/);
+
+  await zoom.click();
+  await expect(
+    page.getByRole("dialog", { name: /Imagen ampliada/i }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Acercar" }).click();
+  await expect(
+    page.getByRole("button", { name: "Restablecer zoom" }),
+  ).toContainText("125%");
+  await page.getByRole("button", { name: "Cerrar imagen ampliada" }).click();
+  await expect(dialog).toBeVisible();
+});
+
+test("los videos del producto ofrecen controles de reproducción y velocidad", async ({
+  page,
+}) => {
+  await page.goto("/producto/14");
+  await page.getByRole("button", { name: /Ver video de/i }).click();
+
+  const player = page.locator(".catalog-video-player");
+  await expect(player).toBeVisible();
+  await expect(
+    player.getByRole("button", { name: "Reproducir", exact: true }),
+  ).toBeVisible();
+  await expect(
+    player.getByRole("slider", { name: "Progreso del video" }),
+  ).toBeVisible();
+
+  await player.getByRole("button", { name: /Velocidad 1x/i }).click();
+  await expect(
+    player.getByRole("menu", { name: "Velocidad de reproducción" }),
+  ).toBeVisible();
+  await player.getByRole("menuitem", { name: "1.5x" }).click();
+  await expect(
+    player.getByRole("button", { name: /Velocidad 1.5x/i }),
+  ).toBeVisible();
+  await expect(
+    player.getByRole("button", { name: "Ver video en pantalla completa" }),
+  ).toBeVisible();
+});
