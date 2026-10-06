@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 const EXIT_DELAY = 450;
 const INTRO_MS = 2600;
 const SPLASH_SOUND = "/audio/splash-intro.wav";
+type Theme = "light" | "dark";
 
 /** Curva de carga: avanza rapido al principio y se frena cerca al final. */
 function progressAt(elapsed: number, total: number): number {
@@ -21,10 +22,18 @@ export function SplashScreen({ nextPath = "/" }: { nextPath?: string }) {
   const [leaving, setLeaving] = useState(false);
   const [progress, setProgress] = useState(0);
   const [soundOn, setSoundOn] = useState(true);
+  const [theme, setTheme] = useState<Theme>("light");
   const exitTimer = useRef<number | null>(null);
   const tickTimer = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const startRef = useRef(0);
+
+  useEffect(() => {
+    const activeTheme: Theme =
+      document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    const frame = window.requestAnimationFrame(() => setTheme(activeTheme));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   const playSound = useCallback(() => {
     if (!audioRef.current) {
@@ -90,6 +99,15 @@ export function SplashScreen({ nextPath = "/" }: { nextPath?: string }) {
     }
   }
 
+  function selectTheme(nextTheme: Theme) {
+    document.documentElement.dataset.theme = nextTheme;
+    window.localStorage.setItem("mosameli-theme", nextTheme);
+    window.dispatchEvent(
+      new CustomEvent<Theme>("mosameli-theme-change", { detail: nextTheme }),
+    );
+    setTheme(nextTheme);
+  }
+
   return (
     <main className={`splash-screen ${leaving ? "is-leaving" : ""}`}>
       <div className="splash-atmosphere" aria-hidden="true">
@@ -98,6 +116,24 @@ export function SplashScreen({ nextPath = "/" }: { nextPath?: string }) {
         <span />
       </div>
       <section className="splash-card" aria-labelledby="splash-title">
+        <div className="splash-theme-selector" role="group" aria-label="Tema del sitio">
+          <button
+            type="button"
+            className={theme === "light" ? "active" : ""}
+            aria-pressed={theme === "light"}
+            onClick={() => selectTheme("light")}
+          >
+            <span aria-hidden="true">☀</span> Light
+          </button>
+          <button
+            type="button"
+            className={theme === "dark" ? "active" : ""}
+            aria-pressed={theme === "dark"}
+            onClick={() => selectTheme("dark")}
+          >
+            <span aria-hidden="true">☾</span> Dark
+          </button>
+        </div>
         <span className="splash-eyebrow">E Commerce · Chaclacayo</span>
         <div className="splash-logo-frame">
           <span className="splash-logo-halo" aria-hidden="true" />

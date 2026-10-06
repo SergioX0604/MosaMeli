@@ -43,8 +43,15 @@ test("el splash aparece al entrar al catálogo y se puede saltar", async ({
   await expect(page.locator(".splash-card")).toBeVisible();
   await expect(page.getByText(/E Commerce · Chaclacayo/i)).toBeVisible();
   await expect(page.getByText(/Preparando tu catálogo/i)).toBeVisible();
+  const themeSelector = page.getByRole("group", { name: "Tema del sitio" });
+  const darkButton = themeSelector.getByRole("button", { name: /Dark/i });
+  await expect(themeSelector).toBeVisible();
+  await darkButton.click();
+  await expect(darkButton).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.getByRole("link", { name: /Saltar intro/i }).click();
   await expect(catalogHeading(page)).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.locator(".footer-brand").getByText("E Commerce", { exact: true })).toBeVisible();
 });
 
@@ -228,6 +235,8 @@ test("el catálogo móvil usa navegación, dos columnas y filtros adaptados", as
   await page.goto("/");
 
   await expect(page.locator(".mobile-menu-trigger")).toBeVisible();
+  await expect(page.locator(".site-header-main .brand-mark")).toBeVisible();
+  await expect(page.locator(".site-header-main .brand-mark img")).toBeVisible();
   await expect(page.locator(".mobile-bottom-nav")).toBeVisible();
   await expect(page.locator(".catalog-mobile-hero-content")).toBeVisible();
   await expect(page.locator(".mobile-filter-button")).toBeVisible();

@@ -75,9 +75,19 @@ export function SiteHeader({ user }: SiteHeaderProps) {
       root.dataset.theme = event.matches ? "dark" : "light";
       syncTheme();
     };
+    const followThemeSelection = (event: Event) => {
+      const selected = (event as CustomEvent<Theme>).detail;
+      if (selected !== "light" && selected !== "dark") return;
+      root.dataset.theme = selected;
+      setTheme(selected);
+    };
     syncTheme();
     media.addEventListener("change", followSystem);
-    return () => media.removeEventListener("change", followSystem);
+    window.addEventListener("mosameli-theme-change", followThemeSelection);
+    return () => {
+      media.removeEventListener("change", followSystem);
+      window.removeEventListener("mosameli-theme-change", followThemeSelection);
+    };
   }, []);
 
   useEffect(() => {
@@ -123,6 +133,9 @@ export function SiteHeader({ user }: SiteHeaderProps) {
     const nextTheme: Theme = theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = nextTheme;
     window.localStorage.setItem("mosameli-theme", nextTheme);
+    window.dispatchEvent(
+      new CustomEvent<Theme>("mosameli-theme-change", { detail: nextTheme }),
+    );
     setTheme(nextTheme);
   }
 
