@@ -261,6 +261,10 @@ test("la vista rápida permite zoom y ampliación de las imágenes", async ({
 
   const dialog = page.getByRole("dialog", { name: /Rodillera Deportiva/i });
   await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button", { name: /Añadir al carrito/i })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: /Comprar ahora/i })).toBeVisible();
+  await expect(dialog.getByText("Cuéntanos qué te pareció")).toBeVisible();
+  await expect(dialog.getByRole("link", { name: /Escribir mi reseña/i })).toBeVisible();
   const zoom = dialog.locator(".product-zoom-stage");
   await zoom.hover({ position: { x: 220, y: 180 } });
   await expect(zoom).toHaveClass(/is-zoomed/);
@@ -275,6 +279,52 @@ test("la vista rápida permite zoom y ampliación de las imágenes", async ({
   ).toContainText("125%");
   await page.getByRole("button", { name: "Cerrar imagen ampliada" }).click();
   await expect(dialog).toBeVisible();
+});
+
+test("el catálogo muestra ocho productos y conserva la densidad elegida", async ({
+  page,
+  context,
+}) => {
+  await context.addCookies([
+    {
+      name: "mosameli_splash_seen",
+      value: "1",
+      domain: "127.0.0.1",
+      path: "/",
+    },
+  ]);
+  await page.goto("/");
+
+  await expect(page.locator(".product-card")).toHaveCount(8);
+  await page.getByRole("button", { name: "Vista amplia" }).click();
+  await expect(page.locator(".product-grid")).toHaveClass(/density-wide/);
+  await page.reload();
+  await expect(page.locator(".product-grid")).toHaveClass(/density-wide/);
+});
+
+test("el modo oscuro se aplica y persiste entre recargas", async ({
+  page,
+  context,
+}) => {
+  await context.addCookies([
+    {
+      name: "mosameli_splash_seen",
+      value: "1",
+      domain: "127.0.0.1",
+      path: "/",
+    },
+  ]);
+  await page.addInitScript(() => {
+    if (!window.localStorage.getItem("mosameli-theme"))
+      window.localStorage.setItem("mosameli-theme", "light");
+  });
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Activar modo oscuro" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.getByRole("button", { name: "Activar modo claro" })).toBeVisible();
 });
 
 test("los videos del producto ofrecen controles de reproducción y velocidad", async ({

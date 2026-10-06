@@ -104,6 +104,7 @@ export function ProductCard({
       )}
 
       <div className="product-body">
+        <p className="product-category-label">{product.categoria}</p>
         {product.rating ? (
           <div
             className="product-rating"

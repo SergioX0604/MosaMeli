@@ -11,6 +11,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isAdmin } from "@/lib/roles";
 
 type SiteHeaderProps = { user: User | null };
+type Theme = "light" | "dark";
 
 const categories = [
   ["todos", "Todo el catálogo", "solid"],
@@ -35,6 +36,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [theme, setTheme] = useState<Theme>("light");
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const items = useCartStore((state) => state.items);
   const setOwner = useCartStore((state) => state.setOwner);
@@ -53,6 +55,30 @@ export function SiteHeader({ user }: SiteHeaderProps) {
   useEffect(() => {
     setOwner(user?.id ?? null);
   }, [setOwner, user?.id]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const syncTheme = () => {
+      const saved = window.localStorage.getItem("mosameli-theme");
+      const nextTheme: Theme =
+        saved === "dark" || saved === "light"
+          ? saved
+          : media.matches
+            ? "dark"
+            : "light";
+      root.dataset.theme = nextTheme;
+      setTheme(nextTheme);
+    };
+    const followSystem = (event: MediaQueryListEvent) => {
+      if (window.localStorage.getItem("mosameli-theme")) return;
+      root.dataset.theme = event.matches ? "dark" : "light";
+      syncTheme();
+    };
+    syncTheme();
+    media.addEventListener("change", followSystem);
+    return () => media.removeEventListener("change", followSystem);
+  }, []);
 
   useEffect(() => {
     // La búsqueda puede cambiar mediante el router sin remontar el header.
@@ -91,6 +117,13 @@ export function SiteHeader({ user }: SiteHeaderProps) {
     router.push(
       query ? `/?q=${encodeURIComponent(query)}#catalogo` : "/#catalogo",
     );
+  }
+
+  function toggleTheme() {
+    const nextTheme: Theme = theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = nextTheme;
+    window.localStorage.setItem("mosameli-theme", nextTheme);
+    setTheme(nextTheme);
   }
 
   return (
@@ -143,6 +176,16 @@ export function SiteHeader({ user }: SiteHeaderProps) {
           )}
 
           <div className="header-actions">
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+              aria-pressed={theme === "dark"}
+            >
+              <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+              <strong>{theme === "dark" ? "LIGHT" : "DARK"}</strong>
+            </button>
             <Link
               href="/checkout"
               className="location-pill"
@@ -260,6 +303,15 @@ export function SiteHeader({ user }: SiteHeaderProps) {
               </Link>
             )}
           </div>
+          <button
+            type="button"
+            className="mobile-theme-toggle"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+            aria-pressed={theme === "dark"}
+          >
+            <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+          </button>
           <Link
             href="/carrito"
             className="mobile-cart-button"
@@ -357,6 +409,10 @@ export function SiteHeader({ user }: SiteHeaderProps) {
           </button>
         </div>
         <nav aria-label="Menú móvil">
+          <button type="button" onClick={toggleTheme}>
+            <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+            <span>{theme === "dark" ? "Modo claro" : "Modo oscuro"}</span>
+          </button>
           <Link href="/" onClick={() => setMobileMenuOpen(false)}>
             ⌂ <span>Inicio</span>
           </Link>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ProductGallery } from "@/components/product-gallery";
 import { useCartStore } from "@/lib/cart-store";
@@ -34,6 +35,7 @@ export function ProductQuickView({
   onClose: () => void;
 }) {
   const add = useCartStore((state) => state.add);
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [feedback, setFeedback] = useState("");
   const features = useMemo(
@@ -65,6 +67,15 @@ export function ProductQuickView({
     );
     window.setTimeout(() => setFeedback(""), 1800);
   }
+
+  function buyNow() {
+    add(product, quantity);
+    onClose();
+    router.push("/checkout");
+  }
+
+  const rating = Number(product.rating ?? 0);
+  const reviewCount = Number(product.review_count ?? 0);
 
   return (
     <div
@@ -138,18 +149,20 @@ export function ProductQuickView({
             <div className="product-quick-view-actions">
               <button
                 type="button"
-                className="btn btn-primary"
+                className="btn quick-view-add-button"
                 onClick={addProduct}
                 disabled={product.stock <= 0}
               >
-                🛒 Agregar al carrito
+                🛒 Añadir al carrito
               </button>
-              <Link
-                className="btn btn-secondary"
-                href={`/producto/${product.id}`}
+              <button
+                type="button"
+                className="btn quick-view-buy-button"
+                onClick={buyNow}
+                disabled={product.stock <= 0}
               >
-                Ver todos los detalles
-              </Link>
+                ⚡ Comprar ahora
+              </button>
             </div>
             <p
               className="product-quick-view-feedback"
@@ -170,6 +183,24 @@ export function ProductQuickView({
                 <span>↶</span> Seguimiento seguro de tu pedido
               </li>
             </ul>
+
+            <section className="quick-view-reviews" aria-labelledby="quick-view-reviews-title">
+              <h3 id="quick-view-reviews-title"><span aria-hidden="true">●</span> Cuéntanos qué te pareció</h3>
+              <div className="quick-view-rating-card">
+                <strong className="quick-view-rating-score">{rating.toFixed(1)}</strong>
+                <span className="quick-view-rating-stars" aria-label={`${rating.toFixed(1)} de 5 estrellas`}>
+                  {Array.from({ length: 5 }, (_, index) => index < Math.round(rating) ? "★" : "☆").join("")}
+                </span>
+                <small>{reviewCount} {reviewCount === 1 ? "reseña" : "reseñas"}</small>
+              </div>
+              <p className="quick-view-review-empty">{reviewCount ? "Lee las opiniones y comparte tu experiencia con este producto." : "Aún no hay reseñas. ¡Sé el primero en opinar!"}</p>
+              <Link className="btn quick-view-review-button" href={`/producto/${product.id}#escribir-resena`} onClick={onClose}>
+                ✎ Escribir mi reseña
+              </Link>
+              <Link className="quick-view-detail-link" href={`/producto/${product.id}`} onClick={onClose}>
+                Ver todos los detalles del producto →
+              </Link>
+            </section>
           </div>
         </div>
       </section>

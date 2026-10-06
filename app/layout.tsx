@@ -59,7 +59,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const user = await getCurrentUser().catch(() => null);
 
   return (
-    <html lang="es" className={poppins.variable}>
+    <html lang="es" className={poppins.variable} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var saved=localStorage.getItem('mosameli-theme');var theme=saved||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=theme;}catch(e){document.documentElement.dataset.theme='light';}})();`,
+          }}
+        />
+      </head>
       <body>
         <a className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-3" href="#contenido">
           Saltar al contenido

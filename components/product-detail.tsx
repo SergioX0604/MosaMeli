@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCartStore } from "@/lib/cart-store";
 import { ProductGallery } from "@/components/product-gallery";
 import { formatMoney } from "@/lib/money";
@@ -8,6 +9,7 @@ import type { Product } from "@/lib/types";
 
 export function ProductDetail({ product }: { product: Product }) {
   const add = useCartStore((state) => state.add);
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
 
@@ -15,6 +17,11 @@ export function ProductDetail({ product }: { product: Product }) {
     add(product, quantity);
     setMessage("Producto agregado al carrito");
     window.setTimeout(() => setMessage(""), 2500);
+  }
+
+  function buyNow() {
+    add(product, quantity);
+    router.push("/checkout");
   }
 
   return (
@@ -34,9 +41,14 @@ export function ProductDetail({ product }: { product: Product }) {
           <span className="min-w-8 text-center font-black">{quantity}</span>
           <button type="button" className="btn btn-secondary min-h-10 px-3" aria-label="Aumentar cantidad" onClick={() => setQuantity((value) => Math.min(product.stock, value + 1))}>+</button>
         </div>
-        <button type="button" className="btn btn-primary w-full" onClick={addToCart} disabled={product.stock <= 0}>
-          {product.stock > 0 ? "Agregar al carrito" : "Producto agotado"}
-        </button>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button type="button" className="btn quick-view-add-button w-full" onClick={addToCart} disabled={product.stock <= 0}>
+            {product.stock > 0 ? "Añadir al carrito" : "Producto agotado"}
+          </button>
+          <button type="button" className="btn quick-view-buy-button w-full" onClick={buyNow} disabled={product.stock <= 0}>
+            ⚡ Comprar ahora
+          </button>
+        </div>
         <p className="min-h-5 text-center text-sm text-[var(--success)]" role="status" aria-live="polite">{message}</p>
         <div className="border-t border-[var(--border)] pt-4 text-sm text-[var(--muted)]">
           <p>Stock disponible: {product.stock}</p>

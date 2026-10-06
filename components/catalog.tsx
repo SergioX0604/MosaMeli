@@ -9,7 +9,8 @@ import { useCartStore } from "@/lib/cart-store";
 import { GIFT_THRESHOLD, giftProgress } from "@/lib/delivery";
 import { cartSubtotal, formatMoney } from "@/lib/money";
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 8;
+type CatalogDensity = "compact" | "wide";
 
 function normalizeCategory(value: string): string {
   return value
@@ -20,6 +21,27 @@ function normalizeCategory(value: string): string {
 
 function displayCategory(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function diversifyByCategory(products: Product[]): Product[] {
+  const groups = new Map<string, Product[]>();
+  for (const product of products) {
+    const category = normalizeCategory(product.categoria);
+    groups.set(category, [...(groups.get(category) ?? []), product]);
+  }
+  const diversified: Product[] = [];
+  let pending = true;
+  while (pending) {
+    pending = false;
+    for (const group of groups.values()) {
+      const product = group.shift();
+      if (product) {
+        diversified.push(product);
+        pending = true;
+      }
+    }
+  }
+  return diversified;
 }
 
 export function Catalog({ products }: { products: Product[] }) {
@@ -33,6 +55,7 @@ export function Catalog({ products }: { products: Product[] }) {
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
   const [sort, setSort] = useState("relevancia");
+  const [density, setDensity] = useState<CatalogDensity>("compact");
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [quickView, setQuickView] = useState<Product | null>(null);
@@ -68,6 +91,14 @@ export function Catalog({ products }: { products: Product[] }) {
     return () => document.removeEventListener("keydown", closeOnEscape);
   }, [filtersOpen]);
 
+  useEffect(() => {
+    const saved = window.localStorage.getItem("mosameli-catalog-density");
+    if (saved !== "compact" && saved !== "wide") return;
+
+    const frame = window.requestAnimationFrame(() => setDensity(saved));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     const result = products.filter((product) => {
@@ -83,6 +114,7 @@ export function Catalog({ products }: { products: Product[] }) {
       const matchesPrice = Number(product.precio) <= effectiveMaxPrice;
       return matchesQuery && matchesCategory && matchesStock && matchesPrice;
     });
+    if (sort === "relevancia") return diversifyByCategory(result);
     return result.sort((a, b) => {
       if (sort === "precio-asc") return Number(a.precio) - Number(b.precio);
       if (sort === "precio-desc") return Number(b.precio) - Number(a.precio);
@@ -124,6 +156,11 @@ export function Catalog({ products }: { products: Product[] }) {
     setMaxPrice(undefined);
     setPage(1);
     router.replace("/#catalogo");
+  }
+
+  function changeDensity(value: CatalogDensity) {
+    setDensity(value);
+    window.localStorage.setItem("mosameli-catalog-density", value);
   }
 
   return (
@@ -337,10 +374,32 @@ export function Catalog({ products }: { products: Product[] }) {
               <option value="nombre">Nombre</option>
             </select>
           </label>
+          <div className="catalog-density" role="group" aria-label="Densidad del catálogo">
+            <button
+              type="button"
+              className={density === "compact" ? "active" : ""}
+              onClick={() => changeDensity("compact")}
+              aria-pressed={density === "compact"}
+              aria-label="Vista compacta"
+              title="Vista compacta"
+            >
+              <span aria-hidden="true">▦</span>
+            </button>
+            <button
+              type="button"
+              className={density === "wide" ? "active" : ""}
+              onClick={() => changeDensity("wide")}
+              aria-pressed={density === "wide"}
+              aria-label="Vista amplia"
+              title="Vista amplia"
+            >
+              <span aria-hidden="true">▥</span>
+            </button>
+          </div>
         </div>
 
         {visibleProducts.length ? (
-          <div className="product-grid">
+          <div className={`product-grid density-${density}`}>
             {visibleProducts.map((product) => (
               <ProductCard
                 key={product.id}

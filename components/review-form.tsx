@@ -20,7 +20,7 @@ export function ReviewForm({ productId }: { productId: number }) {
   }
 
   return (
-    <form className="surface space-y-4 p-5" onSubmit={submit}>
+    <form id="escribir-resena" className="surface scroll-mt-28 space-y-4 p-5" onSubmit={submit}>
       <h2 className="text-lg font-black">Escribir reseña</h2>
       {feedback ? <p className={`alert ${feedback.type === "error" ? "alert-error" : "alert-success"}`} role="status">{feedback.text}</p> : null}
       <fieldset><legend className="form-label">Calificación</legend><div className="flex gap-1" role="radiogroup" aria-label="Calificación">
