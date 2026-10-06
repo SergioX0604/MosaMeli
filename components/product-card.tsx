@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Product } from "@/lib/types";
 import { useCartStore } from "@/lib/cart-store";
@@ -27,6 +28,7 @@ export function ProductCard({
   product: Product;
   onPreview?: () => void;
 }) {
+  const router = useRouter();
   const add = useCartStore((state) => state.add);
   const cartItems = useCartStore((state) => state.items);
   const favorite = useFavoritesStore((state) => state.ids.includes(product.id));
@@ -45,6 +47,15 @@ export function ProductCard({
     add(product);
     setMessage("Agregado");
     window.setTimeout(() => setMessage(""), 1800);
+  }
+
+  function quickBuy() {
+    if (product.stock <= 0) {
+      setMessage("Producto agotado");
+      return;
+    }
+    add(product);
+    router.push("/checkout");
   }
 
   return (
@@ -128,22 +139,30 @@ export function ProductCard({
             ) : null}
             <span className="product-price">{formatMoney(product.precio)}</span>
           </span>
+        </div>
+        <div className="product-card-actions">
           <button
             type="button"
-            className="product-cart-button"
+            className="product-quick-buy-button"
+            onClick={quickBuy}
+            disabled={product.stock <= 0}
+            aria-label={`Compra rápida de ${product.nombre}`}
+          >
+            <span aria-hidden="true">⚡</span>
+            {product.stock > 0 ? "Compra rápida" : "Agotado"}
+          </button>
+          <button
+            type="button"
+            className="product-cart-button product-cart-button-large"
             onClick={addProduct}
             disabled={product.stock <= 0}
-            aria-label={`Agregar ${product.nombre} al carrito`}
+            aria-label={`Añadir ${product.nombre} al carrito`}
             title={
-              product.stock > 0 ? "Agregar al carrito" : "Producto agotado"
+              product.stock > 0 ? "Añadir al carrito" : "Producto agotado"
             }
           >
-            <span className="desktop-cart-symbol" aria-hidden="true">
-              ＋
-            </span>
-            <span className="mobile-cart-symbol" aria-hidden="true">
-              🛒
-            </span>
+            <span aria-hidden="true">🛒</span>
+            {product.stock > 0 ? "Añadir al carrito" : "Agotado"}
           </button>
         </div>
         <p className="product-feedback" role="status" aria-live="polite">

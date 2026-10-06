@@ -183,8 +183,8 @@ export function SiteHeader({ user }: SiteHeaderProps) {
               aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
               aria-pressed={theme === "dark"}
             >
-              <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
-              <strong>{theme === "dark" ? "LIGHT" : "DARK"}</strong>
+              <span aria-hidden="true">{theme === "dark" ? "☾" : "☀"}</span>
+              <strong>{theme === "dark" ? "DARK" : "LIGHT"}</strong>
             </button>
             <Link
               href="/checkout"
@@ -310,7 +310,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
             aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
             aria-pressed={theme === "dark"}
           >
-            <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+            <span aria-hidden="true">{theme === "dark" ? "☾" : "☀"}</span>
           </button>
           <Link
             href="/carrito"
@@ -410,8 +410,8 @@ export function SiteHeader({ user }: SiteHeaderProps) {
         </div>
         <nav aria-label="Menú móvil">
           <button type="button" onClick={toggleTheme}>
-            <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
-            <span>{theme === "dark" ? "Modo claro" : "Modo oscuro"}</span>
+            <span aria-hidden="true">{theme === "dark" ? "☾" : "☀"}</span>
+            <span>{theme === "dark" ? "Modo oscuro activo" : "Modo claro activo"}</span>
           </button>
           <Link href="/" onClick={() => setMobileMenuOpen(false)}>
             ⌂ <span>Inicio</span>

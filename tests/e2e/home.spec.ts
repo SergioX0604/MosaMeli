@@ -296,6 +296,9 @@ test("el catálogo muestra ocho productos y conserva la densidad elegida", async
   await page.goto("/");
 
   await expect(page.locator(".product-card")).toHaveCount(8);
+  const firstCard = page.locator(".product-card").first();
+  await expect(firstCard.getByRole("button", { name: /Compra rápida de/i })).toBeVisible();
+  await expect(firstCard.getByRole("button", { name: /Añadir .* al carrito/i })).toBeVisible();
   await page.getByRole("button", { name: "Vista amplia" }).click();
   await expect(page.locator(".product-grid")).toHaveClass(/density-wide/);
   await page.reload();
@@ -324,7 +327,11 @@ test("el modo oscuro se aplica y persiste entre recargas", async ({
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await expect(page.getByRole("button", { name: "Activar modo claro" })).toBeVisible();
+  const themeButton = page.getByRole("button", { name: "Activar modo claro" });
+  await expect(themeButton).toBeVisible();
+  await expect(themeButton).toContainText("DARK");
+  await expect(page.locator(".catalog-hero h1")).toHaveCSS("color", "rgb(248, 250, 252)");
+  await expect(page.locator(".product-card .product-name").first()).toHaveCSS("color", "rgb(248, 250, 252)");
 });
 
 test("los videos del producto ofrecen controles de reproducción y velocidad", async ({
