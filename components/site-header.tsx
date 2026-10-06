@@ -13,18 +13,18 @@ import { isAdmin } from "@/lib/roles";
 type SiteHeaderProps = { user: User | null };
 
 const categories = [
-  ["Todo", "🛍️", "solid"],
-  ["Hogar", "🏠", "pink"],
-  ["Vestuario", "👕", "lilac"],
-  ["Juegos", "🎮", "blue"],
-  ["Electrónica", "💻", "sun"],
-  ["Mascotas", "🐾", "mint"],
-  ["Belleza", "💄", "rose"],
-  ["Deportes", "🏃", "peach"],
-  ["Cocina", "🍳", "pink"],
-  ["Herramientas", "🔧", "lilac"],
-  ["Baño", "🛁", "blue"],
-  ["Oficina", "💼", "sun"],
+  ["todos", "Todo el catálogo", "solid"],
+  ["hogar", "Hogar", "sun"],
+  ["vestuario", "Vestuario", "mint"],
+  ["juegos", "Juegos", "lilac"],
+  ["electronica", "Electrónica", "blue"],
+  ["mascotas", "Mascotas", "aqua"],
+  ["belleza", "Belleza", "rose"],
+  ["deportes", "Deportes", "peach"],
+  ["cocina", "Cocina", "coral"],
+  ["herramientas", "Herramientas", "stone"],
+  ["bano", "Baño", "cyan"],
+  ["oficina", "Oficina", "sun"],
 ] as const;
 
 export function SiteHeader({ user }: SiteHeaderProps) {
@@ -310,11 +310,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
         {isCatalog ? (
           <nav className="category-nav" aria-label="Categorías">
             <div className="category-nav-inner container-shell">
-              {categories.map(([label, icon, tone]) => {
-                const key =
-                  label === "Todo"
-                    ? "todos"
-                    : label.toLowerCase().replace("ó", "o").replace("í", "i");
+              {categories.map(([key, label, tone]) => {
                 const active = activeCategory === key;
                 return (
                   <Link
@@ -326,7 +322,12 @@ export function SiteHeader({ user }: SiteHeaderProps) {
                         : `/?categoria=${encodeURIComponent(key)}#catalogo`
                     }
                   >
-                    <span aria-hidden="true">{icon}</span>
+                    <span
+                      aria-hidden="true"
+                      className={
+                        key === "todos" ? "category-menu-icon" : "category-dot"
+                      }
+                    />
                     {label}
                   </Link>
                 );

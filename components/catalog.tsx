@@ -297,7 +297,7 @@ export function Catalog({ products }: { products: Product[] }) {
             <h2>
               {activeCategories.length
                 ? displayCategory(activeCategories[0])
-                : "Productos seleccionados"}
+                : "Colección de productos seleccionados"}
             </h2>
             <span className="catalog-count" role="status" aria-live="polite">
               {filtered.length} productos

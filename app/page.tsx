@@ -90,7 +90,7 @@ export default async function HomePage() {
         </div>
         <div className="catalog-hero-copy">
           <span className="catalog-hero-kicker">
-            ✦ Selección especial MosaMeli
+            ✦ Edición especial 2026
           </span>
           <h1 id="catalog-hero-title">
             Estilo y funcionalidad cotidiana en <em>armonía perfecta.</em>
@@ -99,12 +99,9 @@ export default async function HomePage() {
             Descubre productos pensados para hacer más cómodo tu hogar, tu
             rutina y cada compra. Entregas en Lima Este con seguimiento seguro.
           </p>
-          <a className="catalog-hero-action" href="#catalogo">
-            Explorar {products.length || "nuestros"} productos{" "}
-            <span aria-hidden="true">→</span>
-          </a>
         </div>
         <div
+          id="beneficios"
           className="catalog-hero-benefits"
           aria-label="Beneficios de compra"
         >
