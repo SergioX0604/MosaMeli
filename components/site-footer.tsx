@@ -232,7 +232,7 @@ export function SiteFooter() {
               <strong>
                 Mosa<span>Meli</span>
               </strong>
-              <small>Boutique</small>
+              <small>E Commerce</small>
             </p>
           </div>
           <p className="footer-copyright">

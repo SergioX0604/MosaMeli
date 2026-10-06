@@ -91,18 +91,33 @@ export function SplashScreen({ nextPath = "/" }: { nextPath?: string }) {
   }
 
   return (
-    <main className="fixed inset-0 z-[100] grid place-items-center overflow-hidden bg-[#1b1030] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,rgba(167,139,250,0.38),transparent_34rem),radial-gradient(circle_at_82%_78%,rgba(244,114,182,0.32),transparent_32rem)]" />
-      <div
-        className={`relative z-10 flex flex-col items-center px-6 text-center transition duration-500 ${leaving ? "scale-105 opacity-0" : "scale-100 opacity-100"}`}
-      >
-        <div className="grid h-32 w-32 place-items-center overflow-hidden rounded-[2.2rem] bg-white shadow-2xl shadow-purple-950/50">
-          <img src="/img/logo-icon.png" alt="" width={128} height={128} className="h-full w-full object-cover" />
+    <main className={`splash-screen ${leaving ? "is-leaving" : ""}`}>
+      <div className="splash-atmosphere" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <section className="splash-card" aria-labelledby="splash-title">
+        <span className="splash-eyebrow">E Commerce · Chaclacayo</span>
+        <div className="splash-logo-frame">
+          <span className="splash-logo-halo" aria-hidden="true" />
+          <img
+            src="/img/logo-icon.png"
+            alt=""
+            width={128}
+            height={128}
+            fetchPriority="high"
+          />
         </div>
-        <h1 className="mt-7 text-4xl font-extrabold tracking-tight sm:text-5xl">MosaMeli</h1>
-        <p className="mt-3 text-sm font-semibold uppercase tracking-[0.35em] text-purple-200">Tu mundo en un click</p>
+        <h1 id="splash-title"><span>Mosa</span><em>Meli</em></h1>
+        <p className="splash-tagline">Tu mundo en un click</p>
+        <p className="splash-welcome">Una selección especial para tu día a día.</p>
 
-        <div className="mt-10 flex flex-col items-center">
+        <div className="splash-loading">
+          <div className="splash-loading-copy">
+            <span>Preparando tu catálogo</span>
+            <strong>{progress}%</strong>
+          </div>
           <div
             className="splash-bar"
             role="progressbar"
@@ -113,20 +128,25 @@ export function SplashScreen({ nextPath = "/" }: { nextPath?: string }) {
           >
             <span style={{ width: `${progress}%` }} />
           </div>
-          <p className="splash-percent" aria-hidden="true">{progress}%</p>
         </div>
 
         <Link
           href={nextPath}
-          className="mt-6 rounded-full border border-white/25 px-5 py-2 text-sm font-bold text-white/80 transition hover:border-white hover:bg-white/10"
+          className="splash-skip"
+          aria-label="Saltar intro y entrar al catálogo"
           onClick={(event) => {
             event.preventDefault();
             leave();
           }}
         >
-          Saltar intro ➜
+          Entrar ahora <span aria-hidden="true">→</span>
         </Link>
-      </div>
+        <div className="splash-assurances" aria-label="Beneficios de MosaMeli">
+          <span>✦ Productos seleccionados</span>
+          <span>♢ Compra segura</span>
+          <span>⌖ Delivery en Lima Este</span>
+        </div>
+      </section>
 
       <button
         type="button"

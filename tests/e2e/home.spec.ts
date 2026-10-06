@@ -40,8 +40,12 @@ test("el splash aparece al entrar al catálogo y se puede saltar", async ({
 }) => {
   await page.goto("/");
   await expect(splashHeading(page)).toBeVisible();
+  await expect(page.locator(".splash-card")).toBeVisible();
+  await expect(page.getByText(/E Commerce · Chaclacayo/i)).toBeVisible();
+  await expect(page.getByText(/Preparando tu catálogo/i)).toBeVisible();
   await page.getByRole("link", { name: /Saltar intro/i }).click();
   await expect(catalogHeading(page)).toBeVisible();
+  await expect(page.locator(".footer-brand").getByText("E Commerce", { exact: true })).toBeVisible();
 });
 
 test("recargar el catálogo no vuelve a mostrar el splash durante 30 días", async ({
