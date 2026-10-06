@@ -145,22 +145,47 @@ test("el buscador no aparece fuera del catálogo", async ({ page }) => {
   await expect(page.locator("#header-search")).toHaveCount(0);
 });
 
-test("cada enlace del pie lleva a su propia página", async ({ page }) => {
-  const destinos: Record<string, RegExp> = {
-    "Rastrear mi pedido": /\/seguimiento$/,
-    "Preguntas Frecuentes": /\/preguntas-frecuentes$/,
-    "Términos y Condiciones": /\/terminos$/,
-    "Políticas de Privacidad": /\/privacidad$/,
+test("cada enlace informativo del pie apunta a su propia página", async ({
+  page,
+}) => {
+  await page.goto("/carrito");
+  const footer = page.getByRole("contentinfo");
+  const destinos: Record<string, string> = {
+    "Nuestra tienda": "/nosotros",
+    "Regalo sorpresa": "/regalo-sorpresa",
+    "Por qué elegirnos": "/por-que-elegirnos",
+    "Zonas de delivery": "/zonas-delivery",
+    "Cómo comprar": "/como-comprar",
+    "Rastrear mi pedido": "/rastrear-pedido",
+    "Envíos por Olva": "/envios-olva",
+    "Métodos de pago": "/metodos-pago",
+    "Tiempo de entrega": "/tiempo-entrega",
+    "Preguntas frecuentes": "/faq",
   };
 
-  for (const [nombre, url] of Object.entries(destinos)) {
-    await page.goto("/carrito");
-    await page
-      .getByRole("contentinfo")
-      .getByRole("link", { name: nombre })
-      .click();
-    await expect(page).toHaveURL(url);
+  for (const [nombre, href] of Object.entries(destinos)) {
+    await expect(
+      footer.getByRole("link", { name: nombre, exact: true }),
+    ).toHaveAttribute("href", href);
   }
+});
+
+test("el correo del footer se copia y la ubicación abre Google Maps", async ({
+  page,
+}) => {
+  await page.context().grantPermissions(["clipboard-write"]);
+  await page.goto("/carrito");
+  const footer = page.getByRole("contentinfo");
+  await expect(
+    footer.getByRole("link", { name: "mosamelicorp@gmail.com" }),
+  ).toHaveCount(0);
+  await footer.getByRole("button", { name: "mosamelicorp@gmail.com" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "Correo copiado: mosamelicorp@gmail.com",
+  );
+  await expect(
+    footer.getByRole("link", { name: /Chaclacayo, Lima/ }),
+  ).toHaveAttribute("href", /google\.com\/maps\/search/);
 });
 
 test("las preguntas frecuentes explican cómo conseguir el código y las zonas", async ({

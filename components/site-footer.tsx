@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 /* eslint-disable @next/next/no-img-element */
 
 function FooterSocialIcon({
@@ -38,6 +41,49 @@ function FooterSocialIcon({
 }
 
 export function SiteFooter() {
+  const [copyMessage, setCopyMessage] = useState("");
+  const copyTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimer.current) window.clearTimeout(copyTimer.current);
+    };
+  }, []);
+
+  async function copyEmail() {
+    const email = "mosamelicorp@gmail.com";
+    let copied = false;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(email);
+        copied = true;
+      }
+    } catch {
+      copied = false;
+    }
+    if (!copied) {
+      try {
+        const input = document.createElement("textarea");
+        input.value = email;
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.select();
+        copied = document.execCommand("copy");
+        input.remove();
+      } catch {
+        copied = false;
+      }
+    }
+    if (copied) {
+      setCopyMessage(`Correo copiado: ${email}`);
+    } else {
+      setCopyMessage(`Copia este correo: ${email}`);
+    }
+    if (copyTimer.current) window.clearTimeout(copyTimer.current);
+    copyTimer.current = window.setTimeout(() => setCopyMessage(""), 3000);
+  }
+
   return (
     <footer className="site-footer">
       <div className="footer-social-strip">
@@ -109,9 +155,9 @@ export function SiteFooter() {
                 </span>
                 <span>
                   <small>Email</small>
-                  <a href="mailto:mosamelicorp@gmail.com">
+                  <button type="button" onClick={copyEmail}>
                     mosamelicorp@gmail.com
-                  </a>
+                  </button>
                 </span>
               </li>
               <li>
@@ -120,7 +166,13 @@ export function SiteFooter() {
                 </span>
                 <span>
                   <small>Ubicación</small>
-                  <strong>Chaclacayo, Lima – Perú</strong>
+                  <a
+                    href="https://www.google.com/maps/search/?api=1&query=Chaclacayo%2C%20Lima%2C%20Per%C3%BA"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Chaclacayo, Lima – Perú
+                  </a>
                 </span>
               </li>
               <li>
@@ -138,22 +190,22 @@ export function SiteFooter() {
           <section className="footer-column" aria-labelledby="footer-nosotros">
             <h2 id="footer-nosotros">Sobre nosotros</h2>
             <nav aria-label="Sobre MosaMeli">
-              <Link href="/#catalogo">Nuestra tienda</Link>
-              <Link href="/#catalogo">Regalo sorpresa</Link>
-              <Link href="/#beneficios">Por qué elegirnos</Link>
-              <Link href="/checkout">Zonas de delivery</Link>
+              <Link href="/nosotros">Nuestra tienda</Link>
+              <Link href="/regalo-sorpresa">Regalo sorpresa</Link>
+              <Link href="/por-que-elegirnos">Por qué elegirnos</Link>
+              <Link href="/zonas-delivery">Zonas de delivery</Link>
             </nav>
           </section>
 
           <section className="footer-column" aria-labelledby="footer-ayuda">
             <h2 id="footer-ayuda">Ayuda</h2>
             <nav aria-label="Ayuda de compra">
-              <Link href="/preguntas-frecuentes">Cómo comprar</Link>
-              <Link href="/seguimiento">Rastrear mi pedido</Link>
-              <Link href="/preguntas-frecuentes">Envíos por Shalom</Link>
-              <Link href="/checkout">Métodos de pago</Link>
-              <Link href="/preguntas-frecuentes">Tiempo de entrega</Link>
-              <Link href="/preguntas-frecuentes">Preguntas frecuentes</Link>
+              <Link href="/como-comprar">Cómo comprar</Link>
+              <Link href="/rastrear-pedido">Rastrear mi pedido</Link>
+              <Link href="/envios-olva">Envíos por Olva</Link>
+              <Link href="/metodos-pago">Métodos de pago</Link>
+              <Link href="/tiempo-entrega">Tiempo de entrega</Link>
+              <Link href="/faq">Preguntas frecuentes</Link>
             </nav>
           </section>
 
@@ -202,6 +254,12 @@ export function SiteFooter() {
       >
         <FooterSocialIcon name="whatsapp" />
       </a>
+      {copyMessage ? (
+        <div className="footer-copy-toast" role="status" aria-live="polite">
+          <span aria-hidden="true">✓</span>
+          {copyMessage}
+        </div>
+      ) : null}
     </footer>
   );
 }
